@@ -3,6 +3,7 @@ import { FaAtom, FaBook, FaGlobeAmericas, FaFlask, FaHistory, FaLanguage, FaSqua
 
 const SubjectScroller = () => {
   const subjects = [
+    
     { name: 'Maths', icon: <FaSquareRootAlt className="text-blue-500" />, color: 'bg-blue-100' },
     { name: 'Anglais', icon: <FaLanguage className="text-red-500" />, color: 'bg-red-100' },
     { name: 'Physique', icon: <FaAtom className="text-purple-500" />, color: 'bg-purple-100' },
@@ -11,6 +12,7 @@ const SubjectScroller = () => {
     { name: 'Chimie', icon: <FaFlask className="text-indigo-500" />, color: 'bg-indigo-100' },
     { name: 'Science', icon: <FaAtom className="text-teal-500" />, color: 'bg-teal-100' },
     { name: 'Littérature', icon: <FaBook className="text-pink-500" />, color: 'bg-pink-100' }
+
   ];
 
   // Dupliquez les sujets pour un défilement infini

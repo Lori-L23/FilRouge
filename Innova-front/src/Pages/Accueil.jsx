@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState} from "react";
 import {
   FaSearch,
   FaStar,
@@ -22,6 +22,7 @@ import car3 from "../assets/car3.png";
 import carr1 from "../assets/carr1.png";
 import carr2 from "../assets/carr2.png";
 import carr3 from "../assets/carr3.png";
+import { Link } from "react-router-dom";
 
 const Accueil = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,7 +36,7 @@ const Accueil = () => {
       rating: 4.9,
       image: photo1,
       description:
-        "  Découvrez les mathématiques à travers des cours interactifs adaptés à votre niveau. ",
+        "  Découvrez les mathématiques à travers des cours  adaptés. ",
     },
     {
       id: 2,
@@ -54,7 +55,7 @@ const Accueil = () => {
       rating: 4.5,
       image: photo2,
       description:
-        "Améliorez votre anglais avec des cours pratiques qui renforcent votre vocabulaire, grammaire et compréhension orale.",
+        "Améliorez votre anglais avec des cours pratiques qui renforcent votre vocabulaire.",
     },
     {
       id: 4,
@@ -63,7 +64,7 @@ const Accueil = () => {
       rating: 4.3,
       image: photo4,
       description:
-        "Plongez dans l exploration des grandes questions de l existence  à travers les idées des grands maîtres.",
+        "Plongez dans l exploration des grandes questions de l existence.",
     },
   ];
 
@@ -101,9 +102,10 @@ const Accueil = () => {
     },
   ];
   return (
-    <div className="font-sans bg-gray-50">
+    <div className="font-sans ">
+      
       {/* Section Hero avec Swiper */}
-      <section className="relative">
+      <section className="relative bg-gray-50">
         <Swiper
           modules={[Autoplay, Pagination]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -154,7 +156,7 @@ const Accueil = () => {
 
         {/* Barre de recherche superposée */}
         <div className="container mx-auto px-1 transform -translate-y-1/2 relative z-20">
-          <div className="bg-white p-4 rounded-lg shadow-xl max-w-3xl mx-auto mb-16">
+          <div className="bg-white p-4 rounded-lg shadow-xl max-w-3xl mx-auto">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <input
@@ -175,12 +177,12 @@ const Accueil = () => {
       </section>
 
       {/* Composant de défilement des matières */}
-      <div>
+      <div className="bg-gray-50">
         <SubjectScroller />
       </div>
 
       {/* Section Cours populaires */}
-      <section className="container mx-auto px-4 py-16 mt-12 bg-white">
+      <section className="container mx-auto px-4 w-screen py-16 mt-12 bg-white ">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-[#0E77F3] mb-4">
             COURS POPULAIRES
@@ -222,9 +224,9 @@ const Accueil = () => {
         </div>
 
         <div className="text-center mt-12">
-          <button className="bg-[#7ED321] text-white font-medium py-3 px-8 border border-[#7ED321] rounded-lg hover:bg-white  hover:text-[#7ED321] transition-colors">
+          <Link  to="/cours" className="bg-[#7ED321] text-white font-medium py-3 px-8 border border-[#7ED321] rounded-lg hover:bg-white  hover:text-[#7ED321] transition-colors">
             Voir tous les cours
-          </button>
+          </Link>
         </div>
       </section>
 

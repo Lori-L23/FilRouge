@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaGraduationCap, FaUsers, FaLightbulb, FaHandshake } from 'react-icons/fa';
-import teamImage from '../assets/propos.png'; // Remplacez par votre image d'équipe
+import teamImage from '../assets/Team.jpg'; // Remplacez par votre image d'équipe
+import { Link } from 'react-router-dom';
 
 const Apropos = () => {
   // Données des valeurs
@@ -29,7 +30,7 @@ const Apropos = () => {
 
   // Statistiques
   const stats = [
-    { value: '10 000+', label: 'Étudiants accompagnés' },
+    { value: '10000+', label: 'Étudiants accompagnés' },
     { value: '95%', label: 'Taux de satisfaction' },
     { value: '500+', label: 'Répétiteurs qualifiés' },
     { value: '20+', label: 'Matières couvertes' }
@@ -39,7 +40,7 @@ const Apropos = () => {
     <div className="font-sans bg-white">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-32">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 text-center mt-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">Notre Mission</h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto">
             Connecter les étudiants avec des répétiteurs qualifiés pour améliorer leur apprentissage.
@@ -67,9 +68,9 @@ const Apropos = () => {
               <p className="text-lg text-gray-600 mb-6">
                 Chez InnovaLearn, nous sommes guidés par des valeurs qui nourrissent notre mission et influencent chaque aspect de notre travail.
               </p>
-              <button className="bg-[#7ED321] hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors">
+              <Link to="/equipe" className="bg-[#7ED321] hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors">
                 Rencontrer notre équipe
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -99,10 +100,10 @@ const Apropos = () => {
 
       {/* Chiffres clés */}
       <section className="py-20 bg-blue-600 text-white">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             {stats.map((stat, index) => (
-              <div key={index} className="p-6">
+              <div key={index} className="p-6 justify-items-center">
                 <p className="text-5xl font-bold mb-3">{stat.value}</p>
                 <p className="text-xl">{stat.label}</p>
               </div>
@@ -118,11 +119,12 @@ const Apropos = () => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Rejoignez notre communauté d'apprentissage et découvrez la différence InnovaLearn
           </p>
+          
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-[#7ED321] hover:text-[#7ED321] hover:bg-white hover:border font-medium py-3 px-8 rounded-lg transition-colors">
+            <button className="bg-[#7ED321] border text-white hover:text-[#7ED321] hover:bg-white hover:border-[#7ED321] font-medium py-3 px-8 rounded-lg transition-colors">
               Trouver un répétiteur
             </button>
-            <button className="bg-white text-blue-600 font-medium py-3 px-8 border-2 border-blue-600 rounded-lg hover:bg-[#7ED321] hover:border-[#7ED321]] transition-colors">
+            <button className="bg-white text-blue-600 font-medium py-3 px-8 border-2 border-blue-600 rounded-lg hover:text-white hover:bg-[#7ED321] hover:border-[#7ED321] transition-colors">
               Devenir répétiteur
             </button>
           </div>

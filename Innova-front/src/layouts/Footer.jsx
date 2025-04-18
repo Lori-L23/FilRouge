@@ -1,198 +1,113 @@
 import React from "react";
-import {
-  FaFacebook,
-  FaTwitter,
-  FaInstagram,
-  FaLinkedin,
-  FaApple,
-  FaGooglePlay,
-} from "react-icons/fa";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import logofooter from "../assets/Log.png";
 
 function Footer() {
   return (
-    <footer className="bg-[#4A90E2] text-white pt-8 pb-6 px-4 md:px-12 w-full">
-      {/* Top Section - Newsletter */}
-      <section className="flex flex-col items-center border-b border-white pb-8 mt-5">
-        <h1 className="text-1xl font-bold mb-15">
-          L'éducation réinventée pour un monde en constante évolution!
-        </h1>
+    <footer className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-full">
+      <div className="container mx-auto px-4 py-12">
+        {/* Newsletter Section */}
+        <section className="flex flex-col items-center pb-12 border-b border-white border-opacity-20">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 max-w-2xl">
+            L'éducation réinventée pour un monde en constante évolution!
+          </h2>
+          
+          <div className="flex flex-col md:flex-row gap-3 w-full max-w-2xl">
+            <input
+              type="email"
+              placeholder="Une newsletter branchée pour rester au courant ⚡"
+              className="flex-grow px-6 py-4 text-gray-800 bg-white bg-opacity-90 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder-gray-500"
+            />
+            <button className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 rounded-full transition-all flex items-center justify-center">
+              Je m'abonne <FaArrowRight className="ml-2" />
+            </button>
+          </div>
+        </section>
 
-        <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl">
-          <input
-            type="email"
-            placeholder="Une newlester branchée pour rester au courant⚡"
-            className="flex-grow px-4 py-3 text-indigo-800 border bg-white border-indigo-600 rounded-4xl focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-indigo-300"
-          />
-          <button className="text-blue-600 hover:bg-blue-600 hover:text-white  bg-white font-medium px-6 py-3 rounded-4xl transition-colors ml-2">
-            Je m’abonne
-          </button>
-        </div>
-      </section>
-
-      {/* Middle Section - Main Content */}
-      <section className="py-8 border-b border-white mt-8">
-        <div className="flex flex-col md:flex-row justify-between gap-8">
+        {/* Main Content */}
+        <section className="py-12 grid grid-cols-1 md:grid-cols-5 gap-8 border-b border-white border-opacity-20">
           {/* Brand Info */}
-          <div className="mb-6 md:mb-0">
-            <Link to="/Accueil" className="flex items-center">
-              <h1 className="text-4xl text-[#022A58] font-bold">InnovaLearn</h1>
+          <div className="md:col-span-2">
+            <Link to="/" className="flex items-center ">
+              <h1 className="text-3xl font-bold text-white">InnovaLearn</h1>
+              {/* <img src={logofooter} alt="logfooter" /> */}
             </Link>
-            <p className="text-white text-lg mt-4">
+            <p className="mt-4 text-white text-opacity-90">
               Apprenez aujourd'hui, innovez demain!
             </p>
-          </div>
-
-          {/* Social & Downloads */}
-          <div className="flex flex-col items-center md:items-end gap-6 md:gap-0 md:flex-row">
-            <div className="flex gap-4 text-xl">
-              <a href="#" className="text-white hover:text-blue-800">
+            
+            <div className="flex gap-4 mt-6 text-xl">
+              <a href="#" className="text-white hover:text-blue-300 transition-colors">
                 <FaFacebook />
               </a>
-              <a href="#" className="text-white hover:text-blue-800">
+              <a href="#" className="text-white hover:text-blue-300 transition-colors">
                 <FaTwitter />
               </a>
-              <a href="#" className="text-white hover:text-blue-800">
+              <a href="#" className="text-white hover:text-blue-300 transition-colors">
                 <FaInstagram />
               </a>
-              <a href="#" className="text-white hover:text-blue-800">
+              <a href="#" className="text-white hover:text-blue-300 transition-colors">
                 <FaLinkedin />
               </a>
             </div>
-
-            {/* <div className="flex flex-col sm:flex-row gap-4">
-              <button className="flex items-center gap-2 px-4 py-2 border border-indigo-500 rounded-lg hover:bg-indigo-800 transition-colors">
-                <FaApple className="text-xl" />
-                <span>Télécharger sur <br /> l'App Store</span>
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 border border-indigo-500 rounded-lg hover:bg-indigo-800 transition-colors">
-                <FaGooglePlay className="text-xl" />
-                <span>Disponible sur<br />  Google Play</span>
-              </button>
-            </div> */}
-          </div>
-        </div>
-      </section>
-
-      {/* Links Section */}
-      <section className="py-8 border-b border-white">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-lg font-bold text-white mb-4">Navigation</h3>
-            <ul className="space-y-2 text-white">
-              <li>
-                <a href="/Accueil" className="hover:text-blue-800">
-                  Accueil
-                </a>
-              </li>
-              <li>
-                <a href="/cours" className="hover:text-blue-800">
-                  Cours
-                </a>
-              </li>
-              <li>
-                <a href="/contact" className="hover:text-blue-800">
-                  Contact
-                </a>
-              </li>
-            </ul>
           </div>
 
-          <div>
-            <h3 className="text-lg font-bold text-white mb-4">À Propos</h3>
-            <ul className="space-y-2 text-white">
-              <li>
-                <a href="#" className="hover:text-blue-800">
-                  Qui sommes-nous?
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-800">
-                  Pourquoi Nous Choisir?
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-800">
-                  Équipe
-                </a>
-              </li>
-              {/* <li>
-                <a href="#" className="hover:text-blue-800">
-                  Carrières
-                </a>
-              </li> */}
-            </ul>
-          </div>
+          {/* Links Grid */}
+          <div className="md:col-span-3 grid grid-cols-2 lg:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-lg font-bold mb-4 text-white">Navigation</h3>
+              <ul className="space-y-3">
+                <li><Link to="/" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">Accueil</Link></li>
+                <li><Link to="/cours" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">Cours</Link></li>
+                <li><Link to="/contact" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">Contact</Link></li>
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="text-lg font-bold text-white mb-4">Ressources</h3>
-            <ul className="space-y-2 text-white">
-              <li>
-                <a href="#" className="hover:text-blue-800">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-800">
-                  Études de cas
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-800">
-                  Témoignages
-                </a>
-              </li>
-            </ul>
-          </div>
+            <div>
+              <h3 className="text-lg font-bold mb-4 text-white">À Propos</h3>
+              <ul className="space-y-3">
+                <li><Link to="/apropos" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">Qui sommes-nous?</Link></li>
+                <li><Link to="/valeurs" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">Pourquoi nous choisir?</Link></li>
+                <li><Link to="/equipe" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">Équipe</Link></li>
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="text-lg font-bold text-white mb-4">Espace Client</h3>
-            <ul className="space-y-2 text-white">
-              <li>
-                <a href="#" className="hover:text-blue-900">
-                  Parrainage
-                </a>
-              </li>
-            </ul>
+            <div>
+              <h3 className="text-lg font-bold mb-4 text-white">Ressources</h3>
+              <ul className="space-y-3">
+                <li><Link to="/blog" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">Blog</Link></li>
+                <li><Link to="/temoignages" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">Témoignages</Link></li>
+                <li><Link to="/faq" className="text-white text-opacity-80 hover:text-opacity-100 hover:text-blue-200 transition-colors">FAQ</Link></li>
+              </ul>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col items-center mt-20">
-          <h1 className="text-1xl font-bold">
-            L'éducation réinventée pour un monde en constante évolution!
-          </h1>
-        </div>
-      </section>
+        </section>
 
-      {/* Bottom Links */}
-      <section className="pt-6">
-        <div className="flex flex-wrap justify-center gap-4 text-sm text-white">
-          <a href="#" className="hover:text-white">
-            Politiques de confidentialité
-          </a>
-          <a href="#" className="hover:text-blue-800">
-            Mentions légales
-          </a>
-          <a href="#" className="hover:text-blue-800">
-            Recrutements
-          </a>
-          <a href="#" className="hover:text-blue-800">
-            Contact
-          </a>
-          <a href="#" className="hover:text-blue-800">
-            Cookies
-          </a>
-          <a href="#" className="hover:text-blue-800">
-            Crédits
-          </a>
-          <a href="#" className="hover:text-blue-800">
-            FAQ
-          </a>
-          <a href="#" className="hover:text-blue-800">
-            CGV
-          </a>
-          <span className="text-white">© 2025 InnovaLearn</span>
-        </div>
-      </section>
+        {/* Bottom Bar */}
+        <section className="pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-white text-opacity-70">
+              © {new Date().getFullYear()} InnovaLearn. Tous droits réservés.
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <Link to="/confidentialite" className="text-white text-opacity-70 hover:text-opacity-100 hover:text-blue-200 transition-colors">
+                Confidentialité
+              </Link>
+              <Link to="/mentions" className="text-white text-opacity-70 hover:text-opacity-100 hover:text-blue-200 transition-colors">
+                Mentions légales
+              </Link>
+              <Link to="/cgu" className="text-white text-opacity-70 hover:text-opacity-100 hover:text-blue-200 transition-colors">
+                CGU
+              </Link>
+              <Link to="/contact" className="text-white text-opacity-70 hover:text-opacity-100 hover:text-blue-200 transition-colors">
+                Contact
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
     </footer>
   );
 }

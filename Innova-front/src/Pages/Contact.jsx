@@ -5,7 +5,7 @@ function Contact() {
   return (
     <div className="min-h-screen bg-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
       {/* En-tête */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-12 mt-20">
         <h1 className="text-4xl font-bold text-indigo-900 mb-4">Contactez-nous</h1>
         <p className="text-xl text-indigo-700 max-w-2xl mx-auto">
           Une question ? Un problème technique ? Nous sommes là pour vous aider à connecter Votre eleve a un répétiteur.

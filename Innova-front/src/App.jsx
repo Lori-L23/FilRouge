@@ -4,13 +4,14 @@ import Login from './Auth/Login';
 import Register from './Auth/Register';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Accueil from './Pages/Accueil';
-import Navbar from './layouts/Navbar';
-import Footer from './layouts/Footer';
 import Contact from './Pages/Contact';
 import Apropos from './Pages/Apropos';
-import Cours from './Pages/Cours';
+import Ressources from './Pages/Ressources';
+import DevenirContributeur from './components/DevenirContributeur';import Cours from './Pages/Cours';
 import Profil from './Eleve/profil';
 import Profile from './Repetiteur/Profile';
+import Layout from './components/Layout';
+import TeamPage from './components/TeamPage';
 // import Reservation from './Eleve/Reservation';
 // import confirmation from './Eleve/confirmation';
 // import Recherche  from './components/Recherche';
@@ -26,17 +27,33 @@ function App() {
       
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Accueil />} />
+
+          <Route element={<Layout />}>
+            <Route path="/" element={<Accueil />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/apropos" element={<Apropos />} />
+            <Route path="/cours" element={<Cours />} />
+            <Route path="/ressources" element={<Ressources />} />
+            <Route path="/devenir-contributeur" element={<DevenirContributeur />} />
+            <Route path="/equipe" element={<TeamPage />} />
+            {/* <Route path="/temoignages" element={<Temoignages />} /> */}
+            {/* <Route path="/faq" element={<FAQ />} /> */}
+            {/* <Route path="/blog" element={<Blog />} /> */}
+            {/* <Route path="/valeurs" element={<Valeurs />} /> */}
+            
+            {/* <Route path="/rechercher" element={<Rechercher />} /> */}
+
+            <Route path="/profil" element={<Profil />} />
+            <Route path="/profile" element={<Profile />} />
+
+          </Route>
+
+
+         
           {/* <Route path="/" element={<Login />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/navbar" element={<Navbar />} />
-          <Route path="/footer" element={<Footer />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/apropos" element={<Apropos />} />
-          <Route path="/cours" element={<Cours />} />
-          <Route path="/profil" element={<Profil />} />
-          <Route path="/profile" element={<Profile />} />
+    
           {/* <Route path="/reservation" element={<Reservation />} />
           <Route path="/confirmation" element={<confirmation />} />
           <Route path="/recherche" element={<Recherche />} />

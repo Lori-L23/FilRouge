@@ -8,13 +8,13 @@ class Repetiteur extends Model
 {
     protected $fillable = [
         'user_id',
-        'niveau_scolaire',
-        'disponibilite',
+        'matieres',
+        'niveaux',
         'biographie',
+        'statut_verif',
+        'rayon_intervention',
         'photo',
-        'experience',
-        'matiere_id'
-        
+
     ];
 
     public function user()
@@ -30,5 +30,4 @@ class Repetiteur extends Model
     {
         return $this->belongsTo(Matiere::class);
     }
-
 }

@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import Api from "../Services/Api"; // Assure-toi d'utiliser Api et non axios directement
-// import axios from "axios";
+import Api from "../Services/Api";
 
 const AuthContext = createContext();
 
@@ -11,14 +10,15 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = localStorage.getItem("token"); // Même clé que login()
+        const token = localStorage.getItem("auth_token"); // Changé pour correspondre à la clé utilisée dans login
         if (token) {
           Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-          const { data } = await Api.get("/user");
+          const { data } = await Api.get("/api/user");
           setUser(data.user);
         }
       } catch (error) {
-        localStorage.removeItem("token");
+        console.error("Erreur de chargement de l'utilisateur:", error);
+        localStorage.removeItem("auth_token");
       } finally {
         setLoading(false);
       }
@@ -28,54 +28,99 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { data } = await Api.post("/login", { email, password });
-
-      localStorage.setItem("token", data.token);
-      setUser(data.user);
-
-      return { success: true };
-    } catch (error) {
-      let errorMsg = "Erreur de connexion";
-
-      if (error.response?.status === 422) {
-        errorMsg = Object.values(error.response.data.errors).flat().join("\n");
-      } else if (error.response?.data?.message) {
-        errorMsg = error.response.data.message;
+      await Api.get("/sanctum/csrf-cookie");
+      const response = await Api.post("/api/login", { email, password });
+      
+      if (response.data && response.data.token) {
+        const { user, token } = response.data;
+        localStorage.setItem('auth_token', token);
+        Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        setUser(user);
+        return { success: true, user };
       }
-
-      return { success: false, error: errorMsg };
+      throw new Error("Réponse inattendue du serveur");
+    } catch (error) {
+      console.error("Erreur de connexion:", error);
+      
+      if (error.response) {
+        if (error.response.status === 422) {
+          return { 
+            success: false, 
+            errors: error.response.data.errors 
+          };
+        }
+        return { 
+          success: false, 
+          message: error.response.data?.message || "Erreur de connexion" 
+        };
+      }
+      
+      return { 
+        success: false, 
+        message: error.message || "Erreur de connexion" 
+      };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await Api.post("/register", userData); // Utilise Api ici
-
-      // Mettre à jour l'utilisateur courant
-      setUser(response.data.user);
-
-      return { success: true };
+      await Api.get("/sanctum/csrf-cookie");
+      const response = await Api.post("/api/register", userData);
+      
+      if (response.data && response.data.token) {
+        const { user, token } = response.data;
+        localStorage.setItem("auth_token", token);
+        Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        setUser(user);
+        return { success: true, user };
+      }
+      throw new Error("Réponse inattendue du serveur");
     } catch (error) {
+      console.error("Erreur d'inscription:", error);
+      
+      if (error.response) {
+        if (error.response.status === 422) {
+          return {
+            success: false,
+            errors: error.response.data.errors || {},
+            message: error.response.data.message || "Validation error"
+          };
+        }
+        return {
+          success: false,
+          message: error.response.data?.message || "Erreur d'inscription"
+        };
+      }
+      
       return {
         success: false,
-        error: error.response?.data?.message || "Erreur d'inscription",
-        errors: error.response?.data?.errors || {},
+        message: error.message || "Erreur d'inscription"
       };
     }
   };
 
   const logout = async () => {
     try {
-      await Api.post("/auth/logout"); // Utilise Api ici
+      await Api.post("api/logout");
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error);
     } finally {
-      localStorage.removeItem("token");
+      localStorage.removeItem("auth_token");
+      delete Api.defaults.headers.common["Authorization"];
       setUser(null);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
-      {children}
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      register, 
+      logout, 
+      loading,
+      isAuthenticated: !!user
+    }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

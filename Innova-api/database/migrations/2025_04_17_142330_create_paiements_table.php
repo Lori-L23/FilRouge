@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('reservation_id')->constrained()->cascadeOnDelete();
             $table->decimal('montant', 10, 2);
-            $table->enum('methode', ['stripe', 'orange_money', 'wave']);
+            $table->enum('methode', ['stripe', 'orange_money', 'mobile money']);
             $table->enum('statut', ['pending', 'completed', 'failed', 'refunded']);
             $table->string('transaction_id');
             $table->timestamps();

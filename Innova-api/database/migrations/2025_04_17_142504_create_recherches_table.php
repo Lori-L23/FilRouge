@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('recherches', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('matiere_id');
+            // $table->unsignedBigInteger('matiere_id');
             $table->enum('niveau', ['primaire', 'college/lycee']);
             $table->integer('rayon')->comment('Rayon en kilomètres');
             $table->dateTime('disponibilite');

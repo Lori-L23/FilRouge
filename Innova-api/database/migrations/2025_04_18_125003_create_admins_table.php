@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('eleves', function (Blueprint $table) {
+        Schema::create('admins', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('niveau_scolaire', ['primaire', '6eme', '5eme', '4eme', '3eme', '2nd', '1ere', 'terminale']);
-            $table->date('date_naissance');
-
+            
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('eleves');
+        Schema::dropIfExists('admins');
     }
 };

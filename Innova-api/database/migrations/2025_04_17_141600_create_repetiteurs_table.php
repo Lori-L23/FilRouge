@@ -20,6 +20,7 @@ return new class extends Migration
             $table->enum('statut_verif', ['non_verifie', 'verifie'])->default('non_verifie'); // pour répétiteur
             $table->timestamps();
             $table->integer('rayon_intervention')->default(10); // en km
+            
 
         });
     }

@@ -24,5 +24,5 @@ class Eleve extends Model
     {
         return $this->hasMany(Reservation::class);
     }
-    
+
 }

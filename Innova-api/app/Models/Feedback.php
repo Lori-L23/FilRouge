@@ -6,5 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Feedback extends Model
 {
-    //
+    protected $fillable =[
+        'reservation_id',
+        'note', 
+        'commentaire'
+    ];
 }

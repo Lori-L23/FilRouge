@@ -17,7 +17,7 @@ const Profil = () => {
 
   const [messages, setMessages] = useState([
     { id: 1, sender: 'Prof. Dupont', content: 'Votre prochain cours est prévu pour demain à 15h', time: '10:30', unread: true },
-    { id: 2, sender: 'InnovLearn', content: 'Votre compte a été mis à jour', time: 'Hier', unread: false }
+    { id: 2, sender: 'InnovaLearn', content: 'Votre compte a été mis à jour', time: 'Hier', unread: false }
   ]);
 
   const [scheduledClasses, setScheduledClasses] = useState([
@@ -38,7 +38,7 @@ const Profil = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto mt-20">
         <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center">
           <FaUserGraduate className="mr-3 text-blue-600" />
           Mon Profil Élève

@@ -25,8 +25,10 @@ class Cours extends Model
     {
         return $this->belongsTo(Eleve::class);
     }
+
     public function matiere()
     {
         return $this->hasMany(Matiere::class);
     }
+
 }

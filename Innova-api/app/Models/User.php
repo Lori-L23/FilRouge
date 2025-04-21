@@ -23,14 +23,17 @@ class User extends Authenticatable
         'prenom',
         'email',
         'telephone',
-        'date_naissance',
         'password',
         'role',
+        'statut', //actif ou inactif. inactif par defaut pour les repetiteurs
+        'date_naissance',
         'niveau_scolaire',
         'matieres',
         'niveaux',
         'biographie',
+
     ];
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -53,7 +56,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'matieres' => 'array',
             'niveaux' => 'array',
+            'date_naissance' => 'date',
             'password' => 'hashed',
         ];
     }
+
+    public function eleve()
+{
+    return $this->hasOne(Eleve::class);
+}
+
+public function repetiteur()
+{
+    return $this->hasOne(Repetiteur::class);
+}
+
 }

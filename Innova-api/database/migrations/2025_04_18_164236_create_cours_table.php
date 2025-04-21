@@ -13,17 +13,15 @@ return new class extends Migration
     {
         Schema::create('cours', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('eleve_id')->constrained()->onDelete('cascade');
-            $table->foreignId('repetiteur_id')->constrained()->onDelete('cascade');
-            $table->foreignId('reservation_id')->constrained()->onDelete('cascade');
-            $table->foreignId('lieu_id')->constrained()->onDelete('cascade');
+            $table->foreignId('eleve_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('reservation_id')->constrained('reservations')->cascadeOnDelete();
+            $table->foreignId('lieus_id')->constrained('lieus')->cascadeOnDelete();
             $table->enum('statut', ['pending', 'confirmed', 'cancelled', 'completed']);
             $table->dateTime('date_debut');
             $table->dateTime('date_fin');
-            
-
             $table->timestamps();
         });
+
     }
 
     /**

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../contexts/AuthContext';
+
 
 function Register() {
   const [userType, setUserType] = useState("eleve");
@@ -15,6 +17,8 @@ function Register() {
   const [niveaux, setNiveaux] = useState([]);
   const [biographie, setBiographie] = useState("");
   const [tarif, setTarif] = useState("");
+  const { register } = useAuth();
+
   // Champs spécifiques aux élèves
   const [niveau_scolaire, setNiveau_scolaire] = useState("");
   
@@ -26,29 +30,49 @@ function Register() {
     e.preventDefault();
     setError(null);
     setFieldErrors({});
-    
-    // Ici vous ajouterez la logique d'envoi au backend
-    console.log({
-      userType,
+  
+    const userData = {
       nom,
       prenom,
-      email,
-      telephone,
       date_naissance,
+      telephone,
+      email,
       password,
       password_confirmation,
+      role: userType, // on envoie bien le champ `role` vers le backend
       ...(userType === "repetiteur" && {
         matieres,
         niveaux,
         biographie,
-      
       }),
       ...(userType === "eleve" && {
-        niveau_scolaire
-      })
-    });
+        niveau_scolaire,
+      }),
+    };
+    
+    try {
+      const result = await register(userData);
+  
+      if (result.success) {
+        navigate(to='/', state={IsLoggedIn:true});
+      } else {
+        setError(result.error || 'Échec de l’inscription');
+        if (result.errors) {
+          setFieldErrors(result.errors);
+        }
+      }
+    } catch (err) {
+      const responseError = err.response?.data?.errors;
+      if (responseError) {
+        setFieldErrors(responseError);
+        const firstError = Object.values(responseError)[0][0];
+        setError(firstError);
+      } else {
+        setError(err.response?.data?.message || 'Échec de l’inscription');
+      }
+    }
   };
-
+  
   const handleMatiereChange = (e) => {
     const { value, checked } = e.target;
     if (checked) {
@@ -204,9 +228,9 @@ function Register() {
               <option value="5eme">5ème</option>
               <option value="4eme">4ème</option>
               <option value="3eme">3ème</option>
-              <option value="2nde">Seconde</option>
-              <option value="1ere">Première</option>
-              <option value="terminale">Terminale</option>
+              <option value="2nde">2nde</option>
+              <option value="1ere">1ere</option>
+              <option value="terminale">Tle</option>
             </select>
           </div>
         )}

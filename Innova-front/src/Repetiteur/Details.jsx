@@ -1,9 +1,29 @@
 import e from 'express';
 import { useParams } from 'react-router-dom';
+import axios from 'axios';
 
 const Details = () => {
   const { id } = useParams();
   const tutor = tutorData.find(t => t.id === parseInt(id));
+  /**
+     * Récupère les détails du client depuis l'API
+//      */
+//   useEffect(() => {
+//     const fetchClient = async () => {
+//         try {
+//             setLoading(true);
+//             const response = await axios.get(`http://localhost:3000/repetiteur/details/${id}`);
+//             setClient(response.data);
+//         } catch (err) {
+//             setError("Erreur lors du chargement des détails du client");
+//             console.error("Erreur API:", err);
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     fetchClient();
+// }, [id]); // Dépendance à l'ID pour recharger si changement
 
   return (
     <div className="container mx-auto px-4 py-8">

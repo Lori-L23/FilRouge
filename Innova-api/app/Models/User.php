@@ -31,6 +31,8 @@ class User extends Authenticatable
         'matieres',
         'niveaux',
         'biographie',
+        'photo',
+        'tarif',
 
     ];
 

@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lieus', function (Blueprint $table) {
-            $table->id();
+        Schema::create('lieux', function (Blueprint $table) {
+            $table->id(); // Ceci crée un 'bigint unsigned' auto-incrémenté
             $table->string('nom');
             $table->text('adresse');
-            $table->point('position');
-            $table->enum('type', ['domicile_eleve', 'domicile_repetiteur', 'lieu_public']);
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->enum('type', ['domicile_eleve','domicile_repetiteur','lieu_public']);
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
-
-            $table->spatialIndex('position');
         });
     }
 
@@ -29,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('lieus');
+        Schema::dropIfExists('lieux');
     }
 };

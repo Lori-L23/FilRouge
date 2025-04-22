@@ -7,14 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class Repetiteur extends Model
 {
     protected $fillable = [
-        'user_id',
-        'matieres',
-        'niveaux',
-        'biographie',
-        'statut_verif',
-        'rayon_intervention',
-        'photo',
-
+        'user_id', 'matieres', 'niveaux', 'biographie', 
+        'statut_verif', 'rayon_intervention', 'photo'
+    ];
+    protected $casts = [
+        'matieres' => 'array'
     ];
 
     public function user()

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('eleve_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('reservation_id')->constrained('reservations')->cascadeOnDelete();
-            $table->foreignId('lieus_id')->constrained('lieus')->cascadeOnDelete();
+            $table->foreignId('lieu_id')->constrained('lieux')->cascadeOnDelete();
             $table->enum('statut', ['pending', 'confirmed', 'cancelled', 'completed']);
             $table->dateTime('date_debut');
             $table->dateTime('date_fin');

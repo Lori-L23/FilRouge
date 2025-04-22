@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import Api from "../Services/Api";
+// import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -29,44 +30,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       await Api.get("/sanctum/csrf-cookie");
+      
       const response = await Api.post("/api/login", { email, password });
-      
-      if (response.data && response.data.token) {
-        const { user, token } = response.data;
-        localStorage.setItem('auth_token', token);
-        Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        setUser(user);
-        return { success: true, user };
-      }
-      throw new Error("Réponse inattendue du serveur");
-    } catch (error) {
-      console.error("Erreur de connexion:", error);
-      
-      if (error.response) {
-        if (error.response.status === 422) {
-          return { 
-            success: false, 
-            errors: error.response.data.errors 
-          };
-        }
-        return { 
-          success: false, 
-          message: error.response.data?.message || "Erreur de connexion" 
-        };
-      }
-      
-      return { 
-        success: false, 
-        message: error.message || "Erreur de connexion" 
-      };
-    }
-  };
 
-  const register = async (userData) => {
-    try {
-      await Api.get("/sanctum/csrf-cookie");
-      const response = await Api.post("/api/register", userData);
-      
       if (response.data && response.data.token) {
         const { user, token } = response.data;
         localStorage.setItem("auth_token", token);
@@ -76,25 +42,66 @@ export const AuthProvider = ({ children }) => {
       }
       throw new Error("Réponse inattendue du serveur");
     } catch (error) {
-      console.error("Erreur d'inscription:", error);
+      console.error("Erreur de connexion:", error);
+
+      if (error.response) {
+        if (error.response.status === 422) {
+          return {
+            success: false,
+            errors: error.response.data.errors,
+          };
+        }
+        return {
+          success: false,
+          message: error.response.data?.message || "Erreur de connexion",
+        };
+      }
+
+      return {
+        success: false,
+        message: error.message || "Erreur de connexion",
+      };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      await Api.get("/sanctum/csrf-cookie");
+      console.log("Données envoyées:", JSON.stringify(userData, null, 2));
+
+      const response = await Api.post("/api/register", userData)
+      console.log('resp: ', response);
+      console.log('user: ', response.data.user);
+      console.log('token: ', response.token);
       
+      if (response.data.user && response.data.token) {
+        const { user, token } = response.data;
+        localStorage.setItem("auth_token", token);
+        Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        setUser(user);
+        return { success: true, user };
+      }
+      // throw new Error("Réponse inattendue du serveur");
+    } catch (error) {
+      console.log("Erreur d'inscription:", error);
+
       if (error.response) {
         if (error.response.status === 422) {
           return {
             success: false,
             errors: error.response.data.errors || {},
-            message: error.response.data.message || "Validation error"
+            message: error.response.data.message || "Validation error",
           };
         }
         return {
           success: false,
-          message: error.response.data?.message || "Erreur d'inscription"
+          message: error.response.data?.message || "Erreur d'inscription",
         };
       }
-      
+
       return {
         success: false,
-        message: error.message || "Erreur d'inscription"
+        message: error.message || "Erreur d'inscription",
       };
     }
   };
@@ -112,14 +119,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      login, 
-      register, 
-      logout, 
-      loading,
-      isAuthenticated: !!user
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        loading,
+        isAuthenticated: !!user,
+      }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBars,
@@ -10,15 +10,15 @@ import {
   FaCog,
 } from "react-icons/fa";
 import logo from "../assets/logo.png";
+import { useAuth } from "../contexts/AuthContext";
 
 const Navbar = () => {
   const location = useLocation();
+  
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    location.state?.isLoggedIn || false
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(location.state?.IsLoggedIn || false);
   const [userRole, setUserRole] = useState(null);
   const [hasNotifications, setHasNotifications] = useState(false);
   // declaration de la constante du popup
@@ -144,7 +144,7 @@ const Navbar = () => {
                       </NavLink>
                     ))}
                   </div>
-                  <AuthButton onClick={handleLogout}>Déconnexion</AuthButton>
+                  <AuthButton primary onClick={handleLogout}>Déconnexion</AuthButton>
                 </>
               )}
             </div>
@@ -275,12 +275,12 @@ const AuthButton = ({
   primary = false,
   onClick,
   icon,
-  className = "bg-[#7ED321]  text-white",
+  className = "",
 }) => {
   const baseClasses =
     "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center";
   const primaryClasses = "bg-[#7ED321] text-white hover:bg-[#6BBE1F]";
-  const secondaryClasses = "text-gray-700 hover:bg-[#6BBE1F]";
+  const secondaryClasses = "text-gray-700 hover:bg-[#6BBE1F] hover:text-white";
 
   return (
     <button

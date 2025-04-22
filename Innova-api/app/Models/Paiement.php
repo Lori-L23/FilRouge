@@ -13,4 +13,9 @@ class Paiement extends Model
     'methode',
     'transaction_id'
    ];
+
+   public function reservations()
+    {
+        return $this->belongsToMany(Reservation::class);
+    }
 }

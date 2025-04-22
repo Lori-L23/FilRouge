@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from '../contexts/AuthContext';
-
+import { useAuth } from "../contexts/AuthContext";
 
 function Register() {
   const [userType, setUserType] = useState("eleve");
@@ -16,12 +15,18 @@ function Register() {
   const [matieres, setMatieres] = useState([]);
   const [niveaux, setNiveaux] = useState([]);
   const [biographie, setBiographie] = useState("");
-  const [tarif, setTarif] = useState("");
   const { register } = useAuth();
+  const [rayonIntervention, setRayonIntervention] = useState(10);
+  const [photo, setPhoto] = useState(null);
+  const [tarifHoraire, setTarifHoraire] = useState(""); // Ajoutez ce state
+
+  // Convertir les tableaux en strings si nécessaire
+  const matieresString = matieres.join(",");
+  const niveauxString = niveaux.join(",");
 
   // Champs spécifiques aux élèves
   const [niveau_scolaire, setNiveau_scolaire] = useState("");
-  
+
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
@@ -30,7 +35,8 @@ function Register() {
     e.preventDefault();
     setError(null);
     setFieldErrors({});
-  
+
+    // Créez l'objet de base commun à tous les utilisateurs
     const userData = {
       nom,
       prenom,
@@ -39,46 +45,52 @@ function Register() {
       email,
       password,
       password_confirmation,
-      role: userType, // on envoie bien le champ `role` vers le backend
-      ...(userType === "repetiteur" && {
-        matieres,
-        niveaux,
-        biographie,
-      }),
-      ...(userType === "eleve" && {
-        niveau_scolaire,
-      }),
+      role: userType,
     };
-    
+
+    // Ajoutez les champs spécifiques selon le type d'utilisateur
+    if (userType === "repetiteur") {
+      userData.matieres = matieres.join(",");
+      userData.niveaux = niveaux.join(",");
+      userData.biographie = biographie;
+      userData.tarif_horaire = tarifHoraire;
+      userData.rayon_intervention = rayonIntervention;
+      // userData.photo = photo; // À décommenter quand vous gérerez les fichiers
+    } else if (userType === "eleve") {
+      userData.niveau_scolaire = niveau_scolaire;
+    }
+
     try {
       const result = await register(userData);
-  
+      console.log("res: ", result);
+
       if (result.success) {
-        navigate(to='/', state={IsLoggedIn:true});
+        navigate("/", { state: { IsLoggedIn: true } });
       } else {
-        setError(result.error || 'Échec de l’inscription');
+        console.log("No success");
+        setError(result.error || "Échec de l'inscription");
         if (result.errors) {
           setFieldErrors(result.errors);
         }
       }
     } catch (err) {
+      console.log("error founded");
       const responseError = err.response?.data?.errors;
       if (responseError) {
         setFieldErrors(responseError);
         const firstError = Object.values(responseError)[0][0];
         setError(firstError);
       } else {
-        setError(err.response?.data?.message || 'Échec de l’inscription');
+        setError(err.response?.data?.message || "Échec de l'inscription");
       }
     }
   };
-  
   const handleMatiereChange = (e) => {
     const { value, checked } = e.target;
     if (checked) {
       setMatieres([...matieres, value]);
     } else {
-      setMatieres(matieres.filter(matiere => matiere !== value));
+      setMatieres(matieres.filter((matiere) => matiere !== value));
     }
   };
 
@@ -87,7 +99,7 @@ function Register() {
     if (checked) {
       setNiveaux([...niveaux, value]);
     } else {
-      setNiveaux(niveaux.filter(niveau => niveau !== value));
+      setNiveaux(niveaux.filter((niveau) => niveau !== value));
     }
   };
 
@@ -160,7 +172,9 @@ function Register() {
               onChange={(e) => setPrenom(e.target.value)}
             />
             {fieldErrors.prenom && (
-              <p className="text-red-600 text-sm mt-1">{fieldErrors.prenom[0]}</p>
+              <p className="text-red-600 text-sm mt-1">
+                {fieldErrors.prenom[0]}
+              </p>
             )}
           </div>
         </div>
@@ -193,7 +207,9 @@ function Register() {
             onChange={(e) => setTelephone(e.target.value)}
           />
           {fieldErrors.telephone && (
-            <p className="text-red-600 text-sm mt-1">{fieldErrors.telephone[0]}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {fieldErrors.telephone[0]}
+            </p>
           )}
         </div>
 
@@ -208,7 +224,9 @@ function Register() {
             onChange={(e) => setDate_naissance(e.target.value)}
           />
           {fieldErrors.date_naissance && (
-            <p className="text-red-600 text-sm mt-1">{fieldErrors.date_naissance[0]}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {fieldErrors.date_naissance[0]}
+            </p>
           )}
         </div>
 
@@ -241,7 +259,16 @@ function Register() {
             <div className="mb-4">
               <label className="block mb-2">Matières enseignées*</label>
               <div className="grid grid-cols-2 gap-2">
-                {['Mathématiques', 'Physique', 'Chimie', 'Français', 'Anglais', 'Philosophie', 'Histoire', 'SVT'].map(matiere => (
+                {[
+                  "Mathématiques",
+                  "Physique",
+                  "Chimie",
+                  "Français",
+                  "Anglais",
+                  "Philosophie",
+                  "Histoire",
+                  "SVT",
+                ].map((matiere) => (
                   <label key={matiere} className="inline-flex items-center">
                     <input
                       type="checkbox"
@@ -255,11 +282,12 @@ function Register() {
                 ))}
               </div>
             </div>
+  
 
             <div className="mb-4">
               <label className="block mb-2">Niveaux enseignés*</label>
               <div className="grid grid-cols-2 gap-2">
-                {['Collège/Lycée', 'Primaire'].map(niveau => (
+                {["primaire", "College/lycee"].map((niveau) => (
                   <label key={niveau} className="inline-flex items-center">
                     <input
                       type="checkbox"
@@ -268,24 +296,13 @@ function Register() {
                       onChange={handleNiveauChange}
                       className="form-checkbox text-[#4A90E2]"
                     />
-                    <span className="ml-2">{niveau}</span>
+                    <span className="ml-2">
+                      {niveau === "primaire" ? "Primaire" : "Collège/Lycée"}
+                    </span>
                   </label>
                 ))}
               </div>
             </div>
-
-            {/* <div className="mb-4">
-              <label className="block mb-2">Tarif horaire (€)*</label>
-              <input
-                type="number"
-                name="tarif"
-                min="10"
-                required
-                className="w-full px-3 py-2 border rounded-md"
-                value={tarif}
-                onChange={(e) => setTarif(e.target.value)}
-              />
-            </div> */}
 
             <div className="mb-4">
               <label className="block mb-2">Biographie</label>
@@ -297,6 +314,46 @@ function Register() {
                 onChange={(e) => setBiographie(e.target.value)}
                 placeholder="Décrivez votre parcours et votre méthode d'enseignement..."
               ></textarea>
+            </div>
+
+            <div className="mb-4">
+              <label className="block mb-2">Tarif horaire (FCFA)*</label>
+              <input
+                type="number"
+                name="tarif_horaire"
+                min="1000"
+                required
+                className="w-full px-3 py-2 border rounded-md"
+                value={tarifHoraire}
+                onChange={(e) => setTarifHoraire(e.target.value)}
+              />
+              {fieldErrors.tarif_horaire && (
+                <p className="text-red-600 text-sm mt-1">
+                  {fieldErrors.tarif_horaire[0]}
+                </p>
+              )}
+            </div>
+            <div className="mb-4">
+              <label className="block mb-2">Rayon d'intervention (km)</label>
+              <input
+                type="number"
+                name="rayon_intervention"
+                min="1"
+                max="50"
+                className="w-full px-3 py-2 border rounded-md"
+                value={rayonIntervention}
+                onChange={(e) => setRayonIntervention(e.target.value)}
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block mb-2">Photo de profil</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="w-full px-3 py-2 border rounded-md"
+                onChange={(e) => setPhoto(e.target.files[0])}
+              />
             </div>
           </>
         )}
@@ -312,7 +369,9 @@ function Register() {
             onChange={(e) => setPassword(e.target.value)}
           />
           {fieldErrors.password && (
-            <p className="text-red-600 text-sm mt-1">{fieldErrors.password[0]}</p>
+            <p className="text-red-600 text-sm mt-1">
+              {fieldErrors.password[0]}
+            </p>
           )}
         </div>
 
@@ -342,7 +401,10 @@ function Register() {
       </form>
 
       <div className="mt-4 text-center">
-        <Link to="/login" className="text-indigo-600 font-medium hover:text-indigo-500">
+        <Link
+          to="/login"
+          className="text-indigo-600 font-medium hover:text-indigo-500"
+        >
           Déjà inscrit ? Connectez-vous
         </Link>
       </div>

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('paiements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('reservation_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('reservation_id')->constrained('reservations')->cascadeOnDelete();
             $table->decimal('montant', 10, 2);
             $table->enum('methode', ['stripe', 'orange_money', 'mobile money']);
             $table->enum('statut', ['pending', 'completed', 'failed', 'refunded']);

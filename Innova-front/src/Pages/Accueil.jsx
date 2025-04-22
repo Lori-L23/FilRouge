@@ -22,7 +22,7 @@ import car3 from "../assets/car3.png";
 import carr1 from "../assets/carr1.png";
 import carr2 from "../assets/carr2.png";
 import carr3 from "../assets/carr3.png";
-import { Link } from "react-router-dom";
+import { Link, Links } from "react-router-dom";
 
 const Accueil = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -334,13 +334,18 @@ const Accueil = () => {
             Rejoignez des milliers d'élèves et de professeurs qui apprennent et
             enseignent différemment
           </p>
+          
           <div className="flex flex-col sm:flex-row justify-center gap-4 text-white">
+          <Link to='/trouverprofesseur'>
             <button className="bg-[#7ED321] text-white  border-2  font-medium py-3 px-8 rounded-lg hover:bg-white hover:text-[#7ED321] transition-colors">
               Trouver un professeur
             </button>
+          </Link>
+            <Link to='/devenirprofesseur'>
             <button className="bg-white border-2  text-[#7ED321] hover:border-[#7ED321]  font-medium py-3 px-8 rounded-lg hover:bg-[#7ED321] hover:text-white transition-colors">
               Devenir répétiteur
             </button>
+            </Link>
           </div>
         </div>
       </section>

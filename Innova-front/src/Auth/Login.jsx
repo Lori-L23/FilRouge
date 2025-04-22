@@ -45,7 +45,7 @@ function Login() {
   const signInWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       setError(error.message || "Erreur lors de la connexion avec Google");
     }

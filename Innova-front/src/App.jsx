@@ -14,10 +14,11 @@ import Profile from "./Repetiteur/Profile";
 import Layout from "./components/Layout";
 import TeamPage from "./components/TeamPage";
 import { AuthProvider } from "./contexts/AuthContext"; // adapte si le dossier s'appelle "context" ou "contexts"
-
+import TrouverProfesseur from "./Pages/TrouverProfesseur";
+import DevenirProfesseur from "./Pages/DevenirProfesseur";
 // import Reservation from './Eleve/Reservation';
 // import confirmation from './Eleve/confirmation';
-// import Recherche  from './components/Recherche';
+import Recherche  from './components/Recherche';
 // import Details from './Repetiteur/Details';
 
 function App() {
@@ -37,14 +38,20 @@ function App() {
               <Route
                 path="/devenir-contributeur"
                 element={<DevenirContributeur />}
+              
               />
+              <Route path="/trouverprofesseur" element={<TrouverProfesseur />} />
+              <Route path="/devenirprofesseur" element={<DevenirProfesseur />} />
+
+              {/* <Route path="/details/:id" element={<Details />} /> */}
+
               <Route path="/equipe" element={<TeamPage />} />
               {/* <Route path="/temoignages" element={<Temoignages />} /> */}
               {/* <Route path="/faq" element={<FAQ />} /> */}
               {/* <Route path="/blog" element={<Blog />} /> */}
               {/* <Route path="/valeurs" element={<Valeurs />} /> */}
 
-              {/* <Route path="/rechercher" element={<Rechercher />} /> */}
+              <Route path="/Recherche" element={<Recherche />} />
 
               <Route path="/profil" element={<Profil />} />
               <Route path="/profile" element={<Profile />} />
@@ -57,7 +64,6 @@ function App() {
             {/* <Route path="/reservation" element={<Reservation />} />
           <Route path="/confirmation" element={<confirmation />} />
           <Route path="/recherche" element={<Recherche />} />
-          <Route path="/details/:id" element={<Details />} />
            */}
             {/* <Route path="/rechercher" element={<Rechercher />} /> */}
           </Routes>

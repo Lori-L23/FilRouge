@@ -12,7 +12,6 @@ class Lieu extends Model
         'type',
         'nom',
         'adresse',
-        'position',
 
 
     ];

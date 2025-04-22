@@ -13,19 +13,14 @@ return new class extends Migration
     {
         Schema::create('recherches', function (Blueprint $table) {
             $table->id();
-            // $table->unsignedBigInteger('matiere_id');
+            $table->foreignId('matiere_id')
+                ->constrained('matieres')
+                ->onDelete('cascade');
             $table->enum('niveau', ['primaire', 'college/lycee']);
             $table->integer('rayon')->comment('Rayon en kilomètres');
             $table->dateTime('disponibilite');
             $table->enum('tri', ['proximite', 'tarif', 'note'])->default('proximite');
             $table->timestamps();
-
-            // Clé étrangère vers la table des matières
-            $table->foreign('matiere_id')
-                  ->references('id')
-                  ->on('matieres')
-                  ->onDelete('cascade');
-     
         });
     }
 

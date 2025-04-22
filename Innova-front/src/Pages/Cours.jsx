@@ -6,6 +6,8 @@ import photo3 from '../assets/photo3.jpg';
 import photo4 from '../assets/philo.jpg';
 import photo5 from '../assets/svt.jpg';
 import photo6 from '../assets/hist.jpg';
+import { Link } from 'react-router-dom';
+import Register from '../Auth/Register';
 
 const Cours = () => {
   // Données des cours
@@ -176,9 +178,11 @@ const Cours = () => {
                   <span className="text-xl md:text-2xl font-bold text-blue-600">
                     {course.price}
                   </span>
+                  <Link to='/register'>
                   <button className="w-full sm:w-auto bg-[#7ED321] hover:bg-[#6BBE1F] text-white font-medium py-2 px-6 rounded-lg transition-colors">
                     S'inscrire
                   </button>
+                  </Link>
                 </div>
               </div>
             </div>

@@ -20,16 +20,19 @@ class AuthController extends Controller
                 'telephone' => 'required|string',
                 'password' => 'required|confirmed',
                 'role' => 'required|in:eleve,repetiteur,admin',
-                'date_naissance' => 'nullable|date',
-                'niveau_scolaire' => 'nullable|string',
-                'matieres' => 'nullable|array',
-                'matieres.*' => 'string',
-                'niveaux' => 'nullable|array',
-                'niveaux.*' => 'string',
-                'biographie' => 'nullable|string',
-                'photo' => 'nullable|image|max:2048',
+                'date_naissance' => 'date',
+                // 'niveau_scolaire' => 'nullable|string',
+                // 'matieres' => 'required|string', // Accepte une string séparée par virgules
+                // 'niveaux' => 'required|string',  // Accepte une string séparée par virgules
+                // 'tarif_horaire' => 'required|integer|min:1000',
+                // 'matieres' => 'required|array',
+                // 'matieres.*' => 'string|max:255',
+                // 'niveaux' => 'required|array',
+                // 'niveaux.*' => 'string|in:primaire,College/lycee',
+                // 'rayon_intervention' => 'integer|min:1|max:50',
+                // 'photo' => 'nullable|image|max:2048',
             ]);
-    
+
             $user = User::create([
                 'nom' => $validated['nom'],
                 'prenom' => $validated['prenom'],
@@ -39,24 +42,24 @@ class AuthController extends Controller
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
             ]);
-    
+
             $extraData = null;
-    
+
             if ($validated['role'] === 'eleve') {
                 $eleve = \App\Models\Eleve::create([
                     'user_id' => $user->id,
-                    'niveau_scolaire' => $validated['niveau_scolaire'],
-                    'date_naissance' => $request->input('date_naissance'),
+                    'niveau_scolaire' => $request->niveau_scolaire,
+                    'date_naissance' => $request->date_naissance,
                 ]);
                 $extraData = $eleve;
             }
-    
+
             if ($validated['role'] === 'repetiteur') {
                 $photoPath = null;
                 if ($request->hasFile('photo')) {
                     $photoPath = $request->file('photo')->store('repetiteurs', 'public');
                 }
-    
+
                 $repetiteur = \App\Models\Repetiteur::create([
                     'user_id' => $user->id,
                     'matieres' => json_encode($request->input('matieres', [])),
@@ -66,17 +69,18 @@ class AuthController extends Controller
                     'statut_verif' => 'non_verifie',
                     'rayon_intervention' => 10,
                     'date_naissance' => $request->input('date_naissance'),
+                    'tarif_horaire' => 'required|numeric|min:0',
+
 
                 ]);
                 $extraData = $repetiteur;
             }
-    
+
             return response()->json([
                 'user' => $user,
                 'details' => $extraData,
                 'token' => $user->createToken('auth_token')->plainTextToken
             ], 201);
-    
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Erreur de validation',
@@ -88,8 +92,12 @@ class AuthController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('profiles', 'public');
+            $validated['photo'] = $path;
+        }
     }
-    
+
     public function login(Request $request)
     {
 

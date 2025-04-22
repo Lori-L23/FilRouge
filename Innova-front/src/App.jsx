@@ -20,6 +20,8 @@ import DevenirProfesseur from "./Pages/DevenirProfesseur";
 // import confirmation from './Eleve/confirmation';
 import Recherche  from './components/Recherche';
 // import Details from './Repetiteur/Details';
+import DashboardAdmin from "./admin/DashboardAdmin";
+import FeedbackForm from "./Pages/FeedbackForm";
 
 function App() {
   return (
@@ -60,6 +62,9 @@ function App() {
             {/* <Route path="/" element={<Login />} /> */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
+            <Route path="/FeedbackForm" element={<FeedbackForm />} />
+
 
             {/* <Route path="/reservation" element={<Reservation />} />
           <Route path="/confirmation" element={<confirmation />} />

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 function DevenirProfesseur() {
   const [matieres, setMatieres] = useState([]);
@@ -11,21 +11,50 @@ function DevenirProfesseur() {
   const { currentUser, updateUserProfile } = useAuth();
 
   // Récupérer la liste des matières depuis l'API
+  //   useEffect(() => {
+  //     const fetchMatieres = async () => {
+  //       try {
+  //         // Remplacez cette URL par votre endpoint API réel
+  //         const response = await fetch('/api/matieres');
+  //         if (!response.ok) {
+  //           throw new Error('Erreur lors de la récupération des matières');
+  //         }
+  //         const data = await response.json();
+  //         setMatieres(data); // Assurez-vous que data est un tableau
+  //         setLoading(false);
+  //       } catch (err) {
+  //         setError(err.message);
+  //         setLoading(false);
+  //       }
+  //     };
+
+  //     fetchMatieres();
+  //   }, []);
+
   useEffect(() => {
     const fetchMatieres = async () => {
       try {
-        // Remplacez cette URL par votre endpoint API réel
-        const response = await fetch('/api/matieres');
-        if (!response.ok) {
-          throw new Error('Erreur lors de la récupération des matières');
-        }
+        console.log("Données reçues:", data);
+        console.log("Type de données:", typeof data);
+        console.log("Est un tableau?", Array.isArray(data));
+        const response = await fetch("/api/admin/matieres");
         const data = await response.json();
-        setMatieres(data); // Assurez-vous que data est un tableau
-        setLoading(false);
+
+        // Normalisation des données
+        let matieresList = [];
+
+        if (Array.isArray(data)) {
+          matieresList = data;
+        } else if (typeof data === "object" && data !== null) {
+          // Si les données sont un objet, convertissez-les en tableau
+          matieresList = Object.values(data);
+        }
+
+        setMatieres(matieresList);
       } catch (err) {
         setError(err.message);
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     fetchMatieres();
@@ -36,7 +65,7 @@ function DevenirProfesseur() {
     if (checked) {
       setSelectedMatieres([...selectedMatieres, value]);
     } else {
-      setSelectedMatieres(selectedMatieres.filter(m => m !== value));
+      setSelectedMatieres(selectedMatieres.filter((m) => m !== value));
     }
   };
 
@@ -44,10 +73,10 @@ function DevenirProfesseur() {
     e.preventDefault();
     try {
       await updateUserProfile({
-        role: 'professeur',
-        matieres: selectedMatieres
+        role: "professeur",
+        matieres: selectedMatieres,
       });
-      navigate('/dashboard');
+      navigate("/");
     } catch (err) {
       setError(err.message);
     }
@@ -59,11 +88,13 @@ function DevenirProfesseur() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Devenir Professeur</h1>
-      
+
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Sélectionnez vos matières</h2>
-          
+          <h2 className="text-xl font-semibold mb-4">
+            Sélectionnez vos matières
+          </h2>
+
           {/* Vérification que matieres est bien un tableau avant d'utiliser map */}
           {Array.isArray(matieres) ? (
             <div className="grid grid-cols-2 gap-4">

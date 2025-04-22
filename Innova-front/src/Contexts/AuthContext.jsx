@@ -117,6 +117,13 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
     }
   };
+  const feedback = async ()=>{
+    try{
+      await Api.post("api/admin/feedbacks");
+    }catch (error) {
+      console.error("Erreur lors du chargement des commentaires:", error);
+  }
+}
 
   return (
     <AuthContext.Provider
@@ -125,6 +132,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        feedback,
         loading,
         isAuthenticated: !!user,
       }}

@@ -13,7 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
 )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->statefulApi();
+        $middleware->alias([
+            'admin' => App\Http\Middleware\AdminMiddleware::class,
+            // 'auth' => App\Http\Middleware\Authenticate::class,
+            // 'guest' => App\Http\Middleware\RedirectIfAuthenticated::class,
+        ]);
     })
+    
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+    

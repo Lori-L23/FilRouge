@@ -1,0 +1,19 @@
+/* assets/css/admin.css */
+.site-layout .site-layout-background {
+    background: #fff;
+  }
+  
+  .logo {
+    height: 32px;
+    margin: 16px;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .ant-layout-sider-children {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .ant-menu {
+    flex: 1;
+  }

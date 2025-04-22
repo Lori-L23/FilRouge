@@ -1,28 +1,33 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Reservation extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'eleve_id',
         'repetiteur_id',
-        'lieu_id',
+        'date_reservation',
         'statut',
-        'date_debut',
     ];
 
-    public function cours()
+    public function eleve()
     {
-        return $this->hasMany(Cours::class);
+        return $this->belongsTo(Eleve::class);
     }
 
-    // Cours.php
-    public function paiements()
+    public function repetiteur()
     {
-        return $this->belongsTo(Paiement::class);
+        return $this->belongsTo(Repetiteur::class);
+    }
+
+    public function paiement()
+    {
+        return $this->hasOne(Paiement::class);
     }
 }
+

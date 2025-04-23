@@ -21,14 +21,14 @@ use App\Http\Controllers\RepetiteurController;
 */
 
 // Authentification
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // Route pour récupérer les données de base de l'utilisateur
-    Route::get('/user', function (Request $request) {
-        return response()->json(['user' => $request->user()]);
-    });
+    Route::get('/user', [AuthController::class, 'getUser'])->middleware('auth:sanctum');
+
+    
 
     // Routes spécifiques aux rôles
     Route::prefix('eleves')->group(function () {

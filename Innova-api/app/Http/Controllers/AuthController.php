@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\Eleve;
+use App\Models\Repetiteur;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+
 
 class AuthController extends Controller
 {
@@ -20,132 +23,149 @@ class AuthController extends Controller
                 'telephone' => 'required|string',
                 'password' => 'required|confirmed',
                 'role' => 'required|in:eleve,repetiteur,admin',
-                'date_naissance' => 'date',
-                // 'niveau_scolaire' => 'nullable|string',
-                // 'matieres' => 'required|string', // Accepte une string séparée par virgules
-                // 'niveaux' => 'required|string',  // Accepte une string séparée par virgules
-                // 'tarif_horaire' => 'required|integer|min:1000',
-                // 'matieres' => 'required|array',
-                // 'matieres.*' => 'string|max:255',
-                // 'niveaux' => 'required|array',
-                // 'niveaux.*' => 'string|in:primaire,College/lycee',
-                // 'rayon_intervention' => 'integer|min:1|max:50',
-                // 'photo' => 'nullable|image|max:2048',
+                'date_naissance' => 'required|date',
             ]);
 
+            // Création de l'utilisateur de base
             $user = User::create([
                 'nom' => $validated['nom'],
                 'prenom' => $validated['prenom'],
                 'email' => $validated['email'],
                 'telephone' => $validated['telephone'],
-                'date_naissance' => $request->input('date_naissance'),
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
+                'date_naissance' => $validated['date_naissance'],
+                'statut' => 'actif' // Ajout du statut par défaut
             ]);
 
-            $extraData = null;
-
+            // Création des données spécifiques au rôle
+            $profileData = null;
+            
             if ($validated['role'] === 'eleve') {
-                $eleve = \App\Models\Eleve::create([
+                $profileData = Eleve::create([
                     'user_id' => $user->id,
-                    'niveau_scolaire' => $request->niveau_scolaire,
-                    'date_naissance' => $request->date_naissance,
+                    'niveau_scolaire' => $request->input('niveau_scolaire', 'primaire'),
+                    'date_naissance' => $validated['date_naissance']
                 ]);
-                $extraData = $eleve;
-            }
+            } 
+            elseif ($validated['role'] === 'repetiteur') {
+                $photoPath = $request->hasFile('photo') 
+                    ? $request->file('photo')->store('repetiteurs', 'public') 
+                    : null;
 
-            if ($validated['role'] === 'repetiteur') {
-                $photoPath = null;
-                if ($request->hasFile('photo')) {
-                    $photoPath = $request->file('photo')->store('repetiteurs', 'public');
-                }
-
-                $repetiteur = \App\Models\Repetiteur::create([
+                $profileData = Repetiteur::create([
                     'user_id' => $user->id,
                     'matieres' => json_encode($request->input('matieres', [])),
                     'niveaux' => json_encode($request->input('niveaux', [])),
-                    'biographie' => $request->input('biographie'),
+                    'biographie' => $request->input('biographie', ''),
                     'photo' => $photoPath,
                     'statut_verif' => 'non_verifie',
-                    'rayon_intervention' => 10,
-                    'date_naissance' => $request->input('date_naissance'),
-                    'tarif_horaire' => 'required|numeric|min:0',
-
-
+                    'rayon_intervention' => $request->input('rayon_intervention', 10),
+                    'tarif_horaire' => $request->input('tarif_horaire', 0)
                 ]);
-                $extraData = $repetiteur;
             }
+
+            // Création du token d'accès
+            $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'user' => $user,
-                'details' => $extraData,
-                'token' => $user->createToken('auth_token')->plainTextToken
+                'profile' => $profileData,
+                'token' => $token
             ], 201);
+
         } catch (ValidationException $e) {
             return response()->json([
-                'message' => 'Erreur de validation',
+                'message' => 'Validation error',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Erreur lors de l\'inscription',
+                'message' => 'Server error',
                 'error' => $e->getMessage()
             ], 500);
-        }
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('profiles', 'public');
-            $validated['photo'] = $path;
         }
     }
 
     public function login(Request $request)
     {
-
         try {
-            $request->validate([
+            $credentials = $request->validate([
                 'email' => 'required|email',
-                'password' => 'required',
+                'password' => 'required|string'
             ]);
 
-            if (!Auth::attempt($request->only('email', 'password'))) {
+            // Tentative d'authentification
+            if (!Auth::attempt($credentials)) {
                 throw ValidationException::withMessages([
-                    'email' => ['Identifiants invalides'],
+                    'email' => ['Invalid credentials'],
                 ]);
             }
 
             $user = User::where('email', $request->email)->firstOrFail();
-            $user->tokens()->delete(); // Supprime les anciens tokens
+            
+            // Suppression des anciens tokens
+            $user->tokens()->delete();
+            
+            // Création d'un nouveau token
+            $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'user' => $user,
-                'token' => $user->createToken('auth_token')->plainTextToken
-            ], 200);
+                'token' => $token
+            ]);
+
         } catch (ValidationException $e) {
             return response()->json([
-                'message' => 'Erreur de validation',
+                'message' => 'Validation error',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Erreur lors de la connexion',
-                'errors' => $e->getMessage()
+                'message' => 'Login failed',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    public function user(Request $request)
+    public function getUser(Request $request)
     {
-        return response()->json([
-            'user' => $request->user(),
-            // 'permissions' => $request->user()->getAllPermissions() // Si vous utilisez des permissions
+        try {
+            $user = $request->user();
+            $profile = null;
 
-        ]);
+            // Récupération des données spécifiques au rôle
+            if ($user->role === 'eleve') {
+                $profile = Eleve::where('user_id', $user->id)->first();
+            } 
+            elseif ($user->role === 'repetiteur') {
+                $profile = Repetiteur::where('user_id', $user->id)->first();
+            }
+
+            return response()->json([
+                'user' => $user,
+                'profile' => $profile
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to get user data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        try {
+            $request->user()->currentAccessToken()->delete();
+            return response()->json(['message' => 'Logged out successfully']);
 
-        return response()->json(['message' => 'Déconnecté avec succès']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Logout failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

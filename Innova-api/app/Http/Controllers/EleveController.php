@@ -29,11 +29,13 @@ class EleveController extends Controller
     public function show($id)
     {
         // Vérifie que l'utilisateur a le droit d'accéder à ces données
-        $eleve = Eleve::with('user')->findOrFail($id);
-        
-        return response()->json([
-            'niveau_scolaire' => $eleve->niveau_scolaire,
-            // 'date_naissance' => $eleve->date_naissance,
+        $eleve = Eleve::where('user_id', $id)->firstOrFail();
+    
+    return response()->json([
+        'id' => $eleve->id,
+        'user_id' => $eleve->user_id,
+        'niveau_scolaire' => $eleve->niveau_scolaire,
+        'date_naissance' => $eleve->date_naissance,
             
         ]);
     }

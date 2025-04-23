@@ -23,6 +23,9 @@ import Recherche  from './components/Recherche';
 import DashboardAdmin from "./admin/DashboardAdmin";
 import FeedbackForm from "./Pages/FeedbackForm";
 
+import ProfileSwitcher from "./components/ProfileSwitcher";
+import Profilad from "./admin/profil";
+
 function App() {
   return (
     <div>
@@ -57,6 +60,7 @@ function App() {
 
               <Route path="/profil" element={<Profil />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/Profilad" element={<Profilad />} />
             </Route>
 
             {/* <Route path="/" element={<Login />} /> */}

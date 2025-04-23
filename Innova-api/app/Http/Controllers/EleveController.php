@@ -26,11 +26,17 @@ class EleveController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Eleve $eleve)
+    public function show($id)
     {
-        //
+        // Vérifie que l'utilisateur a le droit d'accéder à ces données
+        $eleve = Eleve::with('user')->findOrFail($id);
+        
+        return response()->json([
+            'niveau_scolaire' => $eleve->niveau_scolaire,
+            // 'date_naissance' => $eleve->date_naissance,
+            
+        ]);
     }
-
     /**
      * Update the specified resource in storage.
      */

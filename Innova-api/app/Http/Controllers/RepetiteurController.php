@@ -81,4 +81,17 @@ class RepetiteurController extends Controller
 
         return response()->json($repetiteur, 201);
     }
+
+    public function show($id)
+    {
+        $repetiteur = Repetiteur::with(['user', 'matieres'])->findOrFail($id);
+        
+        return response()->json([
+            'matieres' => $repetiteur->matieres,
+            'tarif_horaire' => $repetiteur->tarif_horaire,
+            'niveaux' => $repetiteur->niveaux,
+            'biographie' => $repetiteur->biographie,
+            'rayon_intervention' => $repetiteur->rayon_intervention,
+        ]);
+    }
 }

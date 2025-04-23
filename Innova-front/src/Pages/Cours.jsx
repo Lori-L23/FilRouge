@@ -276,10 +276,12 @@ const Cours = () => {
                   <span className="text-lg font-bold text-blue-600">
                     {course.price}
                   </span>
+                  <Link to='/details'>
                   <button className="text-blue-600 hover:text-[#7ED321] font-medium flex items-center">
                     Voir détails
                     <FaChevronRight className="ml-1" />
                   </button>
+                  </Link>
                 </div>
               </div>
             </div>

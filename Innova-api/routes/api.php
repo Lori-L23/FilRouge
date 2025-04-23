@@ -9,6 +9,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MatiereController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\EleveController;
+use App\Http\Controllers\RepetiteurController;
 
 
 
@@ -21,9 +23,29 @@ use App\Http\Controllers\FeedbackController;
 // Authentification
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Route pour récupérer les données de base de l'utilisateur
+    Route::get('/user', function (Request $request) {
+        return response()->json(['user' => $request->user()]);
+    });
+
+    // Routes spécifiques aux rôles
+    Route::prefix('eleves')->group(function () {
+        Route::get('/{id}', [EleveController::class, 'show']);
+        // Ajoutez d'autres routes élèves ici...
+    });
+
+    Route::prefix('repetiteurs')->group(function () {
+        Route::get('/{id}', [RepetiteurController::class, 'show']);
+        // Ajoutez d'autres routes répétiteurs ici...
+    });
+
+    Route::prefix('admins')->group(function () {
+        Route::get('/{id}', [AdminController::class, 'show']);
+        // Ajoutez d'autres routes admin ici...
+    });
+});
 
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');

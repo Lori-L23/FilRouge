@@ -1,147 +1,205 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import Api from "../Services/Api";
-// import axios from "axios";
 
+/**
+ * Création du contexte d'authentification
+ * Ce contexte gère l'état global d'authentification dans l'application
+ */
 const AuthContext = createContext();
 
+/**
+ * Provider d'authentification
+ * Wrap l'application pour fournir les fonctionnalités d'authentification
+ */
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // État d'authentification qui combine:
+  // - user: données basiques de l'utilisateur
+  // - profile: données spécifiques au rôle
+  // - loading: état de chargement
+  const [authState, setAuthState] = useState({
+    user: null,
+    profile: null,
+    loading: true
+  });
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const token = localStorage.getItem("auth_token"); // Changé pour correspondre à la clé utilisée dans login
-        if (token) {
-          Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-          const { data } = await Api.get("/api/user");
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.error("Erreur de chargement de l'utilisateur:", error);
-        localStorage.removeItem("auth_token");
-      } finally {
-        setLoading(false);
+  /**
+   * Charge les données de l'utilisateur authentifié
+   * Vérifie le token en localStorage et récupère les données correspondantes
+   */
+  const loadUserData = async () => {
+    try {
+      // Récupération du token depuis le stockage local
+      const token = localStorage.getItem("auth_token");
+      
+      // Si pas de token, on reset l'état
+      if (!token) {
+        setAuthState({ user: null, profile: null, loading: false });
+        return;
       }
-    };
-    loadUser();
+
+      // Configuration du header Authorization pour toutes les requêtes API
+      Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    // 1. Récupération des données de base
+    const { data: userData } = await Api.get("/api/user");
+    console.log("Réponse /api/user:", userData);
+
+    if (!userData?.user?.role) {
+      throw new Error("Données utilisateur incomplètes");
+    }
+
+    // 2. Récupération des données spécifiques
+    let profileData = null;
+    const { role, id } = userData.user;
+
+    // Gestion de tous les rôles possibles
+    if (role === 'eleve') {
+      const { data } = await Api.get(`/api/eleves/${id}`);
+      profileData = data;
+    } else if (role === 'repetiteur') {
+      const { data } = await Api.get(`/api/repetiteurs/${id}`);
+      profileData = data;
+    } else if (role === 'admin') {
+      // Pour les admins, on peut soit:
+      // a. Ne pas charger de profil spécifique
+      // b. Charger des données admin si nécessaire
+      profileData = { isAdmin: true }; // Exemple simple
+      // Ou pour récupérer des données admin:
+      // const { data } = await Api.get(`/api/admins/${id}`);
+      // profileData = data;
+    } else {
+      console.warn(`Rôle '${role}' reconnu mais non géré spécifiquement`);
+      profileData = { customRole: role };
+    }
+
+    // 3. Mise à jour de l'état
+    setAuthState({
+      user: userData.user,
+      profile: profileData,
+      loading: false
+    });
+
+  } catch (error) {
+    console.error("Erreur détaillée:", {
+      message: error.message,
+      config: error.config,
+      response: error.response?.data
+    });
+
+    // Réinitialisation sécurisée
+    if (error.response?.status === 401) {
+      logout();
+    }
+  }
+  
+}
+  // Au montage du composant, on charge les données utilisateur
+  useEffect(() => {
+    loadUserData();
   }, []);
 
+  /**
+   * Gère le processus de connexion
+   * @param {string} email - Email de l'utilisateur
+   * @param {string} password - Mot de passe
+   * @returns {Object} - { success: boolean, message?: string }
+   */
   const login = async (email, password) => {
     try {
+      // 1. On récupère le cookie CSRF pour la protection
       await Api.get("/sanctum/csrf-cookie");
       
+      // 2. Tentative de connexion
       const response = await Api.post("/api/login", { email, password });
 
-      if (response.data && response.data.token) {
-        const { user, token } = response.data;
-        localStorage.setItem("auth_token", token);
-        Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        setUser(user);
-        return { success: true, user };
+      // 3. Si le token est reçu, on le stocke et on charge les données
+      if (response.data?.token) {
+        localStorage.setItem("auth_token", response.data.token);
+        await loadUserData();
+        return { success: true };
       }
-      throw new Error("Réponse inattendue du serveur");
+      
+      throw new Error("Réponse inattendue");
     } catch (error) {
-      console.error("Erreur de connexion:", error);
-
-      if (error.response) {
-        if (error.response.status === 422) {
-          return {
-            success: false,
-            errors: error.response.data.errors,
-          };
-        }
-        return {
-          success: false,
-          message: error.response.data?.message || "Erreur de connexion",
-        };
-      }
-
-      return {
-        success: false,
-        message: error.message || "Erreur de connexion",
+      console.error("Login error:", error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || "Erreur de connexion" 
       };
     }
   };
 
+  /**
+   * Gère le processus d'inscription
+   * @param {Object} userData - Données d'inscription
+   * @returns {Object} - { success: boolean, message?: string, errors?: Object }
+   */
   const register = async (userData) => {
     try {
+      // 1. On récupère le cookie CSRF
       await Api.get("/sanctum/csrf-cookie");
-      console.log("Données envoyées:", JSON.stringify(userData, null, 2));
-
-      const response = await Api.post("/api/register", userData)
-      console.log('resp: ', response);
-      console.log('user: ', response.data.user);
-      console.log('token: ', response.token);
       
-      if (response.data.user && response.data.token) {
-        const { user, token } = response.data;
-        localStorage.setItem("auth_token", token);
-        Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        setUser(user);
-        return { success: true, user };
+      // 2. Tentative d'inscription
+      const response = await Api.post("/api/register", userData);
+      
+      // 3. Si le token est reçu, on le stocke et on charge les données
+      if (response.data?.token) {
+        localStorage.setItem("auth_token", response.data.token);
+        await loadUserData();
+        return { success: true };
       }
-      // throw new Error("Réponse inattendue du serveur");
+      
+      throw new Error("Réponse inattendue");
     } catch (error) {
-      console.log("Erreur d'inscription:", error);
-
-      if (error.response) {
-        if (error.response.status === 422) {
-          return {
-            success: false,
-            errors: error.response.data.errors || {},
-            message: error.response.data.message || "Validation error",
-          };
-        }
-        return {
-          success: false,
-          message: error.response.data?.message || "Erreur d'inscription",
-        };
-      }
-
+      console.error("Register error:", error);
       return {
         success: false,
-        message: error.message || "Erreur d'inscription",
+        message: error.response?.data?.message || "Erreur d'inscription",
+        errors: error.response?.data?.errors || {}
       };
     }
   };
 
+  /**
+   * Gère la déconnexion
+   * Nettoie le localStorage et les headers API
+   */
   const logout = async () => {
     try {
-      await Api.post("api/logout");
+      // Appel API pour invalider le token côté serveur
+      await Api.post("/api/logout");
     } catch (error) {
-      console.error("Erreur lors de la déconnexion:", error);
+      console.error("Logout error:", error);
     } finally {
+      // Nettoyage côté client quoi qu'il arrive
       localStorage.removeItem("auth_token");
       delete Api.defaults.headers.common["Authorization"];
-      setUser(null);
+      setAuthState({ user: null, profile: null, loading: false });
     }
   };
-  const feedback = async ()=>{
-    try{
-      await Api.post("api/admin/feedbacks");
-    }catch (error) {
-      console.error("Erreur lors du chargement des commentaires:", error);
-  }
-}
+
+  // Valeurs fournies par le contexte
+  const contextValue = {
+    ...authState,
+    login,
+    register,
+    logout,
+    isAuthenticated: !!authState.user, // Booléen indiquant si l'utilisateur est connecté
+    refetchUser: loadUserData // Fonction pour recharger les données utilisateur
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        register,
-        logout,
-        feedback,
-        loading,
-        isAuthenticated: !!user,
-      }}
-    >
-      {!loading && children}
+    <AuthContext.Provider value={contextValue}>
+      {/* On ne rend les enfants que quand le chargement initial est terminé */}
+      {!authState.loading && children}
     </AuthContext.Provider>
   );
 };
 
+/**
+ * Hook personnalisé pour accéder au contexte d'authentification
+ * @returns {Object} - Le contexte d'authentification
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

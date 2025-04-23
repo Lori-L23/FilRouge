@@ -1,5 +1,6 @@
 import e from 'express';
 import { useParams } from 'react-router-dom';
+
 import axios from 'axios';
 
 const Details = () => {

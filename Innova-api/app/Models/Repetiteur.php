@@ -11,7 +11,9 @@ class Repetiteur extends Model
         'statut_verif', 'rayon_intervention', 'photo'
     ];
     protected $casts = [
-        'matieres' => 'array'
+        'matieres' => 'array',
+        'niveaux' => 'array'
+
     ];
 
     public function user()

@@ -94,4 +94,20 @@ class RepetiteurController extends Controller
             'rayon_intervention' => $repetiteur->rayon_intervention,
         ]);
     }
+    public function update(Request $request, $id)
+{
+    $repetiteur = Repetiteur::where('user_id', $id)->firstOrFail();
+    
+    $validated = $request->validate([
+        'matieres' => 'required|json',
+        'niveaux' => 'required|json',
+        'tarif_horaire' => 'required|numeric',
+        'biographie' => 'required|string',
+        'rayon_intervention' => 'required|numeric'
+    ]);
+
+    $repetiteur->update($validated);
+
+    return response()->json($repetiteur);
+}
 }

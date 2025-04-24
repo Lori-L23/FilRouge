@@ -9,6 +9,7 @@ import { useAuth } from "../contexts/AuthContext";
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, profile, logout, isAuthenticated } = useAuth();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -34,17 +35,21 @@ const Navbar = () => {
 
   // Liens utilisateur
   const getUserLinks = () => {
+
     const baseLinks = [
       { 
         to: `/profil`, 
         text: "Mon Profil", 
         icon: user?.role === 'eleve' ? <FaUserGraduate /> : <FaUser /> 
       },
+      
+
       { to: "/notifications", text: "Notifications", icon: <FaBell /> },
     ];
 
+
     if (user?.role === 'repetiteur') {
-      baseLinks.push({ to: "/cours", text: "Mes Cours", icon: <FaChalkboardTeacher /> });
+      baseLinks.push({ to: "/MesCours", text: "Mes Cours", icon: <FaChalkboardTeacher /> });
     }
 
     if (user?.role === 'admin') {
@@ -134,7 +139,7 @@ const Navbar = () => {
                         {link.text}
                       </MobileNavLink>
                     ))}
-                    <MobileAuthButton className="bg-[#7ED321] text-white" onClick={() => { logout(); closeMenu(); }}>
+                    <MobileAuthButton  className="bg-[#7ED321] text-white" primary  onClick={() => { logout(); closeMenu(); }}>
                       Déconnexion
                     </MobileAuthButton>
                   </>

@@ -1,4 +1,6 @@
 import React from "react";
+import { ToastContainer } from "react-toastify";
+
 import "./App.css";
 import Login from "./Auth/Login";
 import Register from "./Auth/Register";
@@ -18,67 +20,76 @@ import TrouverProfesseur from "./Pages/TrouverProfesseur";
 import DevenirProfesseur from "./Pages/DevenirProfesseur";
 // import Reservation from './Eleve/Reservation';
 // import confirmation from './Eleve/confirmation';
-import Recherche  from './components/Recherche';
+import Recherche from "./components/Recherche";
 // import Details from './Repetiteur/Details';
 import DashboardAdmin from "./admin/DashboardAdmin";
 import FeedbackForm from "./Pages/FeedbackForm";
-
+import MesCours from "./components/MesCours";
 import ProfileSwitcher from "./components/ProfileSwitcher";
 import Profilad from "./admin/profil";
 
 function App() {
   return (
-    <div>
-      {/* <h1>Innova</h1>
+    <>
+      <div>
+        {/* <h1>Innova</h1>
       <p>Bienvenue sur notre application !</p> */}
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<Accueil />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/apropos" element={<Apropos />} />
-              <Route path="/cours" element={<Cours />} />
-              <Route path="/ressources" element={<Ressources />} />
-              <Route
-                path="/devenir-contributeur"
-                element={<DevenirContributeur />}
-              
-              />
-              <Route path="/trouverprofesseur" element={<TrouverProfesseur />} />
-              <Route path="/devenirprofesseur" element={<DevenirProfesseur />} />
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/" element={<Accueil />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/apropos" element={<Apropos />} />
+                <Route path="/cours" element={<Cours />} />
+                <Route path="/ressources" element={<Ressources />} />
+                <Route
+                  path="/devenir-contributeur"
+                  element={<DevenirContributeur />}
+                />
+                <Route
+                  path="/trouverprofesseur"
+                  element={<TrouverProfesseur />}
+                />
+                <Route
+                  path="/devenirprofesseur"
+                  element={<DevenirProfesseur />}
+                />
 
-              {/* <Route path="/details/:id" element={<Details />} /> */}
+                {/* <Route path="/details/:id" element={<Details />} /> */}
 
-              <Route path="/equipe" element={<TeamPage />} />
-              {/* <Route path="/temoignages" element={<Temoignages />} /> */}
-              {/* <Route path="/faq" element={<FAQ />} /> */}
-              {/* <Route path="/blog" element={<Blog />} /> */}
-              {/* <Route path="/valeurs" element={<Valeurs />} /> */}
+                <Route path="/equipe" element={<TeamPage />} />
+                {/* <Route path="/temoignages" element={<Temoignages />} /> */}
+                {/* <Route path="/faq" element={<FAQ />} /> */}
+                {/* <Route path="/blog" element={<Blog />} /> */}
+                {/* <Route path="/valeurs" element={<Valeurs />} /> */}
 
-              <Route path="/Recherche" element={<Recherche />} />
+                <Route path="/Recherche" element={<Recherche />} />
 
-              <Route path="/profil" element={<Profil />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/Profilad" element={<Profilad />} />
-            </Route>
+                <Route path="/profil" element={<Profil />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/Profilad" element={<Profilad />} />
+                <Route path="/MesCours" element={<MesCours />} />
+                <Route path="/ProfileSwitcher" element={<ProfileSwitcher />} />
+              </Route>
 
-            {/* <Route path="/" element={<Login />} /> */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
-            <Route path="/FeedbackForm" element={<FeedbackForm />} />
+              {/* <Route path="/" element={<Login />} /> */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
+              <Route path="/FeedbackForm" element={<FeedbackForm />} />
 
-
-            {/* <Route path="/reservation" element={<Reservation />} />
+              {/* <Route path="/reservation" element={<Reservation />} />
           <Route path="/confirmation" element={<confirmation />} />
           <Route path="/recherche" element={<Recherche />} />
-           */}
-            {/* <Route path="/rechercher" element={<Rechercher />} /> */}
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </div>
+          */}
+              {/* <Route path="/rechercher" element={<Rechercher />} /> */}
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </div>
+      <ToastContainer />
+    </>
   );
 }
 

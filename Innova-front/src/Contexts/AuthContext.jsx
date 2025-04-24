@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import Api from "../Services/Api";
+import axios from "axios";
 
 /**
  * Création du contexte d'authentification
@@ -19,15 +20,36 @@ export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
     user: null,
     profile: null,
+    profileType: null,
     loading: true,
+    error: null
+
   });
 
   /**
    * Charge les données de l'utilisateur authentifié
    * Vérifie le token en localStorage et récupère les données correspondantes
    */
-  const loadUserData = async () => {
+
+  
+  const loadUserData = async () => {    
     try {
+      //appel de l aoi du login
+      // await Api.post("/api/login", { email, password });
+
+      // Récupération des données combinées
+      const { data } = await Api.get('/api/user-with-profile')
+
+    //appel du cookie de sanctum
+    //   await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
+    //     withCredentials: true
+    // });
+
+    
+      // Vérification des données
+      if (!data.user || !data.profile_type) {
+        throw new Error("Données utilisateur incomplètes");
+      }
       // Récupération du token depuis le stockage local
       const token = localStorage.getItem("auth_token");
 
@@ -42,7 +64,6 @@ export const AuthProvider = ({ children }) => {
 
       // 1. Récupération des données de base
       const { data: userData } = await Api.get("/api/user");
-      console.log("Réponse /api/user:", userData);
 
       if (!userData?.user?.role) {
         throw new Error("Données utilisateur incomplètes");
@@ -60,6 +81,7 @@ export const AuthProvider = ({ children }) => {
         const { data } = await Api.get(`/api/repetiteurs/${id}`);
         profileData = data;
       } else if (role === "admin") {
+        
         // Pour les admins, on peut soit:
         // a. Ne pas charger de profil spécifique
         // b. Charger des données admin si nécessaire
@@ -75,7 +97,8 @@ export const AuthProvider = ({ children }) => {
       // 3. Mise à jour de l'état
       setAuthState({
         user: userData.user,
-        profile: profileData,
+        profile: data.profile,
+        profileType: data.profile_type,
         loading: false,
       });
     } catch (error) {
@@ -109,7 +132,7 @@ export const AuthProvider = ({ children }) => {
 
       // 2. Tentative de connexion
       const response = await Api.post("/api/login", { email, password });
-
+      
       // 3. Si le token est reçu, on le stocke et on charge les données
       if (response.data?.token) {
         localStorage.setItem("auth_token", response.data.token);
@@ -139,9 +162,9 @@ export const AuthProvider = ({ children }) => {
 
       // 2. Tentative d'inscription
       const response = await Api.post("/api/register", userData);
-
+      
       // 3. Si le token est reçu, on le stocke et on charge les données
-      if (response.data?.token) {
+      if (response.data?.token) {        
         localStorage.setItem("auth_token", response.data.token);
         await loadUserData();
         return { success: true };
@@ -162,19 +185,30 @@ export const AuthProvider = ({ children }) => {
    * Gère la déconnexion
    * Nettoie le localStorage et les headers API
    */
-  const logout = async () => {
-    try {
-      // Appel API pour invalider le token côté serveur
-      await Api.post("/api/logout");
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Nettoyage côté client quoi qu'il arrive
-      localStorage.removeItem("auth_token");
-      delete Api.defaults.headers.common["Authorization"];
-      setAuthState({ user: null, profile: null, loading: false });
-    }
-  };
+  const logout =  useCallback(() => {
+    console.log("logout Déclenché");
+    
+    // Nettoyage côté client quoi qu'il arrive
+    localStorage.removeItem("auth_token");
+    delete Api.defaults.headers.common["Authorization"];
+
+    setAuthState({ 
+      user: null, 
+      profile: null,
+      profileType: null, 
+      loading: false,
+      error: null
+    });
+
+
+    // try {
+    //   // Appel API pour invalider le token côté serveur
+    //   await Api.post("/api/logout");
+    // } catch (error) {
+    //   console.error("Logout error:", error);
+    // } finally {
+    // }
+  }, []);
 
   // Valeurs fournies par le contexte
   const contextValue = {

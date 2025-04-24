@@ -1,34 +1,29 @@
 <?php
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Cours extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
+        'titre',
+        'description',
+        'matiere_id',
         'repetiteur_id',
-        'eleve_id',
-        'date_cours',
-        'heure_debut',
-        'heure_fin',
-        'lieu_cours',
-       
+        'niveau_scolaire',
+        'tarif_horaire',
     ];
+
+    public function matiere()
+    {
+        return $this->belongsTo(Matiere::class);
+    }
 
     public function repetiteur()
     {
         return $this->belongsTo(Repetiteur::class);
     }
-
-    public function eleve()
-    {
-        return $this->belongsTo(Eleve::class);
-    }
-
-    public function matiere()
-    {
-        return $this->hasMany(Matiere::class);
-    }
-
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Reservation;
+use App\Models\Cours;
 use App\Models\Paiement;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -59,5 +60,20 @@ class AdminController extends Controller
         ];
     }
 
-    // ... autres méthodes (reports, etc.)
+    public function stats()
+{
+    return response()->json([
+        'eleves' => User::where('role', 'eleve')->count(),
+        'repetiteurs' => User::where('role', 'repetiteur')->count(),
+        'cours' => Cours::count(),
+        'paiements' => Paiement::count()
+    ]);
+}
+
+public function recentUsers()
+{
+    return User::orderBy('created_at', 'desc')
+               ->limit(10)
+               ->get(['id', 'nom', 'prenom', 'email', 'telephone', 'role', 'created_at']);
+}
 }

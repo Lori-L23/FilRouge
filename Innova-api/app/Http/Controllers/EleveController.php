@@ -42,10 +42,20 @@ class EleveController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Eleve $eleve)
-    {
-        //
-    }
+    // App/Http/Controllers/EleveController.php
+public function update(Request $request, $id)
+{
+    $eleve = Eleve::where('user_id', $id)->firstOrFail();
+    
+    $validated = $request->validate([
+        'niveau_scolaire' => 'required|string',
+        'objectif' => 'nullable|string'
+    ]);
+
+    $eleve->update($validated);
+
+    return response()->json($eleve);
+}
 
     /**
      * Remove the specified resource from storage.

@@ -17,8 +17,8 @@ export default function TrouverProfesseur() {
     const fetchData = async () => {
       try {
         const [repResponse, matieresResponse] = await Promise.all([
-          axios.get('/api/repetiteurs'),
-          axios.get('/api/matieres')
+          Api.get('/api/repetiteurs'),
+          Api.get('/api/matieres')
         ]);
         
         setRepetiteurs(repResponse.data);
@@ -36,7 +36,7 @@ export default function TrouverProfesseur() {
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/api/repetiteurs/search', {
+      const response = await Api.get('/api/repetiteurs/search', {
         params: filters
       });
       setRepetiteurs(response.data);

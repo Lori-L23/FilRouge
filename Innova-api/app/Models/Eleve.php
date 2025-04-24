@@ -10,6 +10,8 @@ class Eleve extends Model
         'user_id',
         'niveau_scolaire',
         'date_naissance',
+        'objectif',
+
     ];
 
     public function user()

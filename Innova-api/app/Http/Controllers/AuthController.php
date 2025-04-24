@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Eleve;
 use App\Models\Repetiteur;
+use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -101,6 +102,8 @@ class AuthController extends Controller
                     'email' => ['Invalid credentials'],
                 ]);
             }
+            // return response()->json(['message' => 'Unauthorized'], 401);
+
 
             $user = User::where('email', $request->email)->firstOrFail();
             
@@ -154,7 +157,8 @@ class AuthController extends Controller
             ], 500);
         }
     }
-
+    
+    //fonction de deconnexion
     public function logout(Request $request)
     {
         try {
@@ -168,4 +172,32 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    public function getUserWithProfile(Request $request)
+{
+    $user = $request->user();
+    $profile = null;
+    $profileType = null;
+
+    switch ($user->role) {
+        case 'eleve':
+            $profile = Eleve::where('user_id', $user->id)->first();
+            $profileType = 'eleve';
+            break;
+        case 'repetiteur':
+            $profile = Repetiteur::where('user_id', $user->id)->first();
+            $profileType = 'repetiteur';
+            break;
+        case 'admin':
+            $profile = Admin::where('user_id', $user->id)->first();
+            $profileType = 'admin';
+            break;
+    }
+
+    return response()->json([
+        'user' => $user,
+        'profile' => $profile,
+        'profile_type' => $profileType
+    ]);
+}
 }

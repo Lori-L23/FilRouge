@@ -21,12 +21,13 @@ import DevenirProfesseur from "./Pages/DevenirProfesseur";
 // import Reservation from './Eleve/Reservation';
 // import confirmation from './Eleve/confirmation';
 import Recherche from "./components/Recherche";
-// import Details from './Repetiteur/Details';
+import Details from './Repetiteur/Details';
 import DashboardAdmin from "./admin/DashboardAdmin";
 import FeedbackForm from "./Pages/FeedbackForm";
 import MesCours from "./components/MesCours";
 import ProfileSwitcher from "./components/ProfileSwitcher";
 import Profilad from "./admin/profil";
+
 
 function App() {
   return (
@@ -56,7 +57,7 @@ function App() {
                   element={<DevenirProfesseur />}
                 />
 
-                {/* <Route path="/details/:id" element={<Details />} /> */}
+                <Route path="/repetiteurs/:id" element={<Details />} />
 
                 <Route path="/equipe" element={<TeamPage />} />
                 {/* <Route path="/temoignages" element={<Temoignages />} /> */}

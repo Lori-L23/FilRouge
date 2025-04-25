@@ -3,47 +3,106 @@
 namespace App\Http\Controllers;
 
 use App\Models\Matiere;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; 
+use Illuminate\Support\Facades\Log; 
+
 
 class MatiereController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Récupère toutes les matières avec leurs statistiques
      */
     public function index()
     {
-        return response()->json(Matiere::all());
+        try {
+            $matieres = Matiere::withCount(['cours as professeurs_count' => function($query) {
+                $query->select(DB::raw('count(distinct repetiteur_id)'));
+            }])
+            ->orderBy('nom')
+            ->get();
+
+            return response()->json([
+                'success' => true,
+                'matieres' => $matieres
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des matières',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Recherche de professeurs avec filtres
      */
-    public function store(Request $request)
+    public function searchRep(Request $request)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Matiere $matiere)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Matiere $matiere)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Matiere $matiere)
-    {
-        //
+        try {
+            // Validation des paramètres
+            $validated = $request->validate([
+                'matiere_id' => 'nullable|integer|exists:matieres,id',
+                'niveau' => 'nullable|in:primaire,college/lycee',
+                'search' => 'nullable|string|max:255',
+                'page' => 'nullable|integer|min:1'
+            ]);
+    
+            // Construction de la requête
+            $query = User::with(['repetiteur.cours.matiere'])
+                ->where('role', 'repetiteur')
+                ->where('statut', 'actif');
+    
+            // Filtre par matière
+            if ($request->matiere_id) {
+                $query->whereHas('repetiteur.cours', function($q) use ($request) {
+                    $q->where('matiere_id', $request->matiere_id);
+                });
+            }
+    
+            // Filtre par niveau
+            if ($request->niveau) {
+                $query->whereHas('repetiteur.cours', function($q) use ($request) {
+                    $q->where('niveau_scolaire', $request->niveau);
+                });
+            }
+    
+            // Filtre par recherche texte
+            if ($request->search) {
+                $search = '%'.$request->search.'%';
+                $query->where(function($q) use ($search) {
+                    $q->where('nom', 'like', $search)
+                      ->orWhere('prenom', 'like', $search)
+                      ->orWhereHas('repetiteur.cours.matiere', function($q) use ($search) {
+                          $q->where('nom', 'like', $search);
+                      });
+                });
+            }
+    
+            // Pagination
+            $professeurs = $query->paginate(10, ['*'], 'page', $request->page ?? 1);
+    
+            return response()->json([
+                'success' => true,
+                'data' => $professeurs->items(),
+                'pagination' => [
+                    'current_page' => $professeurs->currentPage(),
+                    'total' => $professeurs->total(),
+                    'per_page' => $professeurs->perPage(),
+                    'last_page' => $professeurs->lastPage()
+                ]
+            ]);
+    
+        } catch (\Exception $e) {
+            Log::error('Erreur recherche professeurs: '.$e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la recherche',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

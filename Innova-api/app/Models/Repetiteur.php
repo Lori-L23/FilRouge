@@ -27,6 +27,6 @@ class Repetiteur extends Model
     }
     public function matieres()
     {
-        return $this->belongsTo(Matiere::class);
+        return $this->belongsToMany(Matiere::class, 'repetiteur_matiere', 'repetiteur_id', 'matiere_id');
     }
 }

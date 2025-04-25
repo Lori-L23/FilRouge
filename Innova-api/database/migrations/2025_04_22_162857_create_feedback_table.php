@@ -17,7 +17,6 @@ return new class extends Migration
             $table->unsignedBigInteger('repetiteur_id'); // Le répétiteur concerné
             $table->tinyInteger('note')->unsigned(); // Note sur 5
             $table->text('commentaire')->nullable();
-            $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('repetiteur_id')->references('id')->on('repetiteurs')->onDelete('cascade');

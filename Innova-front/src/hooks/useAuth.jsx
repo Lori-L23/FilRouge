@@ -10,7 +10,7 @@ export function useAuth() {
       try {
         const res = await axios.get('/api/user', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`
           }
         });
         setUser(res.data);

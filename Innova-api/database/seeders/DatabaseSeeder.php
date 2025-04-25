@@ -27,5 +27,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(MatieresTableSeeder::class);
+        $this->call(CategoriesTableSeeder::class);
+
+        
     }
 }

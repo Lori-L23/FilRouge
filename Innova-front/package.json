@@ -17,6 +17,7 @@
     "antd": "^5.24.8",
     "axios": "^1.8.4",
     "firebase": "^11.6.0",
+    "lucide-react": "^0.503.0",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -14,14 +14,15 @@ return new class extends Migration
         Schema::disableForeignKeyConstraints();
 
         Schema::table('paiements', function (Blueprint $table) {
-            $table->dropForeign(['reservation_id']);
+            // $table->dropForeign(['reservation_id']);
         });
     
         Schema::table('paiements', function (Blueprint $table) {
-            $table->foreign('reservation_id')
-                  ->references('id')
-                  ->on('reservations')
-                  ->onDelete('cascade');
+            // $table->foreign('reservation_id')
+            //       ->references('id')
+            //       ->on('reservations')
+            //       ->onDelete('cascade');
+
         });
     
         Schema::enableForeignKeyConstraints();

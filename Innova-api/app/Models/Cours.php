@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Cours extends Model
 {
     use HasFactory;
@@ -26,4 +27,8 @@ class Cours extends Model
     {
         return $this->belongsTo(Repetiteur::class);
     }
+    public function categories()
+{
+    return $this->belongsToMany(Category::class, 'course_category');
+}
 }

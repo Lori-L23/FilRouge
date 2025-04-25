@@ -90,7 +90,7 @@ function DevenirProfesseur() {
       <h1 className="text-2xl font-bold mb-6">Devenir Professeur</h1>
 
       <form onSubmit={handleSubmit}>
-        <div className="mb-6">
+        <div className="mb-6 mt-40">
           <h2 className="text-xl font-semibold mb-4">
             Sélectionnez vos matières
           </h2>

@@ -1,31 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-
+import Api from '../Services/Api';
 const ListeFeedbacks = ({ repetiteurId }) => {
+  // État pour stocker les feedbacks
   const [feedbacks, setFeedbacks] = useState([]);
+  // État pour gérer le chargement
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Fonction pour récupérer les feedbacks du répétiteur via l'API
     const fetchFeedbacks = async () => {
       try {
-        const response = await axios.get(`/api/feedbacks?repetiteur_id=${repetiteurId}`);
-        setFeedbacks(response.data);
+        const response = await Api.get(`/api/admin/feedbacks?repetiteur_id=${repetiteurId}`);
+
+        // Vérifie que la réponse est bien un tableau
+        const data = Array.isArray(response.data) ? response.data : [];
+        setFeedbacks(data);
       } catch (error) {
         console.error('Erreur lors du chargement des feedbacks:', error);
+        setFeedbacks([]); // Valeur de secours
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFeedbacks();
+    // Lance la récupération au montage ou si repetiteurId change
+    if (repetiteurId) {
+      fetchFeedbacks();
+    }
   }, [repetiteurId]);
 
+  // Affichage en cours de chargement
   if (loading) {
-    return <p className="text-center">Chargement des avis...</p>;
+    return <p className="text-center text-gray-500">Chargement des avis...</p>;
   }
 
-  if (feedbacks.length === 0) {
-    return <p className="text-center">Aucun avis pour ce répétiteur pour le moment.</p>;
+  // Aucun avis
+  if (!Array.isArray(feedbacks) || feedbacks.length === 0) {
+    return <p className="text-center text-gray-500">Aucun avis pour ce répétiteur pour le moment.</p>;
   }
 
   return (
@@ -34,9 +45,14 @@ const ListeFeedbacks = ({ repetiteurId }) => {
       {feedbacks.map((fb) => (
         <div key={fb.id} className="border p-4 rounded-lg shadow-sm bg-white">
           <div className="flex items-center justify-between">
+            {/* Étoiles de notation */}
             <span className="font-bold text-yellow-500">{'★'.repeat(fb.note)}</span>
-            <span className="text-sm text-gray-500">{new Date(fb.created_at).toLocaleDateString()}</span>
+            <span className="text-sm text-gray-500">
+              {new Date(fb.created_at).toLocaleDateString('fr-FR')}
+            </span>
           </div>
+
+          {/* Commentaire */}
           <p className="mt-2 text-gray-700">{fb.commentaire || "Aucun commentaire fourni."}</p>
         </div>
       ))}

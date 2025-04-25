@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
 
       // Gestion de tous les rôles possibles
       if (role === "eleve") {
-        // const { data } = await Api.get(`/api/eleves/${id}`);
+        // const { data } = await Api.get(`/api/eleves/${id}`);F
         profileData = { role: "eleve" };
       } else if (role === "repetiteur") {
         const { data } = await Api.get(`/api/repetiteurs/${id}`);

@@ -91,7 +91,8 @@ class RepetiteurController extends Controller
                     'tarif_horaire' => $repetiteur->tarif_horaire,
                     'statut_verif' => $repetiteur->statut_verif,
                     'rayon_intervention' => $repetiteur->rayon_intervention,
-                ]
+                ],
+                'cours' => $repetiteur->cours
             ]);
         } catch (\Throwable $th) {
             return response()->json(["data" => ["message"=>"Pas trouvé.", "error"=>$th->getMessage()]]);

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\Cours;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CoursController extends Controller
 {
@@ -38,12 +40,26 @@ class CoursController extends Controller
 
         return response()->json($cours, 201);
     }
-
     public function show($id)
     {
-        $cours = Cours::findOrFail($id);
-        return response()->json($cours);
+        try {
+            // Recherche du cours avec l'id spécifié
+            $cours = Cours::findOrFail($id);
+            
+            // Retourner la réponse en JSON si le cours est trouvé
+            return response()->json($cours);
+        } catch (ModelNotFoundException $e) {
+            // Si le cours n'est pas trouvé, renvoyer une erreur 404
+            return response()->json(['error' => 'Cours not found'], 404);
+        }
+
+        
     }
+    
+    
+    /**
+     * Mettre à jour un cours.
+     */    
 
     public function update(Request $request, $id)
     {

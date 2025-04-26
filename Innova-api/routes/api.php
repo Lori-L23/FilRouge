@@ -12,21 +12,17 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\EleveController;
 use App\Http\Controllers\RepetiteurController;
 use App\Http\Controllers\CoursController;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
 */
 
-/*------------------------------
-|  Routes Publiques
-|------------------------------*/
+// ---------------------------
+// Routes Publiques
+// ---------------------------
 
 // Authentification
 Route::post('/login', [AuthController::class, 'login']);
@@ -40,27 +36,26 @@ Route::apiResource('matieres', MatiereController::class)->only(['index', 'show']
 Route::get('/repetiteurs/search', [MatiereController::class, 'searchRep']);
 Route::get('/repetiteurs', [UserController::class, 'getRepetiteurs']);
 
-// Avant le middleware auth:sanctum
+// Affichage public d'un répétiteur
 Route::get('/repetiteurs/{id}/public', [RepetiteurController::class, 'publicShow']);
 
-/*------------------------------
-|  Routes Protégées (Authentifiées)
-|------------------------------*/
+// ---------------------------
+// Routes Protégées (Authentifiées)
+// ---------------------------
 Route::middleware(['auth:sanctum'])->group(function () {
-    
-    // Gestion utilisateur
+
+    // Gestion utilisateur connecté
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::get('/user-with-profile', [AuthController::class, 'getUserWithProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    /*------------------------------
-    |  Routes par Rôles
-    |------------------------------*/
-    
     // Élèves
     Route::prefix('eleves')->group(function () {
         Route::get('/{id}', [EleveController::class, 'show']);
-        // Ajoutez d'autres routes élèves ici...
+        Route::put('/{id}', [EleveController::class, 'update']);
+        Route::delete('/{id}', [EleveController::class, 'destroy']);
+        Route::post('/', [EleveController::class, 'store']);
+        Route::get('/', [EleveController::class, 'index']);
     });
 
     // Répétiteurs
@@ -73,12 +68,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Admins
     Route::prefix('admins')->group(function () {
         Route::get('/{id}', [AdminController::class, 'show']);
-        // Ajoutez d'autres routes admin ici...
     });
 
-    /*------------------------------
-    |  Gestion des Cours
-    |------------------------------*/
+    // Gestion des Cours
     Route::prefix('cours')->group(function () {
         Route::get('/mes-cours', [CoursController::class, 'mesCours']);
         Route::get('/', [CoursController::class, 'index']);
@@ -88,33 +80,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{id}', [CoursController::class, 'destroy']);
     });
 
-    /*------------------------------
-    |  Réservations
-    |------------------------------*/
+    // Réservations
     Route::apiResource('reservations', ReservationController::class);
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
 
-    /*------------------------------
-    |  Paiements
-    |------------------------------*/
+    // Paiements
     Route::apiResource('paiements', PaiementController::class)->only(['index', 'show']);
     Route::patch('/paiements/{id}/status', [PaiementController::class, 'updateStatus']);
     Route::get('/paiements/summary', [PaiementController::class, 'summary']);
 
-    /*------------------------------
-    |  Feedbacks
-    |------------------------------*/
+    // Feedbacks
     Route::apiResource('feedbacks', FeedbackController::class)->except(['update', 'destroy']);
-    
-    /*------------------------------
-    |  Dashboard Admin
-    |------------------------------*/
+
+    // Dashboard Admin (protégé par Policy can:admin)
     Route::prefix('admin')->middleware('can:admin')->group(function () {
-        // Statistiques
         Route::get('/stats', [AdminController::class, 'getStats']);
         Route::get('/recent-users', [AdminController::class, 'recentUsers']);
         Route::get('/reservations/latest', [AdminController::class, 'getLatestReservations']);
-        
+
         // Rapports
         Route::prefix('reports')->group(function () {
             Route::get('/reservations', [AdminController::class, 'reservationsReport']);

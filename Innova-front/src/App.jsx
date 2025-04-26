@@ -18,16 +18,15 @@ import TeamPage from "./components/TeamPage";
 import { AuthProvider } from "./contexts/AuthContext"; // adapte si le dossier s'appelle "context" ou "contexts"
 import TrouverProfesseur from "./Pages/TrouverProfesseur";
 import DevenirProfesseur from "./Pages/DevenirProfesseur";
-// import Reservation from './Eleve/Reservation';
+import Reservation from "./Eleve/Reservation";
 // import confirmation from './Eleve/confirmation';
 import Recherche from "./components/Recherche";
-import Details from './Repetiteur/Details';
+import Details from "./Repetiteur/Details";
 import DashboardAdmin from "./admin/DashboardAdmin";
 import FeedbackForm from "./Pages/FeedbackForm";
 import MesCours from "./components/MesCours";
 import ProfileSwitcher from "./components/ProfileSwitcher";
 import Profilad from "./admin/profil";
-
 
 function App() {
   return (
@@ -79,8 +78,8 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
               <Route path="/FeedbackForm" element={<FeedbackForm />} />
-
-              {/* <Route path="/reservation" element={<Reservation />} />
+              <Route path="/reservation/:id" element={<Reservation />} />
+              {/* 
           <Route path="/confirmation" element={<confirmation />} />
           <Route path="/recherche" element={<Recherche />} />
           */}

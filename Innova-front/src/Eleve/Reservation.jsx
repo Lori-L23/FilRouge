@@ -88,44 +88,40 @@ const Reservation = () => {
 
   const confirmBooking = async () => {
     try {
-      // Formatage correct pour votre structure DB
-      const reservationData = {
-        cours_id: parseInt(id), // Nécessaire pour trouver le répétiteur
-        date: selectedDate, // Format YYYY-MM-DD
-        heure: selectedTime.padEnd(5, ':00'), // Format HH:MM
+      const formattedData = {
+        cours_id: parseInt(id),
+        date: new Date(selectedDate).toISOString().split('T')[0],
+        heure: selectedTime.includes(':') ? selectedTime : `${selectedTime}:00`,
         statut: 'en_attente'
       };
   
-      // Debug
-      console.log('Données envoyées:', reservationData);
+      console.log('Data to send:', formattedData); // Debug
   
-      await Api.get('/sanctum/csrf-cookie');
-      const response = await Api.post('/api/reservations', reservationData);
+      const response = await Api.post('/api/reservations', formattedData);
       
       if (response.data.success) {
-        toast.success("Réservation créée avec succès!");
-        navigate('/mes-reservations');
+        navigate('/profil', {
+          state: {
+            reservationSuccess: true,
+            reservationId: response.data.id,
+            amount: cours.tarif_horaire
+          }
+        });
       }
   
     } catch (error) {
-      console.error('Détails erreur:', {
+      console.error('Full error:', {
         status: error.response?.status,
         data: error.response?.data,
         config: error.config
       });
-  
-      if (error.response?.status === 403) {
-        toast.error('Action non autorisée pour votre rôle');
-      } else if (error.response?.status === 422) {
-        // Affichez les erreurs de validation
-        Object.values(error.response.data.errors).flat().forEach(msg => {
-          toast.error(msg);
-        });
-      } else {
-        toast.error(error.response?.data?.message || 'Erreur serveur');
+      
+      if (error.response?.data?.error_details) {
+        console.error('Server error details:', error.response.data.error_details);
       }
     }
   };
+
 
   if (loading) {
     return (

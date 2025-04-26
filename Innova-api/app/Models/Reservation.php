@@ -36,6 +36,10 @@ class Reservation extends Model
     {
         return $this->belongsTo(Repetiteur::class);
     }
+    public function paiement()
+    {
+        return $this->hasOne(Paiement::class);
+    }
 
 
     

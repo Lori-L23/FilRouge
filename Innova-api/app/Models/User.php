@@ -72,5 +72,9 @@ public function repetiteur()
 {
     return $this->hasOne(Repetiteur::class);
 }
+public function paiements()
+{
+    return $this->hasMany(Paiement::class);
+}
 
 }

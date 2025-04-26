@@ -2,86 +2,128 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Paiement;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class PaiementController extends Controller
 {
+    /**
+     * Affiche la liste des paiements
+     */
     public function index()
     {
-        $paiements = Paiement::with('reservation')->get();
-        return response()->json($paiements);
+        try {
+            $paiements = Paiement::with(['reservation', 'user'])
+                ->latest()
+                ->paginate(10);
+
+            return response()->json([
+                'success' => true,
+                'data' => $paiements
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur liste paiements: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des paiements'
+            ], 500);
+        }
     }
 
     /**
-     * Enregistre un nouveau paiement.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'reservation_id' => 'required|exists:reservations,id',
-            'montant' => 'required|numeric|min:0',
-            'methode' => 'required|in:stripe,orange_money,mobile_money',
-            'statut' => 'required|in:pending,completed,failed,refunded',
-            'transaction_id' => 'required|unique:paiements,transaction_id',
-        ]);
-
-        $paiement = Paiement::create($validated);
-
-        return response()->json([
-            'message' => 'Paiement enregistré avec succès',
-            'paiement' => $paiement
-        ], 201);
-    }
-
-    /**
-     * Affiche un paiement spécifique.
+     * Affiche un paiement spécifique
      */
     public function show($id)
     {
-        $paiement = Paiement::with('reservation')->findOrFail($id);
-        return response()->json($paiement);
+        try {
+            $paiement = Paiement::with(['reservation', 'user'])
+                ->findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => $paiement
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur détail paiement: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Paiement non trouvé'
+            ], 404);
+        }
     }
 
     /**
-     * Met à jour un paiement.
+     * Met à jour le statut d'un paiement
      */
-    public function update(Request $request, $id)
+    public function updateStatus(Request $request, $id)
     {
-        $paiement = Paiement::findOrFail($id);
-
-        $validated = $request->validate([
-            'montant' => 'sometimes|numeric|min:0',
-            'methode' => 'sometimes|in:stripe,orange_money,mobile_money',
-            'statut' => 'sometimes|in:pending,completed,failed,refunded',
-            'transaction_id' => 'sometimes|unique:paiements,transaction_id,' . $paiement->id,
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:en_attente,payé,échoué,remboursé'
         ]);
 
-        $paiement->update($validated);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        return response()->json([
-            'message' => 'Paiement mis à jour avec succès',
-            'paiement' => $paiement
-        ]);
+        try {
+            $paiement = Paiement::findOrFail($id);
+            $paiement->update(['status' => $request->status]);
+
+            // Si le paiement est confirmé, mettre à jour la réservation associée
+            if ($request->status === 'payé' && $paiement->reservation) {
+                $paiement->reservation()->update(['statut' => 'confirmé']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $paiement,
+                'message' => 'Statut mis à jour avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur mise à jour statut paiement: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour'
+            ], 500);
+        }
     }
 
     /**
-     * Supprime un paiement.
+     * Récupère un résumé des paiements
      */
-    public function destroy($id)
+    public function summary()
     {
-        $paiement = Paiement::findOrFail($id);
-        $paiement->delete();
+        try {
+            $summary = [
+                'total' => Paiement::count(),
+                'payes' => Paiement::where('status', 'payé')->count(),
+                'montant_total' => Paiement::where('status', 'payé')->sum('montant'),
+                'en_attente' => Paiement::where('status', 'en_attente')->count(),
+                'recentes' => Paiement::with(['user'])
+                    ->latest()
+                    ->limit(5)
+                    ->get()
+            ];
 
-        return response()->json(['message' => 'Paiement supprimé avec succès']);
+            return response()->json([
+                'success' => true,
+                'data' => $summary
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur résumé paiements: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la génération du résumé'
+            ], 500);
+        }
     }
-    // public function scopeFilterByPeriod($query, $period)
-    // {
-    //     return $query->when(isset($period['start_date']), function ($q) use ($period) {
-    //         $q->whereBetween('created_at', [
-    //             Carbon::parse($period['start_date'])->startOfDay(),
-    //             Carbon::parse($period['end_date'])->endOfDay()
-    //         ]);
-    //     });
-    // }
 }

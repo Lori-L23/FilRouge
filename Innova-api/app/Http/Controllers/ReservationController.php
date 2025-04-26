@@ -17,7 +17,8 @@ class ReservationController extends Controller
     public function __construct()
     {
         $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware(CheckRole::class.':eleve')->only(['store']);    }
+        $this->middleware(CheckRole::class . ':eleve')->only(['store']);
+    }
     /**
      * Lister toutes les réservations.
      */
@@ -46,46 +47,45 @@ class ReservationController extends Controller
             'heure' => 'required|date_format:H:i',
             'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee'
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
             ], 422);
         }
-
+    
         try {
             $user = Auth::user();
             $eleve = Eleve::where('user_id', $user->id)->first();
-
+    
             if (!$eleve) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Profil élève non trouvé'
                 ], 403);
             }
-
+    
             $cours = Cours::findOrFail($request->cours_id);
-            
+    
             $reservation = Reservation::create([
                 'eleve_id' => $eleve->id,
                 'repetiteur_id' => $cours->repetiteur_id,
                 'date_reservation' => $request->date . ' ' . $request->heure,
-                'statut' => $request->statut ?? 'en_attente'
+                'statut' => $request->statut ?? 'en_attente', // Correction ici
             ]);
-
+    
             return response()->json([
                 'success' => true,
                 'data' => $reservation->load(['eleve.user', 'repetiteur.user']),
                 'message' => 'Réservation créée avec succès'
             ], 201);
-
         } catch (\Exception $e) {
             Log::error('Erreur création réservation: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la création',
-                'error' => env('APP_DEBUG') ? $e->getMessage() : null
+                'message' => 'Erreur lors de la création: ' . (env('APP_DEBUG') ? $e->getMessage() : ''),
+                'error' => env('APP_DEBUG') ? $e->getTrace() : null
             ], 500);
         }
     }
@@ -106,7 +106,6 @@ class ReservationController extends Controller
                 'success' => true,
                 'data' => $reservation
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur affichage réservation: ' . $e->getMessage());
             return response()->json([
@@ -166,7 +165,6 @@ class ReservationController extends Controller
                 'message' => 'Réservation mise à jour.',
                 'data' => $reservation->fresh(['eleve', 'repetiteur'])
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur mise à jour réservation: ' . $e->getMessage());
             return response()->json([
@@ -198,7 +196,6 @@ class ReservationController extends Controller
                 'success' => true,
                 'message' => 'Réservation supprimée avec succès.'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur suppression réservation: ' . $e->getMessage());
             return response()->json([
@@ -242,7 +239,6 @@ class ReservationController extends Controller
                 'message' => 'Statut de la réservation mis à jour.',
                 'data' => $reservation->fresh(['eleve', 'repetiteur'])
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur mise à jour statut: ' . $e->getMessage());
             return response()->json([

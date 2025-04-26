@@ -2,12 +2,12 @@
 
 return [
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout', 'user', 'user-with-profile'],
 
     'allowed_methods' => ['*'],
 
     // 'allowed_origins' => [''],
-    'allowed_origins' => ['http://localhost:3000'],
+    'allowed_origins' =>  [env('FRONTEND_URL', 'http://localhost:3000')],
   
     
     'allowed_headers' => ['*'],

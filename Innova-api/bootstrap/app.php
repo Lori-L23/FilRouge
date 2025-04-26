@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
         $middleware->alias([
             'admin' => App\Http\Middleware\AdminMiddleware::class,
+            'role' => App\Http\Middleware\CheckRole::class,
+
             // 'auth' => App\Http\Middleware\Authenticate::class,
             // 'guest' => App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);

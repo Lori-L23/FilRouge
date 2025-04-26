@@ -5,9 +5,11 @@ import Api from "../Services/Api";
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useAuth } from "../contexts/AuthContext";
 
 const Reservation = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [cours, setCours] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
@@ -86,23 +88,42 @@ const Reservation = () => {
 
   const confirmBooking = async () => {
     try {
-      if (!selectedDate || !selectedTime) {
-        toast.error("Veuillez sélectionner une date et une heure");
-        return;
-      }
-
-      const response = await Api.post('/api/reservations', {
-        cours_id: id,
-        date: selectedDate,
-        heure: selectedTime,
+      // Formatage correct pour votre structure DB
+      const reservationData = {
+        cours_id: parseInt(id), // Nécessaire pour trouver le répétiteur
+        date: selectedDate, // Format YYYY-MM-DD
+        heure: selectedTime.padEnd(5, ':00'), // Format HH:MM
         statut: 'en_attente'
-      });
+      };
+  
+      // Debug
+      console.log('Données envoyées:', reservationData);
+  
+      await Api.get('/sanctum/csrf-cookie');
+      const response = await Api.post('/api/reservations', reservationData);
       
-      toast.success("Réservation confirmée avec succès!");
-      navigate("/mes-reservations");
+      if (response.data.success) {
+        toast.success("Réservation créée avec succès!");
+        navigate('/mes-reservations');
+      }
+  
     } catch (error) {
-      console.error("Erreur de réservation :", error);
-      toast.error(error.response?.data?.message || 'Erreur lors de la réservation');
+      console.error('Détails erreur:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
+  
+      if (error.response?.status === 403) {
+        toast.error('Action non autorisée pour votre rôle');
+      } else if (error.response?.status === 422) {
+        // Affichez les erreurs de validation
+        Object.values(error.response.data.errors).flat().forEach(msg => {
+          toast.error(msg);
+        });
+      } else {
+        toast.error(error.response?.data?.message || 'Erreur serveur');
+      }
     }
   };
 

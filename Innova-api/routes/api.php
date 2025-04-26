@@ -12,6 +12,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\EleveController;
 use App\Http\Controllers\RepetiteurController;
 use App\Http\Controllers\CoursController;
+use App\Http\Controllers\ProfileController;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 /*
@@ -57,6 +58,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [EleveController::class, 'store']);
         Route::get('/', [EleveController::class, 'index']);
     });
+    Route::put('/profile', [ProfileController::class, 'update']);
+
 
     // Répétiteurs
     Route::prefix('repetiteurs')->group(function () {

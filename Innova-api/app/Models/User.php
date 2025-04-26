@@ -68,6 +68,10 @@ class User extends Authenticatable
 {
     return $this->hasOne(Eleve::class);
 }
+public function profile()
+{
+    return $this->hasOne(Profile::class);
+}
 
 public function repetiteur()
 {

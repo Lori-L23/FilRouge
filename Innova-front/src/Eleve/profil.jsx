@@ -168,7 +168,7 @@ const ProfileEleve = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 flex items-center">
             <FaUserGraduate className="mr-2" />
-            Mon Profil Élève
+            Mon Profil 
           </h1>
           <button 
             onClick={handleLogout}

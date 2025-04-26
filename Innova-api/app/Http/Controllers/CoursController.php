@@ -41,20 +41,17 @@ class CoursController extends Controller
         return response()->json($cours, 201);
     }
     public function show($id)
-    {
-        try {
-            // Recherche du cours avec l'id spécifié
-            $cours = Cours::findOrFail($id);
-            
-            // Retourner la réponse en JSON si le cours est trouvé
-            return response()->json($cours);
-        } catch (ModelNotFoundException $e) {
-            // Si le cours n'est pas trouvé, renvoyer une erreur 404
-            return response()->json(['error' => 'Cours not found'], 404);
-        }
-
+{
+    try {
+        // On charge le cours avec les relations 'matiere' et 'repetiteur.user'
+        $cours = Cours::with(['matiere', 'repetiteur.user'])->findOrFail($id);
         
+        return response()->json($cours);
+    } catch (ModelNotFoundException $e) {
+        return response()->json(['error' => 'Cours not found'], 404);
     }
+}
+
     
     
     /**

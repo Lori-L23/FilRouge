@@ -17,7 +17,10 @@ class Reservation extends Model
     ];
     protected $casts = [
      'date_reservation' => 'datetime',
-        'statut' => 'string'
+     'id' => 'integer',
+     'eleve_id' => 'integer',
+     'prix' => 'float',
+     'statut' => 'string'
     ];
     /** 
      * Relations

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use App\Models\Cours;
 use App\Models\Eleve;
+use App\Models\User;
 use App\Http\Middleware\CheckRole;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -22,23 +23,33 @@ class ReservationController extends Controller
     /**
      * Lister toutes les réservations.
      */
-    public function index()
-    {
-        try {
+// Dans votre ReservationController.php
+public function index()
+{
+    try {
+        $user = Auth::user();
+        
+        if ($user->role === 'admin') {
             $reservations = Reservation::with(['eleve.user', 'repetiteur.user'])->get();
-            return response()->json([
-                'success' => true,
-                'data' => $reservations
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Erreur liste réservations: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération des réservations'
-            ], 500);
+        } else {
+            $reservations = Reservation::where('eleve_id', $user->id)
+                ->with(['eleve.user', 'repetiteur.user'])
+                ->get();
         }
-    }
 
+        return response()->json([
+            'success' => true,
+            'data' => $reservations
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('ReservationController Error: '.$e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur serveur'
+        ], 500);
+    }
+}
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

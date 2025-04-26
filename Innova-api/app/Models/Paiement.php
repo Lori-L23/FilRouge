@@ -13,12 +13,14 @@ class Paiement extends Model
         'methode',
         'status',
         'reference',
-        'date_paiement'
+        'transaction_id'
     ];
 
     protected $casts = [
         'date_paiement' => 'datetime',
-        'montant' => 'decimal:2'
+        'montant' => 'decimal:2',
+        'reservation_id' => 'integer',
+        'user_id' => 'integer'
     ];
 
     public function reservation()

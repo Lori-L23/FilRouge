@@ -85,9 +85,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
 
     // Paiements
-    Route::apiResource('paiements', PaiementController::class)->only(['index', 'show']);
+    Route::apiResource('paiements', PaiementController::class)->only([ 'show']);
     Route::patch('/paiements/{id}/status', [PaiementController::class, 'updateStatus']);
+    Route::get('/paiements', [PaiementController::class, 'index']);
     Route::get('/paiements/summary', [PaiementController::class, 'summary']);
+    Route::post('/paiements/process', [PaiementController::class, 'processPayment']);
 
     // Feedbacks
     Route::apiResource('feedbacks', FeedbackController::class)->except(['update', 'destroy']);

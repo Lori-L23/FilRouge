@@ -88,39 +88,57 @@ const Reservation = () => {
 
   const confirmBooking = async () => {
     try {
+      await Api.get('/sanctum/csrf-cookie'); // Assurez-vous que le cookie CSRF est présent
+  
       const formattedData = {
         cours_id: parseInt(id),
         date: new Date(selectedDate).toISOString().split('T')[0],
         heure: selectedTime.includes(':') ? selectedTime : `${selectedTime}:00`,
-        statut: 'en_attente'
+        prix: cours.tarif_horaire,
+        statut: 'en_attente',
       };
   
       console.log('Data to send:', formattedData); // Debug
   
       const response = await Api.post('/api/reservations', formattedData);
-      
-      if (response.data.success) {
+  
+      if (response?.data?.success) {
         navigate('/profil', {
           state: {
             reservationSuccess: true,
-            reservationId: response.data.id,
-            amount: cours.tarif_horaire
-          }
+            reservationId: response.data.data.id, // Correction ici : c'est "data", pas "reservation"
+            amount: cours.tarif_horaire,
+          },
         });
+      } else {
+        toast.error('Échec de la réservation. Veuillez réessayer.');
+        console.error('Unexpected success response:', response.data);
       }
   
     } catch (error) {
       console.error('Full error:', {
         status: error.response?.status,
         data: error.response?.data,
-        config: error.config
+        config: error.config,
       });
-      
-      if (error.response?.data?.error_details) {
-        console.error('Server error details:', error.response.data.error_details);
+  
+      if (error.response) {
+        const serverMessage = error.response.data?.message || 'Erreur serveur lors de la réservation';
+        toast.error(serverMessage);
+  
+        if (error.response.data?.errors) {
+          console.error('Server validation errors:', error.response.data.errors);
+        }
+      } else if (error.request) {
+        toast.error('Pas de réponse du serveur. Vérifiez votre connexion.');
+        console.error('No response:', error.request);
+      } else {
+        toast.error('Erreur de configuration de la requête.');
+        console.error('Axios error:', error.message);
       }
     }
   };
+  
 
 
   if (loading) {

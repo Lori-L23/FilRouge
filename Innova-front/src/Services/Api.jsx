@@ -10,7 +10,6 @@
 // });
 
 // // Intercepteur pour injecter le token
-// // Intercepteur pour gérer les erreurs
 
 // Api.interceptors.request.use((config) => {
 //   const token = localStorage.getItem("auth_token");
@@ -35,7 +34,7 @@ const Api = axios.create({
   withCredentials: true
 });
 
-// Intercepteur pour gérer le CSRF Token
+// // Intercepteur pour gérer le CSRF Token
 Api.interceptors.request.use(async (config) => {
   // Pour les requêtes mutantes (POST, PUT, DELETE), on s'assure d'avoir le cookie CSRF
   if (['post', 'put', 'delete', 'patch'].includes(config.method.toLowerCase())) {
@@ -63,7 +62,7 @@ Api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Intercepteur pour gérer les erreurs
+// // Intercepteur pour gérer les erreurs
 Api.interceptors.response.use(
   response => response,
   error => {
@@ -78,3 +77,4 @@ Api.interceptors.response.use(
 );
 
 export default Api;
+

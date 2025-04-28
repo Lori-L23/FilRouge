@@ -16,11 +16,10 @@ const ProfileEleve = () => {
   const [loading, setLoading] = useState(false);
   const [reservations, setReservations] = useState([]);
   const [paiements, setPaiements] = useState([]);
-
   const [formData, setFormData] = useState({
-    telephone: profile?.telephone || '',
-    niveau_scolaire: profile?.niveau_scolaire || '',
-    objectif: profile?.objectif || ''
+    telephone: '',
+    niveau_scolaire: '',
+    objectif: ''
   });
 
   // Charger les données initiales
@@ -33,12 +32,22 @@ const ProfileEleve = () => {
       });
     }
 
+    // Vérification robuste des données de réservation
     if (location.state?.reservationSuccess) {
-      setReservationDetails({
-        id: location.state.reservationId,
-        amount: location.state.amount
-      });
-      setShowPaymentModal(true);
+      const { reservationId, amount } = location.state;
+      
+      if (reservationId && amount) {
+        setReservationDetails({
+          id: reservationId,
+          amount: amount
+        });
+        setShowPaymentModal(true);
+      } else {
+        toast.error('Informations de réservation manquantes');
+        console.log('Informations de réservation manquantes:', location.state);
+        
+        console.error('Données de réservation incomplètes:', location.state);
+      }
     }
 
     fetchReservations();
@@ -48,18 +57,28 @@ const ProfileEleve = () => {
   const fetchReservations = async () => {
     try {
       const response = await Api.get('/api/reservations');
-      setReservations(response.data.data || []);
+      if (response.data?.success) {
+        setReservations(response.data.data || []);
+      } else {
+        throw new Error(response.data?.message || 'Réponse invalide du serveur');
+      }
     } catch (error) {
-      toast.error('Erreur lors du chargement des réservations');
+      console.error('Erreur reservations:', error);
+      toast.error(error.response?.data?.message || 'Erreur lors du chargement des réservations');
     }
   };
 
   const fetchPaiements = async () => {
     try {
       const response = await Api.get('/api/paiements');
-      setPaiements(response.data.data || []);
+      if (response.data?.success) {
+        setPaiements(response.data.data || []);
+      } else {
+        throw new Error(response.data?.message || 'Réponse invalide du serveur');
+      }
     } catch (error) {
-      toast.error('Erreur lors du chargement des paiements');
+      console.error('Erreur paiements:', error);
+      toast.error(error.response?.data?.message || 'Erreur lors du chargement des paiements');
     }
   };
 
@@ -77,10 +96,15 @@ const ProfileEleve = () => {
     
     try {
       const response = await Api.put('/api/profile', formData);
-      toast.success('Profil mis à jour avec succès');
-      refetchUser();
-      setEditMode(false);
+      if (response.data?.success) {
+        toast.success('Profil mis à jour avec succès');
+        refetchUser();
+        setEditMode(false);
+      } else {
+        throw new Error(response.data?.message || 'Erreur lors de la mise à jour');
+      }
     } catch (error) {
+      console.error('Erreur mise à jour profil:', error);
       toast.error(error.response?.data?.message || 'Erreur lors de la mise à jour');
     } finally {
       setLoading(false);
@@ -89,25 +113,36 @@ const ProfileEleve = () => {
 
   const handlePayment = async () => {
     try {
-      if (!reservationDetails?.id || !reservationDetails?.amount || isNaN(reservationDetails.amount)) {
-        toast.error('Informations de paiement incomplètes');
-        return;
+      setLoading(true);
+      
+      // Validation approfondie
+      if (!reservationDetails?.id || !reservationDetails?.amount) {
+        throw new Error('Informations de paiement incomplètes');
       }
 
-      setLoading(true);
+      const reservationId = parseInt(reservationDetails.id);
+      const amount = parseFloat(reservationDetails.amount);
+
+      if (isNaN(reservationId)) throw new Error('ID de réservation invalide');
+      if (isNaN(amount)) throw new Error('Montant invalide');
+
       const response = await Api.post('/api/paiements/process', {
-        reservation_id: parseInt(reservationDetails.id),
-        montant: parseFloat(reservationDetails.amount)
+        reservation_id: reservationId,
+        montant: amount.toFixed(2)
       });
 
-      if (response.data.success) {
-        window.location.href = response.data.payment_url;
-      } else {
-        throw new Error(response.data.message || 'Erreur de paiement');
+      if (!response.data?.payment_url) {
+        throw new Error('URL de paiement manquante');
       }
+
+      window.location.href = response.data.payment_url;
     } catch (error) {
-      console.error('Payment Error:', error);
-      toast.error(error.response?.data?.message || 'Échec du paiement');
+      console.error('Erreur paiement:', {
+        error: error.message,
+        details: error.response?.data,
+        reservation: reservationDetails
+      });
+      toast.error(error.response?.data?.message || error.message || 'Erreur de paiement');
     } finally {
       setLoading(false);
     }
@@ -203,6 +238,7 @@ const ProfileEleve = () => {
                       value={formData.telephone}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      required
                     />
                   </div>
 
@@ -213,6 +249,7 @@ const ProfileEleve = () => {
                       value={formData.niveau_scolaire}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      required
                     >
                       <option value="">Sélectionnez</option>
                       <option value="Collège">Collège</option>
@@ -231,6 +268,7 @@ const ProfileEleve = () => {
                       onChange={handleInputChange}
                       rows="3"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      required
                     />
                   </div>
 

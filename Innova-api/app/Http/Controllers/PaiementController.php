@@ -115,6 +115,7 @@ class PaiementController extends BaseController
                 'integer',
                 'exists:reservations,id',
                 function ($attribute, $value, $fail) {
+                    
                     $user = Auth::user();
                     if (!$user) {
                         $fail('Utilisateur non authentifié');
@@ -157,7 +158,9 @@ class PaiementController extends BaseController
                 'success' => false,
                 'message' => 'Validation des données échouée',
                 'errors' => $validator->errors(),
-                'received_data' => $request->all()
+                'received_data' => $request->all(),
+                'input' => $request->all() // Pour débogage
+
             ], 422);
         }
     

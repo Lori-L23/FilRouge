@@ -58,6 +58,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [EleveController::class, 'store']);
         Route::get('/', [EleveController::class, 'index']);
     });
+    // Profil de l'utilisateur connecté
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::get('/profile/eleve', [ProfileController::class, 'showEleve']);
+    Route::get('/profile/repetiteur', [ProfileController::class, 'showRepetiteur']);
+    Route::get('/profile/admin', [ProfileController::class, 'showAdmin']);
     Route::put('/profile', [ProfileController::class, 'update']);
 
 

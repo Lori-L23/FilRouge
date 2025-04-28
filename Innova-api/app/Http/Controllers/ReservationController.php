@@ -53,9 +53,10 @@ public function index()
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'cours_id' => 'required|exists:cours,id',
-            'date' => 'required|date|after_or_equal:today',
-            'heure' => 'required|date_format:H:i',
+            'cours_id' => 'required|exists:cours,id',// Assurez-vous que le cours existe
+            'date' => 'required|date|after_or_equal:today',// Assurez-vous que la date est aujourd'hui ou dans le futur
+            'heure' => 'required|date_format:H:i',// Assurez-vous que l'heure est au format H:i
+            'prix' => 'required|numeric|min:20', // Assurez-vous que le prix est supérieur à 20
             'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee'
         ]);
     
@@ -82,6 +83,7 @@ public function index()
             $reservation = Reservation::create([
                 'eleve_id' => $eleve->id,
                 'repetiteur_id' => $cours->repetiteur_id,
+                'prix' => $request->prix,
                 'date_reservation' => $request->date . ' ' . $request->heure,
                 'statut' => $request->statut ?? 'en_attente', // Correction ici
             ]);

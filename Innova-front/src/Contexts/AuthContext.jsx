@@ -32,135 +32,89 @@ export const AuthProvider = ({ children }) => {
    */
 
   
-  // const loadUserData = async () => {    
-  //   try {
-  //     //appel de l aoi du login
-  //     // await Api.post("/api/login", { email, password });
-
-  //     // Récupération des données combinées
-  //     const { data } = await Api.get('/api/user-with-profile')
-
-  //   //appel du cookie de sanctum
-  //   //   await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
-  //   //     withCredentials: true
-  //   // });
-
-    
-  //     // Vérification des données
-  //     if (!data.user || !data.profile_type) {
-  //       throw new Error("Données utilisateur incomplètes");
-  //     }
-  //     // Récupération du token depuis le stockage local
-  //     const token = localStorage.getItem("auth_token");
-
-  //     // Si pas de token, on reset l'état
-  //     if (!token) {
-  //       setAuthState({ user: null, profile: null, loading: false });
-  //       return;
-  //     }
-
-  //     // Configuration du header Authorization pour toutes les requêtes API
-  //     Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-  //     // 1. Récupération des données de base
-  //     const { data: userData } = await Api.get("/api/user");
-
-  //     if (!userData?.user?.role) {
-  //       throw new Error("Données utilisateur incomplètes");
-  //     }
-
-  //     // 2. Récupération des données spécifiques
-  //     let profileData = null;
-  //     const { role, id } = userData.user;
-
-  //     // Gestion de tous les rôles possibles
-  //     if (role === "eleve") {
-  //       // const { data } = await Api.get(`/api/eleves/${id}`);F
-  //       profileData = { role: "eleve" };
-  //     } else if (role === "repetiteur") {
-  //       const { data } = await Api.get(`/api/repetiteurs/${id}`);
-  //       profileData = data;
-  //     } else if (role === "admin") {
-        
-  //       // Pour les admins, on peut soit:
-  //       // a. Ne pas charger de profil spécifique
-  //       // b. Charger des données admin si nécessaire
-  //       profileData = { isAdmin: true }; // Exemple simple
-  //       // Ou pour récupérer des données admin:
-  //       // const { data } = await Api.get(`/api/admins/${id}`);
-  //       // profileData = data;
-  //     } else {
-  //       console.warn(`Rôle '${role}' reconnu mais non géré spécifiquement`);
-  //       profileData = { customRole: role };
-  //     }
-
-  //     // 3. Mise à jour de l'état
-  //     setAuthState({
-  //       user: userData.user,
-  //       profile: data.profile,
-  //       profileType: data.profile_type,
-  //       loading: false,
-  //     });
-  //   } catch (error) {
-  //     console.error("Erreur détaillée:", {
-  //       message: error.message,
-  //       config: error.config,
-  //       response: error.response?.data,
-  //     });
-
-  //     // Réinitialisation sécurisée
-  //     if (error.response?.status === 401) {
-  //       logout();
-  //     }
-  //   }
-  // };
-
-  // Au montage du composant, on charge les données utilisateur
   const loadUserData = async () => {    
     try {
-      // Vérification initiale du token
-      const token = localStorage.getItem("auth_token");
-      if (!token) {
-        setAuthState(prev => ({...prev, loading: false}));
-        return;
-      }
-  
-      // Double vérification CSRF
-      await Api.get('/sanctum/csrf-cookie');
-  
+      //appel de l aoi du login
+      // await Api.post("/api/login", { email, password });
+
       // Récupération des données combinées
-      const { data } = await Api.get('/api/user-with-profile');
-  
+      const { data } = await Api.get('/api/user-with-profile')
+
+    //appel du cookie de sanctum
+    //   await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
+    //     withCredentials: true
+    // });
+
+    
+      // Vérification des données
       if (!data.user || !data.profile_type) {
         throw new Error("Données utilisateur incomplètes");
       }
-  
+      // Récupération du token depuis le stockage local
+      const token = localStorage.getItem("auth_token");
+
+      // Si pas de token, on reset l'état
+      if (!token) {
+        setAuthState({ user: null, profile: null, loading: false });
+        return;
+      }
+
+      // Configuration du header Authorization pour toutes les requêtes API
+      Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      // 1. Récupération des données de base
+      const { data: userData } = await Api.get("/api/user");
+
+      if (!userData?.user?.role) {
+        throw new Error("Données utilisateur incomplètes");
+      }
+
+      // 2. Récupération des données spécifiques
+      let profileData = null;
+      const { role, id } = userData.user;
+
+      // Gestion de tous les rôles possibles
+      if (role === "eleve") {
+        // const { data } = await Api.get(`/api/eleves/${id}`);
+        profileData = { role: "eleve" };
+      } else if (role === "repetiteur") {
+        const { data } = await Api.get(`/api/repetiteurs/${id}`);
+        profileData = data;
+      } else if (role === "admin") {
+        
+        // Pour les admins, on peut soit:
+        // a. Ne pas charger de profil spécifique
+        // b. Charger des données admin si nécessaire
+        profileData = { isAdmin: true }; // Exemple simple
+        // Ou pour récupérer des données admin:
+        // const { data } = await Api.get(`/api/admins/${id}`);
+        // profileData = data;
+      } else {
+        console.warn(`Rôle '${role}' reconnu mais non géré spécifiquement`);
+        profileData = { customRole: role };
+      }
+
+      // 3. Mise à jour de l'état
       setAuthState({
-        user: data.user,
+        user: userData.user,
         profile: data.profile,
         profileType: data.profile_type,
         loading: false,
-        error: null
       });
-  
     } catch (error) {
-      console.error("Erreur de chargement utilisateur:", error);
-      
-      // En cas d'erreur 401, nettoyage complet
+      console.error("Erreur détaillée:", {
+        message: error.message,
+        config: error.config,
+        response: error.response?.data,
+      });
+
+      // Réinitialisation sécurisée
       if (error.response?.status === 401) {
         logout();
-      } else {
-        setAuthState({
-          user: null,
-          profile: null,
-          profileType: null,
-          loading: false,
-          error: error.message
-        });
       }
     }
   };
-  
+  // Au montage du composant, on charge les données utilisateur
   useEffect(() => {
     loadUserData();
   }, []);

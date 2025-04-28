@@ -70,7 +70,11 @@ class User extends Authenticatable
 }
 public function profile()
 {
-    return $this->hasOne(Profile::class);
+    return $this->hasOne(Profile::class)->withDefault([
+        'telephone' => null,
+        'niveau_scolaire' => null,
+        'objectif' => null
+    ]);
 }
 
 public function repetiteur()

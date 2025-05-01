@@ -1,6 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import Api from "../Services/Api";
-import axios from "axios";
 
 /**
  * Création du contexte d'authentification
@@ -22,8 +27,7 @@ export const AuthProvider = ({ children }) => {
     profile: null,
     profileType: null,
     loading: true,
-    error: null
-
+    error: null,
   });
 
   /**
@@ -31,90 +35,134 @@ export const AuthProvider = ({ children }) => {
    * Vérifie le token en localStorage et récupère les données correspondantes
    */
 
-  
-  const loadUserData = async () => {    
+  // const loadUserData = async () => {
+  //   try {
+  //     //appel de l aoi du login
+  //     // await Api.post("/api/login", { email, password });
+
+  //     // Récupération des données combinées
+  //     const { data } = await Api.get('/api/user-with-profile')
+
+  //   //appel du cookie de sanctum
+  //   //   await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
+  //   //     withCredentials: true
+  //   // });
+
+  //     // Vérification des données
+  //     if (!data.user || !data.profile_type) {
+  //       throw new Error("Données utilisateur incomplètes");
+  //     }
+  //     // Récupération du token depuis le stockage local
+  //     const token = localStorage.getItem("auth_token");
+
+  //     // Si pas de token, on reset l'état
+  //     if (!token) {
+  //       setAuthState({ user: null, profile: null, loading: false });
+  //       return;
+  //     }
+
+  //     // Configuration du header Authorization pour toutes les requêtes API
+  //     Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+  //     // 1. Récupération des données de base
+  //     const { data: userData } = await Api.get("/api/user");
+
+  //     if (!userData?.user?.role) {
+  //       throw new Error("Données utilisateur incomplètes");
+  //     }
+
+  //     // 2. Récupération des données spécifiques
+  //     let profileData = null;
+  //     const { role, id } = userData.user;
+
+  //     // Gestion de tous les rôles possibles
+  //     if (role === "eleve") {
+  //       // const { data } = await Api.get(`/api/eleves/${id}`);F
+  //       profileData = { role: "eleve" };
+  //     } else if (role === "repetiteur") {
+  //       const { data } = await Api.get(`/api/repetiteurs/${id}`);
+  //       profileData = data;
+  //     } else if (role === "admin") {
+
+  //       // Pour les admins, on peut soit:
+  //       // a. Ne pas charger de profil spécifique
+  //       // b. Charger des données admin si nécessaire
+  //       profileData = { isAdmin: true }; // Exemple simple
+  //       // Ou pour récupérer des données admin:
+  //       // const { data } = await Api.get(`/api/admins/${id}`);
+  //       // profileData = data;
+  //     } else {
+  //       console.warn(`Rôle '${role}' reconnu mais non géré spécifiquement`);
+  //       profileData = { customRole: role };
+  //     }
+
+  //     // 3. Mise à jour de l'état
+  //     setAuthState({
+  //       user: userData.user,
+  //       profile: data.profile,
+  //       profileType: data.profile_type,
+  //       loading: false,
+  //     });
+  //   } catch (error) {
+  //     console.error("Erreur détaillée:", {
+  //       message: error.message,
+  //       config: error.config,
+  //       response: error.response?.data,
+  //     });
+
+  //     // Réinitialisation sécurisée
+  //     if (error.response?.status === 401) {
+  //       logout();
+  //     }
+  //   }
+  // };
+
+  // Au montage du composant, on charge les données utilisateur
+
+  const loadUserData = async () => {
     try {
-      //appel de l aoi du login
-      // await Api.post("/api/login", { email, password });
-
-      // Récupération des données combinées
-      const { data } = await Api.get('/api/user-with-profile')
-
-    //appel du cookie de sanctum
-    //   await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
-    //     withCredentials: true
-    // });
-
-    
-      // Vérification des données
-      if (!data.user || !data.profile_type) {
-        throw new Error("Données utilisateur incomplètes");
-      }
-      // Récupération du token depuis le stockage local
+      // Vérification initiale du token
       const token = localStorage.getItem("auth_token");
-
-      // Si pas de token, on reset l'état
       if (!token) {
-        setAuthState({ user: null, profile: null, loading: false });
+        setAuthState((prev) => ({ ...prev, loading: false }));
         return;
       }
 
-      // Configuration du header Authorization pour toutes les requêtes API
-      Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      // Double vérification CSRF
+      await Api.get("/sanctum/csrf-cookie");
 
-      // 1. Récupération des données de base
-      const { data: userData } = await Api.get("/api/user");
+      // Récupération des données combinées
+      const { data } = await Api.get("/api/user-with-profile");
 
-      if (!userData?.user?.role) {
+      if (!data.user || !data.profile_type) {
         throw new Error("Données utilisateur incomplètes");
       }
 
-      // 2. Récupération des données spécifiques
-      let profileData = null;
-      const { role, id } = userData.user;
-
-      // Gestion de tous les rôles possibles
-      if (role === "eleve") {
-        // const { data } = await Api.get(`/api/eleves/${id}`);
-        profileData = { role: "eleve" };
-      } else if (role === "repetiteur") {
-        const { data } = await Api.get(`/api/repetiteurs/${id}`);
-        profileData = data;
-      } else if (role === "admin") {
-        
-        // Pour les admins, on peut soit:
-        // a. Ne pas charger de profil spécifique
-        // b. Charger des données admin si nécessaire
-        profileData = { isAdmin: true }; // Exemple simple
-        // Ou pour récupérer des données admin:
-        // const { data } = await Api.get(`/api/admins/${id}`);
-        // profileData = data;
-      } else {
-        console.warn(`Rôle '${role}' reconnu mais non géré spécifiquement`);
-        profileData = { customRole: role };
-      }
-
-      // 3. Mise à jour de l'état
       setAuthState({
-        user: userData.user,
+        user: data.user,
         profile: data.profile,
         profileType: data.profile_type,
         loading: false,
+        error: null,
       });
     } catch (error) {
-      console.error("Erreur détaillée:", {
-        message: error.message,
-        config: error.config,
-        response: error.response?.data,
-      });
+      console.error("Erreur de chargement utilisateur:", error);
 
-      // Réinitialisation sécurisée
+      // En cas d'erreur 401, nettoyage complet
       if (error.response?.status === 401) {
         logout();
+      } else {
+        setAuthState({
+          user: null,
+          profile: null,
+          profileType: null,
+          loading: false,
+          error: error.message,
+        });
       }
     }
   };
-  // Au montage du composant, on charge les données utilisateur
+
   useEffect(() => {
     loadUserData();
   }, []);
@@ -132,7 +180,7 @@ export const AuthProvider = ({ children }) => {
 
       // 2. Tentative de connexion
       const response = await Api.post("/api/login", { email, password });
-      
+
       // 3. Si le token est reçu, on le stocke et on charge les données
       if (response.data?.token) {
         localStorage.setItem("auth_token", response.data.token);
@@ -162,9 +210,9 @@ export const AuthProvider = ({ children }) => {
 
       // 2. Tentative d'inscription
       const response = await Api.post("/api/register", userData);
-      
+
       // 3. Si le token est reçu, on le stocke et on charge les données
-      if (response.data?.token) {        
+      if (response.data?.token) {
         localStorage.setItem("auth_token", response.data.token);
         await loadUserData();
         return { success: true };
@@ -185,21 +233,20 @@ export const AuthProvider = ({ children }) => {
    * Gère la déconnexion
    * Nettoie le localStorage et les headers API
    */
-  const logout =  useCallback(() => {
+  const logout = useCallback(() => {
     console.log("logout Déclenché");
-    
+
     // Nettoyage côté client quoi qu'il arrive
     localStorage.removeItem("auth_token");
     delete Api.defaults.headers.common["Authorization"];
 
-    setAuthState({ 
-      user: null, 
+    setAuthState({
+      user: null,
       profile: null,
-      profileType: null, 
+      profileType: null,
       loading: false,
-      error: null
+      error: null,
     });
-
 
     // try {
     //   // Appel API pour invalider le token côté serveur

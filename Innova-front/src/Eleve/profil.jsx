@@ -1,13 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { FiEdit, FiSave, FiPhone, FiBook, FiTarget, FiCalendar, FiMessageSquare, FiDollarSign, FiUser } from 'react-icons/fi';
-import { FaUserGraduate } from 'react-icons/fa';
-import { useAuth } from '../contexts/AuthContext';
-import Api from '../Services/Api';
-import { toast } from 'react-toastify';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import {
+  FiEdit,
+  FiSave,
+  FiPhone,
+  FiBook,
+  FiTarget,
+  FiCalendar,
+  FiMessageSquare,
+  FiDollarSign,
+  FiUser,
+} from "react-icons/fi";
+import { FaUserGraduate } from "react-icons/fa";
+import { useAuth } from "../contexts/AuthContext";
+import Api from "../Services/Api";
+import { toast } from "react-toastify";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const ProfileEleve = () => {
   const { user, profile, refetchUser, logout } = useAuth();
+  console.log(user.telephone);
+
   const location = useLocation();
   const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
@@ -17,95 +29,113 @@ const ProfileEleve = () => {
   const [reservations, setReservations] = useState([]);
   const [paiements, setPaiements] = useState([]);
   const [formData, setFormData] = useState({
-    telephone: '',
-    niveau_scolaire: '',
-    objectif: ''
+    telephone: "",
+    niveau_scolaire: "",
+    objectif: "",
   });
 
   // Charger les données initiales
   useEffect(() => {
     if (profile) {
       setFormData({
-        telephone: profile.telephone || '',
-        niveau_scolaire: profile.niveau_scolaire || '',
-        objectif: profile.objectif || ''
+        telephone: profile.telephone || "",
+        niveau_scolaire: profile.niveau_scolaire || "",
+        objectif: profile.objectif || "",
       });
     }
 
     // Vérification robuste des données de réservation
     if (location.state?.reservationSuccess) {
       const { reservationId, amount } = location.state;
-      
+      console.log("Données de réservation:", location.state);
+
       if (reservationId && amount) {
         setReservationDetails({
           id: reservationId,
-          amount: amount
+          amount: amount,
         });
         setShowPaymentModal(true);
       } else {
-        toast.error('Informations de réservation manquantes');
-        console.log('Informations de réservation manquantes:', location.state);
-        
-        console.error('Données de réservation incomplètes:', location.state);
+        toast.error("Informations de réservation manquantes");
+        console.error("Données de réservation incomplètes:", location.state);
       }
     }
 
-    fetchReservations();
+    fetchReservations(profile.id);
     fetchPaiements();
   }, [profile, location.state]);
 
-  const fetchReservations = async () => {
+  const fetchReservations = async (eleve_id) => {
     try {
-      const response = await Api.get('/api/reservations');
+      const response = await Api.get(`/api/eleves/${eleve_id}/reservations`);
+
+      console.log("Réponse API:", response.data); // Pour débogage
+
       if (response.data?.success) {
-        setReservations(response.data.data || []);
+        // Accédez maintenant à response.data.data.reservations
+        const reservationsData = response.data.data || [];
+        setReservations(reservationsData);
       } else {
-        throw new Error(response.data?.message || 'Réponse invalide du serveur');
+        throw new Error(response.data?.message || "Réponse invalide");
       }
     } catch (error) {
-      console.error('Erreur reservations:', error);
-      toast.error(error.response?.data?.message || 'Erreur lors du chargement des réservations');
+      console.error("Erreur:", {
+        error: error.message,
+        response: error.response?.data,
+      });
+      toast.error(error.response?.data?.message || "Erreur de chargement");
+      setReservations([]);
     }
   };
 
   const fetchPaiements = async () => {
+    return [];
     try {
-      const response = await Api.get('/api/paiements');
+      const response = await Api.get("/api/paiements");
       if (response.data?.success) {
         setPaiements(response.data.data || []);
       } else {
-        throw new Error(response.data?.message || 'Réponse invalide du serveur');
+        throw new Error(
+          response.data?.message || "Réponse invalide du serveur"
+        );
       }
     } catch (error) {
-      console.error('Erreur paiements:', error);
-      toast.error(error.response?.data?.message || 'Erreur lors du chargement des paiements');
+      console.error("Erreur paiements:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Erreur lors du chargement des paiements"
+      );
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      const response = await Api.put('/api/profile', formData);
+      const response = await Api.put("/api/profile", formData);
       if (response.data?.success) {
-        toast.success('Profil mis à jour avec succès');
+        toast.success("Profil mis à jour avec succès");
         refetchUser();
         setEditMode(false);
       } else {
-        throw new Error(response.data?.message || 'Erreur lors de la mise à jour');
+        throw new Error(
+          response.data?.message || "Erreur lors de la mise à jour"
+        );
       }
     } catch (error) {
-      console.error('Erreur mise à jour profil:', error);
-      toast.error(error.response?.data?.message || 'Erreur lors de la mise à jour');
+      console.error("Erreur mise à jour profil:", error);
+      toast.error(
+        error.response?.data?.message || "Erreur lors de la mise à jour"
+      );
     } finally {
       setLoading(false);
     }
@@ -114,35 +144,37 @@ const ProfileEleve = () => {
   const handlePayment = async () => {
     try {
       setLoading(true);
-      
+
       // Validation approfondie
       if (!reservationDetails?.id || !reservationDetails?.amount) {
-        throw new Error('Informations de paiement incomplètes');
+        throw new Error("Informations de paiement incomplètes");
       }
 
       const reservationId = parseInt(reservationDetails.id);
       const amount = parseFloat(reservationDetails.amount);
 
-      if (isNaN(reservationId)) throw new Error('ID de réservation invalide');
-      if (isNaN(amount)) throw new Error('Montant invalide');
+      if (isNaN(reservationId)) throw new Error("ID de réservation invalide");
+      if (isNaN(amount)) throw new Error("Montant invalide");
 
-      const response = await Api.post('/api/paiements/process', {
+      const response = await Api.post("/api/paiements/process", {
         reservation_id: reservationId,
-        montant: amount.toFixed(2)
+        montant: amount.toFixed(2),
       });
 
       if (!response.data?.payment_url) {
-        throw new Error('URL de paiement manquante');
+        throw new Error("URL de paiement manquante");
       }
 
       window.location.href = response.data.payment_url;
     } catch (error) {
-      console.error('Erreur paiement:', {
+      console.error("Erreur paiement:", {
         error: error.message,
         details: error.response?.data,
-        reservation: reservationDetails
+        reservation: reservationDetails,
       });
-      toast.error(error.response?.data?.message || error.message || 'Erreur de paiement');
+      toast.error(
+        error.response?.data?.message || error.message || "Erreur de paiement"
+      );
     } finally {
       setLoading(false);
     }
@@ -150,7 +182,7 @@ const ProfileEleve = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const PaymentModal = () => (
@@ -160,11 +192,18 @@ const ProfileEleve = () => {
           <FiDollarSign className="mr-2 text-green-600" />
           Paiement Requis
         </h3>
-        
+
         <div className="space-y-3 mb-6">
-          <p>Votre réservation <strong>#{reservationDetails?.id}</strong> est prête.</p>
-          <p className="text-lg font-semibold">Montant: {reservationDetails?.amount} €</p>
-          <p className="text-sm text-gray-600">Vous serez redirigé vers notre plateforme de paiement sécurisé.</p>
+          <p>
+            Votre réservation <strong>#{reservationDetails?.id}</strong> est
+            prête.
+          </p>
+          <p className="text-lg font-semibold">
+            Montant: {reservationDetails?.amount} €
+          </p>
+          <p className="text-sm text-gray-600">
+            Vous serez redirigé vers notre plateforme de paiement sécurisé.
+          </p>
         </div>
 
         <div className="flex space-x-4">
@@ -194,6 +233,8 @@ const ProfileEleve = () => {
     </div>
   );
 
+  console.log(reservations);
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       {showPaymentModal && <PaymentModal />}
@@ -203,9 +244,9 @@ const ProfileEleve = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 flex items-center">
             <FaUserGraduate className="mr-2" />
-            Mon Profil 
+            Mon Profil
           </h1>
-          <button 
+          <button
             onClick={handleLogout}
             className="px-4 py-2 bg-[#7ED321] text-white rounded-md hover:bg-[#d0f8a7]"
           >
@@ -231,7 +272,9 @@ const ProfileEleve = () => {
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Téléphone
+                    </label>
                     <input
                       type="text"
                       name="telephone"
@@ -243,7 +286,9 @@ const ProfileEleve = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Niveau scolaire</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Niveau scolaire
+                    </label>
                     <select
                       name="niveau_scolaire"
                       value={formData.niveau_scolaire}
@@ -261,7 +306,9 @@ const ProfileEleve = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Objectif</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Objectif
+                    </label>
                     <textarea
                       name="objectif"
                       value={formData.objectif}
@@ -279,7 +326,7 @@ const ProfileEleve = () => {
                       disabled={loading}
                     >
                       <FiSave className="mr-2" />
-                      {loading ? 'Enregistrement...' : 'Enregistrer'}
+                      {loading ? "Enregistrement..." : "Enregistrer"}
                     </button>
                     <button
                       type="button"
@@ -294,23 +341,32 @@ const ProfileEleve = () => {
             ) : (
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Téléphone</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Téléphone
+                  </h3>
                   <p className="mt-1 text-gray-900 flex items-center">
-                    <FiPhone className="mr-2" /> {profile?.telephone || 'Non renseigné'}
+                    <FiPhone className="mr-2" />{" "}
+                    {user?.telephone || "Non renseigné"}
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Niveau scolaire</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Niveau scolaire
+                  </h3>
                   <p className="mt-1 text-gray-900 flex items-center">
-                    <FiBook className="mr-2" /> {profile?.niveau_scolaire || 'Non renseigné'}
+                    <FiBook className="mr-2" />{" "}
+                    {profile?.niveau_scolaire || "Non renseigné"}
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Objectif</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Objectif
+                  </h3>
                   <p className="mt-1 text-gray-900 flex items-center">
-                    <FiTarget className="mr-2" /> {profile?.objectif || 'Non renseigné'}
+                    <FiTarget className="mr-2" />{" "}
+                    {profile?.objectif || "Non renseigné"}
                   </p>
                 </div>
 
@@ -333,47 +389,75 @@ const ProfileEleve = () => {
                 <FiCalendar className="mr-2 text-blue-500" />
                 Mes Réservations
               </h2>
-              
-              {reservations.length > 0 ? (
+
+              {Array.isArray(reservations) && reservations.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Professeur</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matière</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Professeur
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Matière
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Statut
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {reservations.map(reservation => (
+                      {reservations.map((reservation) => (
                         <tr key={reservation.id}>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {new Date(reservation.date).toLocaleDateString()}
+                            {reservation.date_reservation
+                              ? new Date(
+                                  reservation.date_reservation
+                                ).toLocaleDateString()
+                              : "N/A"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {reservation.repetiteur?.user?.name || 'N/A'}
+                            {reservation.repetiteur?.nom_complet ||
+                              `${reservation.repetiteur?.user?.prenom || ""} ${
+                                reservation.repetiteur?.user?.nom || ""
+                              }`.trim() ||
+                              "N/A"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {reservation.matiere || 'N/A'}
+                            {reservation.matiere?.nom ||
+                              reservation.cours?.matiere?.nom ||
+                              "N/A"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              reservation.statut === 'confirmé' ? 'bg-green-100 text-green-800' :
-                              reservation.statut === 'annulé' ? 'bg-red-100 text-red-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {reservation.statut}
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                reservation.statut === "acceptee"
+                                  ? "bg-green-100 text-green-800"
+                                  : reservation.statut === "refusee" ||
+                                    reservation.statut === "annulee"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}
+                            >
+                              {reservation.statut || "en_attente"}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {reservation.statut === 'en attente' && (
-                              <button 
+                            {reservation.statut === "en_attente" && (
+                              <button
                                 onClick={() => {
                                   setReservationDetails({
                                     id: reservation.id,
-                                    amount: reservation.prix
+                                    amount:
+                                      reservation.prix ||
+                                      reservation.tarif ||
+                                      0,
                                   });
                                   setShowPaymentModal(true);
                                 }}
@@ -389,7 +473,15 @@ const ProfileEleve = () => {
                   </table>
                 </div>
               ) : (
-                <p className="text-gray-500">Aucune réservation trouvée</p>
+                <div className="text-center py-4">
+                  <p className="text-gray-500">Aucune réservation trouvée</p>
+                  <button
+                    onClick={() => fetchReservations(profile.id)}
+                    className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
+                  >
+                    Rafraîchir
+                  </button>
+                </div>
               )}
             </div>
 
@@ -399,23 +491,33 @@ const ProfileEleve = () => {
                 <FiDollarSign className="mr-2 text-green-500" />
                 Mes Paiements
               </h2>
-              
+
               {paiements.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Réservation</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Réservation
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Montant
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Statut
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {paiements.map(paiement => (
+                      {paiements.map((paiement) => (
                         <tr key={paiement.id}>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {new Date(paiement.date_paiement).toLocaleDateString()}
+                            {new Date(
+                              paiement.date_paiement
+                            ).toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             #{paiement.reservation_id}
@@ -424,11 +526,15 @@ const ProfileEleve = () => {
                             {paiement.montant} €
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              paiement.statut === 'payé' ? 'bg-green-100 text-green-800' :
-                              paiement.statut === 'échoué' ? 'bg-red-100 text-red-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                paiement.statut === "payé"
+                                  ? "bg-green-100 text-green-800"
+                                  : paiement.statut === "échoué"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}
+                            >
                               {paiement.statut}
                             </span>
                           </td>
@@ -446,6 +552,44 @@ const ProfileEleve = () => {
       </div>
     </div>
   );
+
+  // return (
+  //   <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+  //     {showPaymentModal && <PaymentModal />}
+
+  //     <div className="max-w-6xl mx-auto mt-20">
+  //       {/* Header */}
+  //       <div className="flex justify-between items-center mb-8">
+  //         <h1 className="text-2xl font-bold text-gray-800 flex items-center">
+  //           <FaUserGraduate className="mr-2" />
+  //           Mon Profil
+  //         </h1>
+  //         <button
+  //           onClick={handleLogout}
+  //           className="px-4 py-2 bg-[#7ED321] text-white rounded-md hover:bg-[#d0f8a7]"
+  //         >
+  //           Déconnexion
+  //         </button>
+  //       </div>
+
+  //       {/* Profil Section */}
+  //       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  //         {/* Colonne de gauche - Informations profil */}
+  //         <div className="bg-white rounded-lg shadow p-6 lg:col-span-1">
+  //           <div className="flex items-center mb-6">
+  //             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+  //               <FiUser className="text-blue-500 text-2xl" />
+  //             </div>
+  //             <div>
+  //               <h2 className="text-xl font-semibold">{user?.name}</h2>
+  //               <p className="text-gray-600">{user?.email}</p>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 };
 
 export default ProfileEleve;

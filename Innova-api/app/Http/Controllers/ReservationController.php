@@ -23,63 +23,68 @@ class ReservationController extends Controller
     /**
      * Lister toutes les réservations.
      */
-// Dans votre ReservationController.php
-public function index()
-{
-    try {
-        $user = Auth::user();
-        
-        if ($user->role === 'admin') {
-            $reservations = Reservation::with(['eleve.user', 'repetiteur.user'])->get();
-        } else {
-            $reservations = Reservation::where('eleve_id', $user->id)
-                ->with(['eleve.user', 'repetiteur.user'])
-                ->get();
+    // Dans votre ReservationController.php
+    public function index()
+    {
+        try {
+            $user = Auth::user();
+
+            if ($user->role === 'admin') {
+                $reservations = Reservation::with(['eleve.user', 'repetiteur.user'])->get();
+            } else {
+                $reservations = Reservation::where('eleve_id', $user->id)
+                    ->with(['eleve.user', 'repetiteur.user'])
+                    ->get();
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    "id" => $user->id,
+                    "user" => $user,
+                    "reservation" => $reservations,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('ReservationController Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur'
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'data' => $reservations
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('ReservationController Error: '.$e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Erreur serveur'
-        ], 500);
     }
-}
+
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'cours_id' => 'required|exists:cours,id',// Assurez-vous que le cours existe
-            'date' => 'required|date|after_or_equal:today',// Assurez-vous que la date est aujourd'hui ou dans le futur
-            'heure' => 'required|date_format:H:i',// Assurez-vous que l'heure est au format H:i
+            'cours_id' => 'required|exists:cours,id', // Assurez-vous que le cours existe
+            'date' => 'required|date|after_or_equal:today', // Assurez-vous que la date est aujourd'hui ou dans le futur
+            'heure' => 'required|date_format:H:i', // Assurez-vous que l'heure est au format H:i
             'prix' => 'required|numeric|min:20', // Assurez-vous que le prix est supérieur à 20
             'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
             ], 422);
         }
-    
+
         try {
             $user = Auth::user();
             $eleve = Eleve::where('user_id', $user->id)->first();
-    
+
             if (!$eleve) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Profil élève non trouvé'
                 ], 403);
             }
-    
+
             $cours = Cours::findOrFail($request->cours_id);
-    
+
             $reservation = Reservation::create([
                 'eleve_id' => $eleve->id,
                 'repetiteur_id' => $cours->repetiteur_id,
@@ -87,10 +92,10 @@ public function index()
                 'date_reservation' => $request->date . ' ' . $request->heure,
                 'statut' => $request->statut ?? 'en_attente', // Correction ici
             ]);
-    
+
             return response()->json([
                 'success' => true,
-                'data' => $reservation->load(['eleve.user', 'repetiteur.user']),
+                'data' => $reservation, // ->load(['eleve.user', 'repetiteur.user']),
                 'message' => 'Réservation créée avec succès'
             ], 201);
         } catch (\Exception $e) {
@@ -261,4 +266,7 @@ public function index()
             ], 500);
         }
     }
+    
+
+
 }

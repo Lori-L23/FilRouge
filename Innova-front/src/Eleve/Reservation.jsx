@@ -88,58 +88,45 @@ const Reservation = () => {
 
   const confirmBooking = async () => {
     try {
-      await Api.get('/sanctum/csrf-cookie'); // Assurez-vous que le cookie CSRF est présent
-  
-      const formattedData = {
-        cours_id: parseInt(id),
-        date: new Date(selectedDate).toISOString().split('T')[0],
-        heure: selectedTime.includes(':') ? selectedTime : `${selectedTime}:00`,
-        prix: cours.tarif_horaire,
-        statut: 'en_attente',
+      // Formatage correct pour votre structure DB
+      const reservationData = {
+        cours_id: parseInt(id), // Nécessaire pour trouver le répétiteur
+        date: selectedDate, // Format YYYY-MM-DD
+        heure: selectedTime.padEnd(5, ':00'), // Format HH:MM
+        prix : cours.tarif_horaire, // Prix par heure
+        statut: 'en_attente'
       };
   
-      console.log('Data to send:', formattedData); // Debug
+      // Debug
+      console.log('Données envoyées:', reservationData);
   
-      const response = await Api.post('/api/reservations', formattedData);
-  
-      if (response?.data?.success) {
-        navigate('/profil', {
-          state: {
-            reservationSuccess: true,
-            reservationId: response.data.data.id, // Correction ici : c'est "data", pas "reservation"
-            amount: cours.tarif_horaire,
-          },
-        });
-      } else {
-        toast.error('Échec de la réservation. Veuillez réessayer.');
-        console.error('Unexpected success response:', response.data);
+      await Api.get('/sanctum/csrf-cookie');
+      const response = await Api.post('/api/reservations', reservationData);
+      
+      if (response.data.success) {
+        toast.success("Réservation créée avec succès!");
+        navigate('/profil');
       }
   
     } catch (error) {
-      console.error('Full error:', {
+      console.error('Détails erreur:', {
         status: error.response?.status,
         data: error.response?.data,
-        config: error.config,
+        config: error.config
       });
   
-      if (error.response) {
-        const serverMessage = error.response.data?.message || 'Erreur serveur lors de la réservation';
-        toast.error(serverMessage);
-  
-        if (error.response.data?.errors) {
-          console.error('Server validation errors:', error.response.data.errors);
-        }
-      } else if (error.request) {
-        toast.error('Pas de réponse du serveur. Vérifiez votre connexion.');
-        console.error('No response:', error.request);
+      if (error.response?.status === 403) {
+        toast.error('Action non autorisée pour votre rôle');
+      } else if (error.response?.status === 422) {
+        // Affichez les erreurs de validation
+        Object.values(error.response.data.errors).flat().forEach(msg => {
+          toast.error(msg);
+        });
       } else {
-        toast.error('Erreur de configuration de la requête.');
-        console.error('Axios error:', error.message);
+        toast.error(error.response?.data?.message || 'Erreur serveur');
       }
     }
   };
-  
-
 
   if (loading) {
     return (

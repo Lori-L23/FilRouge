@@ -15,6 +15,27 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
   // Formatage de la note avec valeur par défaut
   const formattedNote = note?.toFixed?.(1) || "0.0";
 
+  // Fonction pour gérer les niveaux (peut être string, array ou undefined)
+  const getNiveaux = () => {
+    if (!repetiteur.repetiteur.niveaux) return "Niveaux non spécifiés";
+    
+    // Si c'est déjà un tableau
+    if (Array.isArray(repetiteur.repetiteur.niveaux)) {
+      return repetiteur.repetiteur.niveaux.join(", ");
+    }
+    
+    // Si c'est une string JSON (comme dans votre base de données)
+    try {
+      const parsed = JSON.parse(repetiteur.repetiteur.niveaux);
+      if (Array.isArray(parsed)) {
+        return parsed.join(", ");
+      }
+      return repetiteur.repetiteur.niveaux;
+    } catch {
+      return repetiteur.repetiteur.niveaux;
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-md p-5 flex flex-col h-full transition hover:shadow-lg">
       {/* Photo & Nom */}
@@ -32,8 +53,7 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
             {repetiteur?.prenom || "Prénom"} {repetiteur?.nom || "Nom"}
           </h3>
           <p className="text-sm text-gray-500">
-            {repetiteur.repetiteur.niveaux?.join(", ") ||
-              "Niveaux non spécifiés"}
+            {getNiveaux()}
           </p>
         </div>
       </div>
@@ -44,14 +64,20 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
           <p className="text-sm font-medium text-gray-700 mb-1 ">Matières </p>
           <div className="flex flex-wrap gap-2">
             {repetiteur.repetiteur.matieres?.length > 0 ? (
-              repetiteur.repetiteur.matieres.map((matiere, index) => (
-                <span
-                  key={index}
-                  className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
-                >
-                  {matiere}
+              Array.isArray(repetiteur.repetiteur.matieres) ? (
+                repetiteur.repetiteur.matieres.map((matiere, index) => (
+                  <span
+                    key={index}
+                    className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
+                  >
+                    {matiere}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  {repetiteur.repetiteur.matieres}
                 </span>
-              ))
+              )
             ) : (
               <span className="text-xs text-gray-400">Non renseignées</span>
             )}
@@ -68,7 +94,7 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
                   key={index}
                   className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
                 >
-                  {cours.matiere.nom}
+                  {cours.matiere?.nom || cours.matiere}
                 </span>
               ))
             ) : (
@@ -79,16 +105,12 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
       </div>
 
       {/* biographie */}
-
       <div className="mb-3">
         <p className="text-sm font-medium text-gray-700 mb-1">Biographie :</p>
         <div>
           <h3 className="text-sm ">
-            {repetiteur.repetiteur.biographie || "bio"}
+            {repetiteur.repetiteur.biographie || "Aucune biographie fournie"}
           </h3>
-          {/* <p className="text-sm text-gray-500">
-            {repetiteur.repetiteur.niveaux?.join(', ') || 'Niveaux non spécifiés'}
-          </p> */}
         </div>
       </div>
 

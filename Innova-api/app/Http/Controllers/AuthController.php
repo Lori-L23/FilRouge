@@ -41,17 +41,16 @@ class AuthController extends Controller
 
             // Création des données spécifiques au rôle
             $profileData = null;
-            
+
             if ($validated['role'] === 'eleve') {
                 $profileData = Eleve::create([
                     'user_id' => $user->id,
                     'niveau_scolaire' => $request->input('niveau_scolaire', 'primaire'),
                     'date_naissance' => $validated['date_naissance']
                 ]);
-            } 
-            elseif ($validated['role'] === 'repetiteur') {
-                $photoPath = $request->hasFile('photo') 
-                    ? $request->file('photo')->store('repetiteurs', 'public') 
+            } elseif ($validated['role'] === 'repetiteur') {
+                $photoPath = $request->hasFile('photo')
+                    ? $request->file('photo')->store('repetiteurs', 'public')
                     : null;
 
                 $profileData = Repetiteur::create([
@@ -74,7 +73,6 @@ class AuthController extends Controller
                 'profile' => $profileData,
                 'token' => $token
             ], 201);
-
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation error',
@@ -106,10 +104,10 @@ class AuthController extends Controller
 
 
             $user = User::where('email', $request->email)->firstOrFail();
-            
+
             // Suppression des anciens tokens
             $user->tokens()->delete();
-            
+
             // Création d'un nouveau token
             $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -117,7 +115,6 @@ class AuthController extends Controller
                 'user' => $user,
                 'token' => $token
             ]);
-
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation error',
@@ -140,8 +137,7 @@ class AuthController extends Controller
             // Récupération des données spécifiques au rôle
             if ($user->role === 'eleve') {
                 $profile = Eleve::where('user_id', $user->id)->first();
-            } 
-            elseif ($user->role === 'repetiteur') {
+            } elseif ($user->role === 'repetiteur') {
                 $profile = Repetiteur::where('user_id', $user->id)->first();
             }
 
@@ -149,7 +145,6 @@ class AuthController extends Controller
                 'user' => $user,
                 'profile' => $profile
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to get user data',
@@ -157,14 +152,13 @@ class AuthController extends Controller
             ], 500);
         }
     }
-    
+
     //fonction de deconnexion
     public function logout(Request $request)
     {
         try {
             $request->user()->currentAccessToken()->delete();
             return response()->json(['message' => 'Logged out successfully']);
-
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Logout failed',
@@ -174,30 +168,54 @@ class AuthController extends Controller
     }
 
     public function getUserWithProfile(Request $request)
-{
-    $user = $request->user();
-    $profile = null;
-    $profileType = null;
+    {
+        $user = $request->user();
+        $profile = null;
+        $profileType = null;
 
-    switch ($user->role) {
-        case 'eleve':
-            $profile = Eleve::where('user_id', $user->id)->first();
-            $profileType = 'eleve';
-            break;
-        case 'repetiteur':
-            $profile = Repetiteur::where('user_id', $user->id)->first();
-            $profileType = 'repetiteur';
-            break;
-        case 'admin':
-            $profile = Admin::where('user_id', $user->id)->first();
-            $profileType = 'admin';
-            break;
+        switch ($user->role) {
+            case 'eleve':
+                $profile = Eleve::where('user_id', $user->id)->first();
+                $profileType = 'eleve';
+                break;
+            case 'repetiteur':
+                $profile = Repetiteur::where('user_id', $user->id)->first();
+                $profileType = 'repetiteur';
+                break;
+            case 'admin':
+                $profile = Admin::where('user_id', $user->id)->first();
+                $profileType = 'admin';
+                break;
+        }
+
+        return response()->json([
+            'user' => $user,
+            'profile' => $profile,
+            'profile_type' => $profileType
+        ]);
     }
+    // Dans AuthController.php
+    public function updateRole(Request $request)
+    {
+        $request->validate([
+            'role' => 'required|in:eleve,repetiteur,admin'
+        ]);
 
-    return response()->json([
-        'user' => $user,
-        'profile' => $profile,
-        'profile_type' => $profileType
-    ]);
-}
+        try {
+            $user = $request->user();
+            $user->role = $request->role;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'user' => $user,
+                'message' => 'Rôle mis à jour avec succès'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour'
+            ], 500);
+        }
+    }
 }

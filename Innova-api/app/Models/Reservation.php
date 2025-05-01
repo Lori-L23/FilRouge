@@ -3,6 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Cours;
+use App\Models\Repetiteur;
+use App\Models\Paiement;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Reservation extends Model
@@ -43,6 +47,7 @@ class Reservation extends Model
     {
         return $this->hasOne(Paiement::class);
     }
+    
 
 
     

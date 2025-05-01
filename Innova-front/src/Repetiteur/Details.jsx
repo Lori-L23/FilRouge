@@ -8,7 +8,6 @@ import {
 } from "react-icons/fa";
 import Api from "../Services/Api";
 import icon from "../assets/found1.jpg";
-// import LoadingSpinner from "../components/LoadingSpinner"; // Créez ce composant pour un loader uniforme
 
 const Details = () => {
   const { id } = useParams();
@@ -21,7 +20,7 @@ const Details = () => {
       try {
         setLoading(true);
         const response = await Api.get(
-          `/api/repetiteurs/${id}?with=user,cours.matiere,feedback`
+          `/api/repetiteurs/${id}?with=user,cours.matiere,feedback,disponibilites`
         );
 
         if (!response.data) {
@@ -39,12 +38,45 @@ const Details = () => {
               ).toFixed(1)
             : null;
 
+        // Formater les matières (en tenant compte des différents formats de stockage)
+        let matieres = [];
+        try {
+          if (typeof data.matieres === 'string') {
+            matieres = JSON.parse(data.matieres.replace(/\\/g, ''));
+          } else if (Array.isArray(data.matieres)) {
+            matieres = data.matieres;
+          }
+        } catch (e) {
+          console.error("Erreur de parsing des matières:", e);
+          matieres = [];
+        }
+
+        // Formater les niveaux (similaire aux matières)
+        let niveaux = [];
+        try {
+          if (typeof data.niveaux === 'string') {
+            niveaux = JSON.parse(data.niveaux.replace(/\\/g, ''));
+          } else if (Array.isArray(data.niveaux)) {
+            niveaux = data.niveaux;
+          }
+        } catch (e) {
+          console.error("Erreur de parsing des niveaux:", e);
+          niveaux = [];
+        }
+
+        // Formater les disponibilités
+        const disponibilites = data.disponibilites?.map(d => ({
+          jour: d.jour,
+          heure: `${d.heure_debut} - ${d.heure_fin}`
+        })) || [];
+
         setRepetiteur({
           ...data,
           avgRating,
-          matieres: Array.isArray(data.matieres) ? data.matieres : [],
+          matieres,
+          niveaux,
+          disponibilites,
           cours: Array.isArray(data.cours) ? data.cours : [],
-          niveaux: data.niveaux || [],
           tarif: data.tarif_horaire
             ? `${data.tarif_horaire}€/h`
             : "Non spécifié",
@@ -79,12 +111,12 @@ const Details = () => {
           <div className="md:w-1/3 p-6 bg-gray-50">
             <div className="w-full h-64 rounded-lg overflow-hidden mb-6 bg-gray-200 flex items-center justify-center">
               <img
-                src={icon}
+                src={repetiteur.photo || icon}
                 alt={`${repetiteur.user.prenom} ${repetiteur.user.nom}`}
                 className="w-full h-full object-cover"
-                // onError={(e) => {
-                //   e.target.src = "/default-avatar.png";
-                // }}
+                onError={(e) => {
+                  e.target.src = icon;
+                }}
               />
             </div>
 
@@ -110,11 +142,22 @@ const Details = () => {
                 <span className="ml-2">{repetiteur.tarif}</span>
               </div>
 
-              <div className="flex items-center">
-                <FaClock className="text-gray-500 mr-2" />
-                <span className="font-medium">Disponibilités:</span>
-                <span className="ml-2">Lun-Ven, 9h-18h</span>{" "}
-                {/* À adapter avec vos données */}
+              <div className="flex items-start">
+                <FaClock className="text-gray-500 mr-2 mt-1" />
+                <div>
+                  <span className="font-medium">Disponibilités:</span>
+                  {repetiteur.disponibilites.length > 0 ? (
+                    <ul className="ml-2 list-disc list-inside">
+                      {repetiteur.disponibilites.map((dispo, index) => (
+                        <li key={index} className="text-sm">
+                          {dispo.jour}: {dispo.heure}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="ml-2 text-sm">Non spécifiées</span>
+                  )}
+                </div>
               </div>
 
               <div className="pt-4">
@@ -176,7 +219,7 @@ const Details = () => {
                       key={index}
                       className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
                     >
-                      {matiere}
+                      {typeof matiere === 'object' ? matiere.nom || matiere : matiere}
                     </span>
                   ))
                 ) : (
@@ -194,7 +237,7 @@ const Details = () => {
                       key={index}
                       className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
                     >
-                      {niveau}
+                      {typeof niveau === 'object' ? niveau.niveau || niveau : niveau}
                     </span>
                   ))
                 ) : (
@@ -203,22 +246,31 @@ const Details = () => {
               </div>
             </div>
 
-            <div className="mb-3">
-              <p className="text-sm font-medium text-gray-700 mb-1">Cours </p>
-              <div className="flex flex-wrap gap-2">
-                {repetiteur.cours?.length > 0 ? (
-                  repetiteur.cours.map((cours, index) => (
-                    <span
-                      key={index}
-                      className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
-                    >
-                      {cours.matiere.nom}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-xs text-gray-400">Non renseignées</span>
-                )}
-              </div>
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-3">Cours proposés</h2>
+              {repetiteur.cours.length > 0 ? (
+                <div className="space-y-4">
+                  {repetiteur.cours.map((cours) => (
+                    <div key={cours.id} className="border-b pb-4 last:border-b-0">
+                      <h3 className="font-medium text-lg">{cours.titre}</h3>
+                      <p className="text-gray-600 mb-2">{cours.description}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
+                          {cours.matiere?.nom || 'Matière inconnue'}
+                        </span>
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                          Niveau: {cours.niveau_scolaire}
+                        </span>
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                          Tarif: {cours.tarif_horaire}€/h
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">Aucun cours proposé pour le moment</p>
+              )}
             </div>
           </div>
         </div>

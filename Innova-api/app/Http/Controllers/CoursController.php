@@ -2,9 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cours;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CoursController extends Controller
@@ -20,6 +18,8 @@ class CoursController extends Controller
             'titre' => 'required|string|max:255',
             'description' => 'required|string',
             'matiere_id' => 'required|exists:matieres,id',
+            'niveau scolaire' => 'required|exists:string',
+            'tarif_horaire' =>'required|numeric',
         ]);
 
         // Récupérer l'utilisateur connecté via Sanctum
@@ -36,6 +36,9 @@ class CoursController extends Controller
             'titre' => $request->titre,
             'description' => $request->description,
             'matiere_id' => $request->matiere_id,
+            'niveau scolaire'=> $request->niveau_scolaire,
+            'tarif_horiare'=>$request->tarif_horaire
+
         ]);
 
         return response()->json($cours, 201);

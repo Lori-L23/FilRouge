@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Eleve;
+use App\Models\Reservation;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class EleveController extends Controller
@@ -12,7 +14,23 @@ class EleveController extends Controller
      */
     public function index()
     {
-        //
+        $eleves = Eleve::with('user')
+            ->whereHas('user', function ($query) {
+                $query->where('statut', 'actif');
+            })
+            ->get()
+            ->map(function ($eleve) {
+                return [
+                    'id' => $eleve->id,
+                    'nom' => $eleve->user->nom,
+                    'prenom' => $eleve->user->prenom,
+                    'email' => $eleve->user->email,
+                    'niveau_scolaire' => $eleve->niveau_scolaire,
+                    'objectif' => $eleve->objectif,
+                ];
+            });
+
+        return response()->json($eleves);
     }
 
     /**
@@ -20,48 +38,86 @@ class EleveController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'niveau_scolaire' => 'required|string',
+            'objectif' => 'nullable|string'
+        ]);
+
+        $eleve = Eleve::create($validated);
+
+        return response()->json($eleve, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    // App/Http/Controllers/ReservationController.php
+
+    public function getUserReservations(Request $request, $id)
     {
-        // Vérifie que l'utilisateur a le droit d'accéder à ces données
-        $eleve = Eleve::where('user_id', $id)->firstOrFail();
-    
-    return response()->json([
-        'id' => $eleve->id,
-        'user_id' => $eleve->user_id,
-        'niveau_scolaire' => $eleve->niveau_scolaire,
-        'date_naissance' => $eleve->date_naissance,
-            
-        ]);
+        try {
+            // 1. Récupérer l'utilisateur authentifié
+            $user = $request->user();
+
+            // 2. Charger les réservations avec les relations nécessaires
+            $reservations = Reservation::with([
+                'repetiteur.user',
+                'cours.matiere',
+                'eleve'
+            ])
+                ->where('eleve_id', $id)
+                ->orderBy('date_reservation', 'desc')
+                ->get();
+
+            // 3. Formater la réponse
+            return response()->json([
+                'success' => true,
+                'data' => $reservations->map(function ($reservation) {
+                    return [
+                        'id' => $reservation->id,
+                        'date_reservation' => $reservation->date_reservation,
+                        'statut' => $reservation->statut,
+                        'prix' => $reservation->prix,
+                        'repetiteur' => $reservation->repetiteur ? [
+                            'id' => $reservation->repetiteur->id,
+                            'nom_complet' => $reservation->repetiteur->user->prenom . ' ' . $reservation->repetiteur->user->nom,
+                            'user' => $reservation->repetiteur->user
+                        ] : null,
+                        'matiere' => $reservation->cours->matiere ?? null,
+                        'created_at' => $reservation->created_at,
+                        'updated_at' => $reservation->updated_at
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des réservations',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
     /**
      * Update the specified resource in storage.
      */
     // App/Http/Controllers/EleveController.php
-public function update(Request $request, $id)
-{
-    $eleve = Eleve::where('user_id', $id)->firstOrFail();
-    
-    $validated = $request->validate([
-        'niveau_scolaire' => 'required|string',
-        'objectif' => 'nullable|string'
-    ]);
+    public function update(Request $request, $id)
+    {
+        $eleve = Eleve::where('user_id', $id)->firstOrFail();
 
-    $eleve->update($validated);
+        $validated = $request->validate([
+            'niveau_scolaire' => 'required|string',
+            'objectif' => 'nullable|string'
+        ]);
 
-    return response()->json($eleve);
-}
+        $eleve->update($validated);
+
+        return response()->json($eleve);
+    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Eleve $eleve)
-    {
-        //
-    }
+    public function destroy(Eleve $eleve) {}
 }

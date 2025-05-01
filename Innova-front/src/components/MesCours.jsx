@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Api from '../Services/Api'
 
 export default function MesCours() {
   const [cours, setCours] = useState([]);
@@ -19,7 +20,7 @@ export default function MesCours() {
 
   const fetchCours = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/mes-cours', {
+      const response = await Api.get('/api/cours/mes-cours', {
         withCredentials: true,
       });
       setCours(response.data);
@@ -30,7 +31,7 @@ export default function MesCours() {
 
   const fetchMatieres = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/matieres');
+      const res = await Api.get('/api/matieres');
       setMatieres(res.data);
     } catch (error) {
       console.error('Erreur lors de la récupération des matières', error);
@@ -41,7 +42,7 @@ export default function MesCours() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/api/cours', formData, {
+      await Api.post('api/cours', formData, {
         withCredentials: true,
       });
       setFormData({ titre: '', description: '', matiere_id: '' });
@@ -54,7 +55,7 @@ export default function MesCours() {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Mes cours</h2>
+      <h2 className="text-2xl font-semibold mb-4 mt-20">Mes cours</h2>
 
       <button
         className="bg-blue-600 text-white px-4 py-2 rounded mb-4"
@@ -99,7 +100,7 @@ export default function MesCours() {
         </form>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-4 flex-1/2">
         {cours.map((c) => (
           <div key={c.id} className="border p-3 rounded bg-white shadow">
             <h3 className="text-lg font-bold">{c.titre}</h3>

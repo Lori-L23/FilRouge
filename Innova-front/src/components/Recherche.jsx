@@ -5,19 +5,21 @@ import { FaSearch, FaFilter, FaStar, FaCheck, FaTimes } from 'react-icons/fa';
 // Composant TutorCard pour l'affichage des résultats
 const Recherche = ({ tutor }) => {
   return (
+    <>
+   
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="md:flex">
+      {/* <div className="md:flex">
         <div className="md:w-1/3 h-48 md:h-auto">
           <img 
             src={tutor.image} 
             alt={tutor.name} 
             className="w-full h-full object-cover"
           />
-        </div>
+        </div> */}
         
         <div className="md:w-2/3 p-6">
           <div className="flex justify-between items-start">
-            <h3 className="text-xl font-bold text-gray-900">{tutor.name}</h3>
+            <h3 className="text-xl font-bold text-gray-900">{tutor.nom}</h3>
             {tutor.verified && (
               <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
                 Vérifié
@@ -53,7 +55,7 @@ const Recherche = ({ tutor }) => {
           </div>
         </div>
       </div>
-    </div>
+     </>
   );
 };
 

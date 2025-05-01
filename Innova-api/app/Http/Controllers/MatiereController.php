@@ -14,28 +14,29 @@ class MatiereController extends Controller
     /**
      * Récupère toutes les matières avec leurs statistiques
      */
+    
     public function index()
-    {
-        try {
-            $matieres = Matiere::withCount(['cours as professeurs_count' => function($query) {
-                $query->select(DB::raw('count(distinct repetiteur_id)'));
-            }])
-            ->orderBy('nom')
-            ->get();
-
-            return response()->json([
-                'success' => true,
-                'matieres' => $matieres
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération des matières',
-                'error' => $e->getMessage()
-            ], 500);
+{
+    try {
+        $matieres = Matiere::all();
+        // Récupérer le nombre de professeurs pour chaque matière
+        foreach ($matieres as $matiere) {
+            $matiere->professeurs_count = User::whereHas('repetiteur.cours', function($query) use ($matiere) {
+                $query->where('matiere_id', $matiere->id);
+            })->count();
         }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $matieres
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la récupération des matières'
+        ], 500);
     }
+}
 
     /**
      * Recherche de professeurs avec filtres
@@ -101,6 +102,43 @@ class MatiereController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la recherche',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+   public function publicList()
+    {
+        try {
+            $matieres = Matiere::all();
+
+            return response()->json([
+                'success' => true,
+                'matieres' => $matieres
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des matières',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    /**
+     * Récupère une matière par son ID
+     */
+    public function show($id)
+    {
+        try {
+            $matiere = Matiere::findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'matiere' => $matiere
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération de la matière',
                 'error' => $e->getMessage()
             ], 500);
         }

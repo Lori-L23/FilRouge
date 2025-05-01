@@ -115,7 +115,7 @@ export default function TrouverProfesseur() {
               className="w-full border border-gray-300 rounded-lg p-2"
             >
               <option value="">Toutes les matières</option>
-              {matieres.map(m => (
+              {matieres?.map(m => (
                 <option key={m.id} value={m.id}>
                   {m.nom} ({m.professeurs_count} profs)
                 </option>

@@ -57,6 +57,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'matieres' => 'array',
+            
             'niveaux' => 'array',
             'date_naissance' => 'date',
             'password' => 'hashed',

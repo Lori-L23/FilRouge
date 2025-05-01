@@ -1,8 +1,13 @@
 <?php
 
 namespace App\Models;
+use App\Models\User;
+use App\Models\Cours;
+use App\Models\Matiere;
+use App\Models\Reservation;
 
 use Illuminate\Database\Eloquent\Model;
+
 
 class Repetiteur extends Model
 {
@@ -12,8 +17,7 @@ class Repetiteur extends Model
     ];
     protected $casts = [
         'matieres' => 'array',
-        'niveaux' => 'array'
-
+        // 'niveaux' => 'array'
     ];
 
     public function user()
@@ -29,4 +33,9 @@ class Repetiteur extends Model
     {
         return $this->belongsToMany(Matiere::class, 'repetiteur_matiere', 'repetiteur_id', 'matiere_id');
     }
+    
+public function reservations()
+{
+    return $this->hasMany(Reservation::class);
+}
 }

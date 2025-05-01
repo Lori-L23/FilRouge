@@ -13,6 +13,11 @@ use App\Http\Controllers\EleveController;
 use App\Http\Controllers\RepetiteurController;
 use App\Http\Controllers\CoursController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DisponibiliteController;
+use App\Http\Controllers\DataController;
+
+
+
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 /*
@@ -31,14 +36,23 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Matières (publiques)
 Route::get('/matieres/list', [MatiereController::class, 'publicList']);
-Route::apiResource('matieres', MatiereController::class)->only(['index', 'show']);
+Route::apiResource('matieres', MatiereController::class)->only([ 'show']);
+Route::get('/matieres', [MatiereController::class, 'index']);
 
 // Recherche de répétiteurs
 Route::get('/repetiteurs/search', [MatiereController::class, 'searchRep']);
 Route::get('/repetiteurs', [UserController::class, 'getRepetiteurs']);
+Route::get('/repetiteurs/${user.id}/cours', [RepetiteurController::class, 'getcours']);
 
 // Affichage public d'un répétiteur
 Route::get('/repetiteurs/{id}/public', [RepetiteurController::class, 'publicShow']);
+
+Route::group(['middleware' => ['auth:sanctum']], function() {
+    // Disponibilités
+    Route::get('/repetiteurs/{id}/disponibilites', [DisponibiliteController::class, 'index']);
+    Route::post('/disponibilites', [DisponibiliteController::class, 'store']);
+    Route::delete('/disponibilites/{id}', [DisponibiliteController::class, 'destroy']);
+});
 
 // ---------------------------
 // Routes Protégées (Authentifiées)
@@ -49,14 +63,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::get('/user-with-profile', [AuthController::class, 'getUserWithProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::put('/user', [AuthController::class, 'updateRole']);
 
     // Élèves
     Route::prefix('eleves')->group(function () {
-        Route::get('/{id}', [EleveController::class, 'show']);
+        Route::get('/{id}', [EleveController::class, 'showWithReservations']);
         Route::put('/{id}', [EleveController::class, 'update']);
         Route::delete('/{id}', [EleveController::class, 'destroy']);
         Route::post('/', [EleveController::class, 'store']);
         Route::get('/', [EleveController::class, 'index']);
+        Route::get('/{id}/reservations', [EleveController::class, 'getUserReservations']);
     });
     // Profil de l'utilisateur connecté
     Route::get('/profile', [ProfileController::class, 'show']);
@@ -71,12 +87,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', [RepetiteurController::class, 'show']);
         Route::put('/{id}', [RepetiteurController::class, 'update']);
         Route::get('/{id}/search', [RepetiteurController::class, 'search']);
+        Route::post('/', [RepetiteurController::class, 'store']);
+        Route::get('/', [RepetiteurController::class, 'index']);
     });
 
-    // Admins
-    Route::prefix('admins')->group(function () {
-        Route::get('/{id}', [AdminController::class, 'show']);
-    });
+
 
     // Gestion des Cours
     Route::prefix('cours')->group(function () {
@@ -93,7 +108,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
 
     // Paiements
-    Route::apiResource('paiements', PaiementController::class)->only([ 'show']);
+    Route::apiResource('paiements', PaiementController::class)->only(['show']);
     Route::patch('/paiements/{id}/status', [PaiementController::class, 'updateStatus']);
     Route::get('/paiements', [PaiementController::class, 'index']);
     Route::get('/paiements/summary', [PaiementController::class, 'summary']);
@@ -102,11 +117,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Feedbacks
     Route::apiResource('feedbacks', FeedbackController::class)->except(['update', 'destroy']);
 
-    // Dashboard Admin (protégé par Policy can:admin)
+    
+    // Admin 
     Route::prefix('admin')->middleware('can:admin')->group(function () {
         Route::get('/stats', [AdminController::class, 'getStats']);
         Route::get('/recent-users', [AdminController::class, 'recentUsers']);
         Route::get('/reservations/latest', [AdminController::class, 'getLatestReservations']);
+        Route::get('/{id}', [AdminController::class, 'show']);
+
 
         // Rapports
         Route::prefix('reports')->group(function () {
@@ -114,5 +132,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/paiements', [AdminController::class, 'paiementsReport']);
             Route::get('/utilisateurs', [AdminController::class, 'usersReport']);
         });
+    });
+
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::get('/users', [DataController::class, 'getUsers']);
+        Route::get('/eleves', [DataController::class, 'getEleves']);
+        Route::get('/repetiteurs', [DataController::class, 'getRepetiteurs']);
+        Route::get('/cours', [DataController::class, 'getCours']);
+        Route::get('/reservations', [DataController::class, 'getReservations']);
+        Route::get('/paiements', [DataController::class, 'getPaiements']);
     });
 });

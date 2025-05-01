@@ -1,4 +1,4 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import {
   FaSearch,
   FaStar,
@@ -26,6 +26,15 @@ import { Link, Links } from "react-router-dom";
 
 const Accueil = () => {
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Fonction de recherche (peut être utilisée pour filtrer les cours ou les professeurs)
+  const handleSearch = () => {
+    // Logique de recherche ici (par exemple, filtrer les cours ou les professeurs en fonction du terme de recherche)\
+    console.log("Recherche pour :", searchTerm);
+    
+  };
+
+
 
   // Données des cours populaires
   const popularCourses = [
@@ -103,7 +112,6 @@ const Accueil = () => {
   ];
   return (
     <div className="font-sans ">
-      
       {/* Section Hero avec Swiper */}
       <section className="relative bg-gray-50">
         <Swiper
@@ -164,16 +172,20 @@ const Accueil = () => {
                   placeholder="Rechercher une matière, un niveau, un professeur..."
                   className="w-full p-4 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={searchTerm}
+
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition-colors">
-                Trouver un professeur
-              </button>
+              <Link to="/trouverprofesseur">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition-colors">
+                  Trouver un professeur
+                </button>
+              </Link>
             </div>
           </div>
         </div>
+
       </section>
 
       {/* Composant de défilement des matières */}
@@ -224,7 +236,10 @@ const Accueil = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Link  to="/cours" className="bg-[#7ED321] text-white font-medium py-3 px-8 border border-[#7ED321] rounded-lg hover:bg-white  hover:text-[#7ED321] transition-colors">
+          <Link
+            to="/cours"
+            className="bg-[#7ED321] text-white font-medium py-3 px-8 border border-[#7ED321] rounded-lg hover:bg-white  hover:text-[#7ED321] transition-colors"
+          >
             Voir tous les cours
           </Link>
         </div>
@@ -334,17 +349,17 @@ const Accueil = () => {
             Rejoignez des milliers d'élèves et de professeurs qui apprennent et
             enseignent différemment
           </p>
-          
+
           <div className="flex flex-col sm:flex-row justify-center gap-4 text-white">
-          <Link to='/trouverprofesseur'>
-            <button className="bg-[#7ED321] text-white  border-2  font-medium py-3 px-8 rounded-lg hover:bg-white hover:text-[#7ED321] transition-colors">
-              Trouver un professeur
-            </button>
-          </Link>
-            <Link to='/devenirprofesseur'>
-            <button className="bg-white border-2  text-[#7ED321] hover:border-[#7ED321]  font-medium py-3 px-8 rounded-lg hover:bg-[#7ED321] hover:text-white transition-colors">
-              Devenir répétiteur
-            </button>
+            <Link to="/trouverprofesseur">
+              <button className="bg-[#7ED321] text-white  border-2  font-medium py-3 px-8 rounded-lg hover:bg-white hover:text-[#7ED321] transition-colors">
+                Trouver un professeur
+              </button>
+            </Link>
+            <Link to="/devenirprofesseur">
+              <button className="bg-white border-2  text-[#7ED321] hover:border-[#7ED321]  font-medium py-3 px-8 rounded-lg hover:bg-[#7ED321] hover:text-white transition-colors">
+                Devenir répétiteur
+              </button>
             </Link>
           </div>
         </div>

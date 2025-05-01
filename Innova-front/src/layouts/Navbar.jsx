@@ -1,14 +1,25 @@
-
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaBars, FaTimes, FaUser, FaSignInAlt, FaUserPlus, FaBell, FaCog, FaChalkboardTeacher, FaUserGraduate, FaHome } from "react-icons/fa";
+import {
+  FaBars,
+  FaTimes,
+  FaUser,
+  FaSignInAlt,
+  FaUserPlus,
+  FaBell,
+  FaCog,
+  FaChalkboardTeacher,
+  FaUserGraduate,
+  FaHome,
+} from "react-icons/fa";
 import logo from "../assets/logo.png";
 import { useAuth } from "../contexts/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, profile, logout, isAuthenticated } = useAuth();
+  console.log("pfil: ", profile);
   
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -26,41 +37,73 @@ const Navbar = () => {
 
   // Liens principaux
   const mainLinks = [
-    { to: "/", text: "Accueil", icon: <FaHome /> },
-    { to: "/cours", text: "Cours", icon: <FaChalkboardTeacher /> },
+    { to: "/", text: "Accueil"},
+    { to: "/cours", text: "Cours"},
     { to: "/apropos", text: "À propos" },
     { to: "/ressources", text: "Ressources" },
     { to: "/contact", text: "Contact" },
   ];
 
-  // Liens utilisateur
-  const getUserLinks = () => {
-
-    const baseLinks = [
-      { 
-        to: `/profil`, 
-        text: "Mon Profil", 
-        icon: user?.role === 'eleve' ? <FaUserGraduate /> : <FaUser /> 
+  // Liens utilisateur selon son profil
+  const getUserLinks = (user) => {
+    console.log("profile admin", user);
+    const links = [
+      {
+        to: "/notifications",
+        icon: <FaBell />,
       },
-      
-
-      { to: "/notifications", text: "Notifications", icon: <FaBell /> },
     ];
-
-
-    if (user?.role === 'repetiteur') {
-      baseLinks.push({ to: "/MesCours", text: "Mes Cours", icon: <FaChalkboardTeacher /> });
+  
+    if (user?.role === "admin") {
+      
+      links.push(
+        {
+          to: "/DashboardAdmin",
+          text: "Dashboard",
+          icon: <FaCog />,
+        },
+        {
+          to: "/Profilad",
+          // text: "Mon Profil",
+          icon: <FaUser />,
+        }
+      );
+    } else if (profile?.biographie) {
+      // Répétiteur
+      links.push(
+        {
+          to: "/profile",
+          // text: "Mon Profil",
+          icon: <FaUser />,
+        },
+        {
+          to: "/MesCours",
+          text: "Mes Cours",
+          // icon: <FaChalkboardTeacher />,
+        },
+      );
+    } else if (profile?.niveau_scolaire) {
+      // Élève
+      links.push({
+        to: "/profil",
+        text: "Mon Profil",
+        icon: <FaUserGraduate />,
+      });
     }
-
-    if (user?.role === 'admin') {
-      baseLinks.push({ to: "/DashboardAdmin", text: "Administration" });
-    }
-
-    return baseLinks;
+  
+    return links;
   };
 
+  const links = getUserLinks(user); 
+  console.log('links: ', links);
+  
+  
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-md py-2" : "bg-white py-4"}`}>
+    <nav
+      className={`fixed w-full z-50 transition-all duration-300 ${
+        isScrolled ? "bg-white shadow-md py-2" : "bg-white py-4"
+      }`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
@@ -82,22 +125,32 @@ const Navbar = () => {
             <div className="flex items-center space-x-4 ml-6">
               {!isAuthenticated ? (
                 <>
-                  <AuthButton onClick={() => navigate("/login")} icon={<FaSignInAlt />}>
+                  <AuthButton
+                    onClick={() => navigate("/login")}
+                    icon={<FaSignInAlt />}
+                  >
                     Connexion
                   </AuthButton>
-                  <AuthButton primary onClick={() => navigate("/register")} icon={<FaUserPlus />}>
+                  <AuthButton
+                    primary
+                    onClick={() => navigate("/register")}
+                    icon={<FaUserPlus />}
+                  >
                     Inscription
                   </AuthButton>
                 </>
               ) : (
                 <>
-                  <div className="flex items-center space-x-5">
-                    {getUserLinks().map((link) => (
-                      <NavLink key={link.to} to={link.to} icon={link.icon}>
-                        {link.text}
-                      </NavLink>
-                    ))}
-                  </div>
+                  {links && (
+                    <div className="flex items-center space-x-5">
+                      {links.map((link) => {console.log(link);
+                      return (
+                        <NavLink key={link.to} to={link.to} icon={link.icon}>
+                          {link.text}
+                        </NavLink>
+                      )})}
+                    </div>
+                  )}
                   <AuthButton onClick={logout}>Déconnexion</AuthButton>
                 </>
               )}
@@ -106,14 +159,21 @@ const Navbar = () => {
 
           {/* Menu mobile */}
           <div className="md:hidden flex items-center">
-            <button onClick={toggleMenu} className="text-gray-700 focus:outline-none">
-              {isOpen ? <FaTimes className="h-6 w-6" /> : <FaBars className="h-6 w-6" />}
+            <button
+              onClick={toggleMenu}
+              className="text-gray-700 focus:outline-none"
+            >
+              {isOpen ? (
+                <FaTimes className="h-6 w-6" />
+              ) : (
+                <FaBars className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
 
         {/* Menu mobile ouvert */}
-        {isOpen && (
+        {/* {isOpen && (
           <div className="md:hidden fixed inset-0 bg-white z-40 pt-20 px-6 overflow-y-auto">
             <div className="flex flex-col space-y-4">
               {mainLinks.map((link) => (
@@ -134,12 +194,12 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    {getUserLinks().map((link) => (
+                    {profile && getUserLinks().map((link) => (
                       <MobileNavLink key={link.to} to={link.to} onClick={closeMenu} icon={link.icon}>
                         {link.text}
                       </MobileNavLink>
                     ))}
-                    <MobileAuthButton  className="bg-[#7ED321] text-white" primary  onClick={() => { logout(); closeMenu(); }}>
+                    <MobileAuthButton className="bg-[#7ED321] text-white" primary onClick={() => { logout(); closeMenu(); }}>
                       Déconnexion
                     </MobileAuthButton>
                   </>
@@ -147,11 +207,88 @@ const Navbar = () => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
+
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed inset-0 bg-white z-40 pt-20 px-6 overflow-y-auto md:hidden"
+            >
+              <div className="flex flex-col space-y-4">
+                {mainLinks.map((link) => (
+                  <MobileNavLink
+                    key={link.to}
+                    to={link.to}
+                    onClick={closeMenu}
+                    icon={link.icon}
+                  >
+                    {link.text}
+                  </MobileNavLink>
+                ))}
+
+                <div className="border-t border-gray-200 pt-4">
+                  {!isAuthenticated ? (
+                    <>
+                      <MobileAuthButton
+                        onClick={() => {
+                          navigate("/login");
+                          closeMenu();
+                        }}
+                        icon={<FaSignInAlt />}
+                      >
+                        Connexion
+                      </MobileAuthButton>
+                      <MobileAuthButton
+                        primary
+                        onClick={() => {
+                          navigate("/register");
+                          closeMenu();
+                        }}
+                        icon={<FaUserPlus />}
+                      >
+                        Inscription
+                      </MobileAuthButton>
+                    </>
+                  ) : (
+                    <>
+                      {profile &&
+                        getUserLinks().map((link) => (
+                          <MobileNavLink
+                            key={link.to}
+                            to={link.to}
+                            onClick={closeMenu}
+                            icon={link.icon}
+                          >
+                            {link.text}
+                          </MobileNavLink>
+                        ))}
+                      <MobileAuthButton
+                        className="bg-[#7ED321] text-white"
+                        primary
+                        onClick={() => {
+                          logout();
+                          closeMenu();
+                        }}
+                      >
+                        Déconnexion
+                      </MobileAuthButton>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </nav>
   );
 };
+
 // Composants réutilisables
 const NavLink = ({ to, children, icon, badge = false }) => (
   <Link
@@ -204,24 +341,24 @@ const AuthButton = ({
     </button>
   );
 };
-// (Gardez vos composants NavLink, MobileNavLink, AuthButton, MobileAuthButton tels quels)
+
 const MobileAuthButton = ({ children, primary = false, onClick, icon }) => {
-    const baseClasses =
-      "w-full text-left py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center my-1";
-    const primaryClasses = "bg-[#7ED321] text-white hover:bg-[#6BBE1F]";
-    const secondaryClasses = "text-gray-700 hover:bg-gray-100";
-  
-    return (
-      <button
-        onClick={onClick}
-        className={`${baseClasses} ${
-          primary ? primaryClasses : secondaryClasses
-        }`}
-      >
-        {icon && <span className="mr-3">{icon}</span>}
-        {children}
-      </button>
-    );
-  };
+  const baseClasses =
+    "w-full text-left py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center my-1";
+  const primaryClasses = "bg-[#7ED321] text-white hover:bg-[#6BBE1F]";
+  const secondaryClasses = "text-gray-700 hover:bg-gray-100";
+
+  return (
+    <button
+      onClick={onClick}
+      className={`${baseClasses} ${
+        primary ? primaryClasses : secondaryClasses
+      }`}
+    >
+      {icon && <span className="mr-3">{icon}</span>}
+      {children}
+    </button>
+  );
+};
 
 export default Navbar;

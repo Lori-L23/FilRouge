@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Repetiteur;
 use App\Models\User;
+use App\Models\Cours;
+use App\Models\Matiere;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -68,10 +70,10 @@ class RepetiteurController extends Controller
     {
         // return response()->json(['id'=>$id]);
         try {
-            
-        $repetiteur = Repetiteur::with('user')
-            ->whereHas('user', fn($q) => $q->where('statut', 'actif'))
-            ->find($id);
+
+            $repetiteur = Repetiteur::with('user')
+                ->whereHas('user', fn($q) => $q->where('statut', 'actif'))
+                ->find($id);
 
             return response()->json([
                 'success' => true,
@@ -95,7 +97,7 @@ class RepetiteurController extends Controller
                 'cours' => $repetiteur->cours
             ]);
         } catch (\Throwable $th) {
-            return response()->json(["data" => ["message"=>"Pas trouvé.", "error"=>$th->getMessage()]]);
+            return response()->json(["data" => ["message" => "Pas trouvé.", "error" => $th->getMessage()]]);
         }
     }
 
@@ -171,7 +173,9 @@ class RepetiteurController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'matieres' => 'required|array',
+            'matieres.*' => 'string',
             'niveaux' => 'required|array',
+            'niveaux.*' => 'string',
             'biographie' => 'required|string',
             'rayon_intervention' => 'required|integer|min:1',
         ]);
@@ -214,6 +218,7 @@ class RepetiteurController extends Controller
         $validated = $request->validate([
             'matieres' => 'required|array',
             'niveaux' => 'required|array',
+
             'tarif_horaire' => 'nullable|numeric',
             'biographie' => 'required|string',
             'rayon_intervention' => 'required|numeric'
@@ -238,6 +243,7 @@ class RepetiteurController extends Controller
             'user_id' => $repetiteur->user_id,
             'user' => $repetiteur->user,
             'matieres' => $this->parseJsonData($repetiteur->matieres),
+        
             'niveaux' => $this->parseJsonData($repetiteur->niveaux),
             'biographie' => $repetiteur->biographie,
             'statut_verif' => $repetiteur->statut_verif,
@@ -247,5 +253,47 @@ class RepetiteurController extends Controller
             'created_at' => $repetiteur->created_at,
             'updated_at' => $repetiteur->updated_at
         ];
+    }
+    /**
+     * Store a newly created resource in storage.
+     */
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'matieres' => 'required|array',
+            'matieres.*' => 'exists:matieres,id',
+            'description' => 'required|string|max:500',
+            'niveau_enseigne' => 'required|string|in:Primaire,Collège/lycee,Tous niveaux',
+            'tarif_horaire' => 'required|numeric|min:1000',
+            'disponibilites' => 'required|string|max:255'
+        ]);
+
+        try {
+            // Création du profil
+            $repetiteur = Repetiteur::create([
+                'user_id' => $validated['user_id'],
+                'description' => $validated['description'],
+                'niveau_enseigne' => $validated['niveau_enseigne'],
+                'tarif_horaire' => $validated['tarif_horaire'],
+                'disponibilites' => $validated['disponibilites'],
+                'status' => 'en_attente' // Statut par défaut
+            ]);
+
+            // Attachement des matières
+            $repetiteur->matieres()->attach($validated['matieres']);
+
+            return response()->json([
+                'success' => true,
+                'data' => $repetiteur,
+                'message' => 'Profil créé avec succès'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la création'
+            ], 500);
+        }
     }
 }

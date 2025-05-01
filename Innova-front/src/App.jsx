@@ -27,6 +27,14 @@ import FeedbackForm from "./Pages/FeedbackForm";
 import MesCours from "./components/MesCours";
 import ProfileSwitcher from "./components/ProfileSwitcher";
 import Profilad from "./admin/profil";
+import Acc2 from "./Pages/Acc2";
+import Blog from "./Pages/Blog";
+import FAQ from "./Pages/Faq";
+import Temoignages from "./Pages/Temoignages";
+import ArticleDetail from "./components/ArticleDetail";
+// import TableauDonnees from "./components/TableauDonnees";
+import DashboardStats from "./components/DashboardStats";
+
 
 function App() {
   return (
@@ -55,20 +63,24 @@ function App() {
                   path="/devenirprofesseur"
                   element={<DevenirProfesseur />}
                 />
-
+                <Route path="/acc2" element={<Acc2 />} />
                 <Route path="/repetiteurs/:id" element={<Details />} />
 
                 <Route path="/equipe" element={<TeamPage />} />
-                {/* <Route path="/temoignages" element={<Temoignages />} /> */}
-                {/* <Route path="/faq" element={<FAQ />} /> */}
-                {/* <Route path="/blog" element={<Blog />} /> */}
+                <Route path="/temoignages" element={<Temoignages />} /> 
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:id" element={<ArticleDetail />} />
+                
+
+
                 {/* <Route path="/valeurs" element={<Valeurs />} /> */}
 
                 <Route path="/Recherche" element={<Recherche />} />
 
                 <Route path="/profil" element={<Profil />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/Profilad" element={<Profilad />} />
+                <Route path="/profilad" element={<Profilad />} />
                 <Route path="/MesCours" element={<MesCours />} />
                 <Route path="/ProfileSwitcher" element={<ProfileSwitcher />} />
               </Route>
@@ -79,6 +91,9 @@ function App() {
               <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
               <Route path="/FeedbackForm" element={<FeedbackForm />} />
               <Route path="/reservation/:id" element={<Reservation />} />
+              {/* <Route path="/tableaudonnees" element={<TableauDonnees />} /> */}
+              <Route path="/dashboard-stats" element={<DashboardStats />} />
+              
               {/* 
           <Route path="/confirmation" element={<confirmation />} />
           <Route path="/recherche" element={<Recherche />} />

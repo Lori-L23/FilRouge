@@ -36,7 +36,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Matières (publiques)
 Route::get('/matieres/list', [MatiereController::class, 'publicList']);
-Route::apiResource('matieres', MatiereController::class)->only([ 'show']);
+Route::apiResource('matieres', MatiereController::class)->only(['show']);
 Route::get('/matieres', [MatiereController::class, 'index']);
 
 // Recherche de répétiteurs
@@ -47,11 +47,16 @@ Route::get('/repetiteurs/${user.id}/cours', [RepetiteurController::class, 'getco
 // Affichage public d'un répétiteur
 Route::get('/repetiteurs/{id}/public', [RepetiteurController::class, 'publicShow']);
 
-Route::group(['middleware' => ['auth:sanctum']], function() {
+Route::group(['middleware' => ['auth:sanctum']], function () {
     // Disponibilités
     Route::get('/repetiteurs/{id}/disponibilites', [DisponibiliteController::class, 'index']);
     Route::post('/disponibilites', [DisponibiliteController::class, 'store']);
     Route::delete('/disponibilites/{id}', [DisponibiliteController::class, 'destroy']);
+});
+
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/admin/stats', [AdminController::class, 'getStats']);
+    Route::get('/admin/reservations/latest', [AdminController::class, 'getLatestReservations']);
 });
 
 // ---------------------------
@@ -65,7 +70,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::put('/user', [AuthController::class, 'updateRole']);
 
-    // Élèves
+    // Élèvesp
     Route::prefix('eleves')->group(function () {
         Route::get('/{id}', [EleveController::class, 'showWithReservations']);
         Route::put('/{id}', [EleveController::class, 'update']);
@@ -104,8 +109,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     // Réservations
+    Route::get('/reservations/latest', [ReservationController::class, 'getLatestReservations']);
     Route::apiResource('reservations', ReservationController::class);
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
+
 
     // Paiements
     Route::apiResource('paiements', PaiementController::class)->only(['show']);
@@ -117,12 +124,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Feedbacks
     Route::apiResource('feedbacks', FeedbackController::class)->except(['update', 'destroy']);
 
-    
+
     // Admin 
     Route::prefix('admin')->middleware('can:admin')->group(function () {
-        Route::get('/stats', [AdminController::class, 'getStats']);
+        // Route::get('/stats', [AdminController::class, 'getStats']);
         Route::get('/recent-users', [AdminController::class, 'recentUsers']);
-        Route::get('/reservations/latest', [AdminController::class, 'getLatestReservations']);
+        // Route::get('/reservations/latest', [AdminController::class, 'getLatestReservations']);
         Route::get('/{id}', [AdminController::class, 'show']);
 
 

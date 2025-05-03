@@ -34,6 +34,15 @@ import Temoignages from "./Pages/Temoignages";
 import ArticleDetail from "./components/ArticleDetail";
 // import TableauDonnees from "./components/TableauDonnees";
 import DashboardStats from "./components/DashboardStats";
+import AdminLayout from "./admin/AdminLayou";
+import Utilisateurs from "./admin/Utilisateurs";
+import Repetiteurs from "./admin/Repetiteurs";
+import Eleves from "./admin/Eleves";
+import CoursAd from "./admin/Cours";
+import Paiements from "./admin/Paiements";
+import Reservations from "./admin/Reservations";
+import Parametres from "./admin/Parametres";
+
 
 
 function App() {
@@ -83,7 +92,18 @@ function App() {
                 <Route path="/profilad" element={<Profilad />} />
                 <Route path="/MesCours" element={<MesCours />} />
                 <Route path="/ProfileSwitcher" element={<ProfileSwitcher />} />
+              <Route  element={<AdminLayout />}>
+                <Route path="/admin/utilisateurs" element={<Utilisateurs />} />
+                <Route path="/admin/repetiteurs" element={<Repetiteurs />} />
+                <Route path="/admin/eleves" element={<Eleves />} />
+                <Route path="/admin/cours" element={<CoursAd />} />
+                <Route path="/admin/paiements" element={<Paiements />} />
+                <Route path="/admin/reservations" element={<Reservations />} />
+                <Route path="/admin/parametres" element={<Parametres />} />
               </Route>
+              </Route>
+
+
 
               {/* <Route path="/" element={<Login />} /> */}
               <Route path="/login" element={<Login />} />

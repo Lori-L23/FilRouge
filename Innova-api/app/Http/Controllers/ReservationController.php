@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Reservation;
 use App\Models\Cours;
 use App\Models\Eleve;
@@ -266,7 +267,26 @@ class ReservationController extends Controller
             ], 500);
         }
     }
-    
 
+    public function getLatestReservations(Request $request)
+    {
+        $startDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))
+            : Carbon::now()->subMonth();
 
+        $endDate = $request->input('end_date')
+            ? Carbon::parse($request->input('end_date'))
+            : Carbon::now();
+
+        $reservations = Reservation::with(['eleve.user', 'repetiteur.user'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $reservations
+        ]);
+    }
 }

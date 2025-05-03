@@ -57,7 +57,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'matieres' => 'array',
-            
+
             'niveaux' => 'array',
             'date_naissance' => 'date',
             'password' => 'hashed',
@@ -69,6 +69,7 @@ class User extends Authenticatable
 {
     return $this->hasOne(Eleve::class);
 }
+
 public function profile()
 {
     return $this->hasOne(Profile::class)->withDefault([
@@ -85,6 +86,10 @@ public function repetiteur()
 public function paiements()
 {
     return $this->hasMany(Paiement::class);
+}
+public function admin (){
+    
+    return $this->hasOne(Admin::class);
 }
 
 }

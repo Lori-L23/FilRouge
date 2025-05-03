@@ -85,6 +85,8 @@ function Register() {
       }
     }
   };
+
+  
   const handleMatiereChange = (e) => {
     const { value, checked } = e.target;
     if (checked) {

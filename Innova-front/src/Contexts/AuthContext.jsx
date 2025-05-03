@@ -234,7 +234,7 @@ export const AuthProvider = ({ children }) => {
    * Nettoie le localStorage et les headers API
    */
   const logout = useCallback(() => {
-    console.log("logout Déclenché");
+    // console.log("logout Déclenché");
 
     // Nettoyage côté client quoi qu'il arrive
     localStorage.removeItem("auth_token");

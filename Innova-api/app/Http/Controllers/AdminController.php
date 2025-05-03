@@ -17,12 +17,12 @@ class AdminController extends Controller
     public function getStats(Request $request)
     {
         // Dates de filtrage
-        $startDate = $request->input('start_date') 
-            ? Carbon::parse($request->input('start_date')) 
+        $startDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))
             : Carbon::now()->subMonth();
-            
-        $endDate = $request->input('end_date') 
-            ? Carbon::parse($request->input('end_date')) 
+
+        $endDate = $request->input('end_date')
+            ? Carbon::parse($request->input('end_date'))
             : Carbon::now();
 
         // Calcul des statistiques
@@ -47,15 +47,15 @@ class AdminController extends Controller
     public function getLatestReservations(Request $request)
     {
         // Dates de filtrage
-        $startDate = $request->input('start_date') 
-            ? Carbon::parse($request->input('start_date')) 
+        $startDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))
             : Carbon::now()->subMonth();
-            
-        $endDate = $request->input('end_date') 
-            ? Carbon::parse($request->input('end_date')) 
+
+        $endDate = $request->input('end_date')
+            ? Carbon::parse($request->input('end_date'))
             : Carbon::now();
 
-        $reservations = Reservation::with(['eleve.user', 'repetiteur.user'])
+        $reservations = Reservation::with(['eleve', 'repetiteur'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
             ->limit(10)
@@ -91,20 +91,20 @@ class AdminController extends Controller
         ];
     }
 
-//     public function stats()
-// {
-//     return response()->json([
-//         'eleves' => User::where('role', 'eleve')->count(),
-//         'repetiteurs' => User::where('role', 'repetiteur')->count(),
-//         'cours' => Cours::count(),
-//         'paiements' => Paiement::count()
-//     ]);
-// }
+    //     public function stats()
+    // {
+    //     return response()->json([
+    //         'eleves' => User::where('role', 'eleve')->count(),
+    //         'repetiteurs' => User::where('role', 'repetiteur')->count(),
+    //         'cours' => Cours::count(),
+    //         'paiements' => Paiement::count()
+    //     ]);
+    // }
 
-public function recentUsers()
-{
-    return User::orderBy('created_at', 'desc')
-               ->limit(10)
-               ->get(['id', 'nom', 'prenom', 'email', 'telephone', 'role', 'created_at']);
-}
+    public function recentUsers()
+    {
+        return User::orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get(['id', 'nom', 'prenom', 'email', 'telephone', 'role', 'created_at']);
+    }
 }

@@ -63,6 +63,12 @@ class AuthController extends Controller
                     'rayon_intervention' => $request->input('rayon_intervention', 10),
                     'tarif_horaire' => $request->input('tarif_horaire', 0)
                 ]);
+            }elseif ($validated['role'] === 'admin') {
+                $profileData = Admin::create([
+                    'user_id' => $user->id,
+                ]);
+            } else {
+                throw new \Exception('Invalid role');
             }
 
             // Création du token d'accès
@@ -194,7 +200,6 @@ class AuthController extends Controller
             'profile_type' => $profileType
         ]);
     }
-    // Dans AuthController.php
     public function updateRole(Request $request)
     {
         $request->validate([

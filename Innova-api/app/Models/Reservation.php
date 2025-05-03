@@ -36,7 +36,7 @@ class Reservation extends Model
 
     public function eleve()
     {
-        return $this->belongsTo(User::class, 'eleve_id');
+        return $this->belongsTo(Eleve::class);
     }
 
     public function repetiteur()

@@ -17,6 +17,8 @@ import {
   ClockIcon,
   XCircleIcon,
   NoSymbolIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 const DashboardAdmin = () => {
@@ -38,154 +40,108 @@ const DashboardAdmin = () => {
   const [authError, setAuthError] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [networkError, setNetworkError] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [reservationsPerPage] = useState(7);
+  const [totalReservations, setTotalReservations] = useState(0);
 
   useEffect(() => {
     fetchDashboardData();
-  }, [dateRange]);
+  }, [dateRange, currentPage]);
 
   useEffect(() => {
-    console.log('[DEBUG] Current user:', user);
-    console.log('[DEBUG] Current stats:', stats);
-    console.log('[DEBUG] Current reservations:', reservations);
+    console.log("[DEBUG] Current user:", user);
+    console.log("[DEBUG] Current stats:", stats);
+    console.log("[DEBUG] Current reservations:", reservations);
   }, [user, stats, reservations]);
 
-  // const fetchDashboardData = async () => {
-  //   try {
-  //     setLoading(true);
-  //     setReservationsLoading(true);
-
-  //     const [statsRes, reservationsRes] = await Promise.all([
-  //       Api.get('/api/admin/stats', {
-  //         params: {
-  //           start_date: dateRange[0],
-  //           end_date: dateRange[1]
-  //         }
-  //       }).catch(() => ({ data: stats })), // Fallback to current stats if error
-  //       Api.get('/api/admin/reservations/latest', {
-  //         params: {
-  //           start_date: dateRange[0],
-  //           end_date: dateRange[1]
-  //         }
-  //       }).catch(() => ({ data: [] })) // Fallback to empty array if error
-  //     ]);
-
-  //     setStats(statsRes.data);
-  //     setReservations(reservationsRes.data);
-  //   } catch (error) {
-  //     console.error('Error fetching data:', error);
-  //     if (error.response?.status === 401) {
-  //       alert('Session expirée. Veuillez vous reconnecter.');
-  //       logout();
-  //     } else {
-  //       alert('Erreur lors du chargement des données');
-  //     }
-  //   } finally {
-  //     setLoading(false);
-  //     setReservationsLoading(false);
-  //   }
-  // };
-
-  console.log("admin", user);
-
   const fetchDashboardData = async () => {
-    console.log('[DEBUG] Starting data fetch...');
+    console.log("[DEBUG] Starting data fetch...");
+    setLoading(true);
+    setReservationsLoading(true);
     setApiError(null);
     setNetworkError(false);
+    setAuthError(false);
 
     try {
       // Vérification basique côté client
-      if (!user || user.role !== 'admin') {
-        throw new Error('Access denied: Admin role required');
+      if (!user || user.role !== "admin") {
+        setAuthError(true);
+        return;
       }
 
-      console.log('[DEBUG] Sending requests...');
+      const token = localStorage.getItem("auth_token");
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          start_date: dateRange[0],
+          end_date: dateRange[1],
+          page: currentPage,
+          per_page: reservationsPerPage
+        },
+      };
+
+      console.log("[DEBUG] Sending requests...");
       const [statsRes, reservationsRes] = await Promise.all([
-        Api.get('/api/admin/stats').catch(err => {
-          console.error('[DEBUG] Stats error:', err.response);
+        Api.get("/api/admin/stats", config).catch((err) => {
+          console.error("[DEBUG] Stats error:", err.response);
           throw err;
         }),
-        Api.get('/api/admin/reservations/latest').catch(err => {
-          console.error('[DEBUG] Reservations error:', err.response);
+        Api.get("/api/reservations/latest", config).catch((err) => {
+          console.error("[DEBUG] Reservations error:", err.response);
           throw err;
-        })
+        }),
       ]);
 
-      console.log('[DEBUG] API responses:', { stats: statsRes.data, reservations: reservationsRes.data });
+      console.log("[DEBUG] API responses:", {
+        stats: statsRes.data,
+        reservations: reservationsRes.data,
+      });
 
-      if (!statsRes.data.success || !reservationsRes.data.success) {
-        throw new Error('API returned unsuccessful response');
-      }
-
-      setStats(statsRes.data.data);
-      setReservations(reservationsRes.data.data);
-
+      // Handle both direct data and data wrapped in 'data' property
+      setStats(statsRes.data.data || statsRes.data);
+      setReservations(reservationsRes.data.data || reservationsRes.data.reservations);
+      setTotalReservations(reservationsRes.data.total || reservationsRes.data.data?.length || 0);
     } catch (error) {
-      console.error('[DEBUG] Full error:', error);
-      
-      if (error.message === 'Network Error') {
+      console.error("[DEBUG] Full error:", error);
+
+      if (error.message === "Network Error") {
         setNetworkError(true);
       } else if (error.response?.status === 403) {
-        setApiError('Permission denied: Admin access required');
+        setApiError("Permission denied: Admin access required");
       } else if (error.response?.status === 401) {
         logout();
-        alert('Session expired. Please login again.');
+        alert("Session expired. Please login again.");
       } else {
         setApiError(error.response?.data?.message || error.message);
       }
+    } finally {
+      setLoading(false);
+      setReservationsLoading(false);
     }
   };
 
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalReservations / reservationsPerPage);
 
   const menuItems = [
-    {
-      key: "1",
-      icon: <ChartBarIcon className="h-5 w-5" />,
-      label: "Tableau de bord",
-      path: "/admin",
-    },
-    {
-      key: "2",
-      icon: <UsersIcon className="h-5 w-5" />,
-      label: "Utilisateurs",
-      path: "/admin/utilisateurs",
-    },
-    {
-      key: "3",
-      icon: <UserGroupIcon className="h-5 w-5" />,
-      label: "Répétiteurs",
-      path: "/admin/repetiteurs",
-    },
-    {
-      key: "4",
-      icon: <AcademicCapIcon className="h-5 w-5" />,
-      label: "Élèves",
-      path: "/admin/eleves",
-    },
-    {
-      key: "5",
-      icon: <BookOpenIcon className="h-5 w-5" />,
-      label: "Cours",
-      path: "/admin/cours",
-    },
-    {
-      key: "6",
-      icon: <CurrencyDollarIcon className="h-5 w-5" />,
-      label: "Paiements",
-      path: "/admin/paiements",
-    },
-    {
-      key: "7",
-      icon: <CalendarIcon className="h-5 w-5" />,
-      label: "Réservations",
-      path: "/admin/reservations",
-    },
-    {
-      key: "8",
-      icon: <CogIcon className="h-5 w-5" />,
-      label: "Paramètres",
-      path: "/admin/parametres",
-    },
+    { key: "1", icon: <ChartBarIcon className="h-5 w-5" />, label: "Tableau de bord", path: "/DashboardAdmin" },
+    { key: "2", icon: <UsersIcon className="h-5 w-5" />, label: "Utilisateurs", path: "/admin/utilisateurs" },
+    { key: "3", icon: <UserGroupIcon className="h-5 w-5" />, label: "Répétiteurs", path: "/admin/repetiteurs" },
+    { key: "4", icon: <AcademicCapIcon className="h-5 w-5" />, label: "Élèves", path: "/admin/eleves" },
+    { key: "5", icon: <BookOpenIcon className="h-5 w-5" />, label: "Cours", path: "/admin/cours" },
+    { key: "6", icon: <CurrencyDollarIcon className="h-5 w-5" />, label: "Paiements", path: "/admin/paiements" },
+    { key: "7", icon: <CalendarIcon className="h-5 w-5" />, label: "Réservations", path: "/admin/reservations" },
+    { key: "8", icon: <CogIcon className="h-5 w-5" />, label: "Paramètres", path: "/admin/parametres" },
   ];
+  
 
   const statusBadge = (status) => {
     const statusClasses = {
@@ -225,9 +181,9 @@ const DashboardAdmin = () => {
     const newDateRange = [...dateRange];
     newDateRange[index] = e.target.value;
     setDateRange(newDateRange);
+    setCurrentPage(1); // Reset to first page when date range changes
   };
 
-  // Helper function to safely access nested properties
   const getSafe = (fn, defaultValue = "N/A") => {
     try {
       return fn();
@@ -261,50 +217,6 @@ const DashboardAdmin = () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
-          <h3 className="text-sm font-medium text-yellow-800">Debug Info</h3>
-          <div className="mt-2 text-sm text-yellow-700">
-            <p>User Role: {user?.role || "None"}</p>
-            <p>
-              Auth Token:{" "}
-              {localStorage.getItem("token") ? "Present" : "Missing"}
-            </p>
-            <button
-              onClick={() => {
-                console.log("Current state:", { user, stats, reservations });
-                fetchDashboardData();
-              }}
-              className="mt-2 text-xs bg-yellow-100 px-2 py-1 rounded"
-            >
-              Show State in Console
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Error Messages */}
-      {networkError && (
-        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-400">
-          <h3 className="text-sm font-medium text-red-800">Network Error</h3>
-          <p className="mt-2 text-sm text-red-700">
-            Cannot connect to server. Check your internet connection.
-          </p>
-        </div>
-      )}
-
-      {apiError && (
-        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-400">
-          <h3 className="text-sm font-medium text-red-800">API Error</h3>
-          <p className="mt-2 text-sm text-red-700">{apiError}</p>
-          <button
-            onClick={fetchDashboardData}
-            className="mt-2 text-sm text-red-600 hover:text-red-500 font-medium"
-          >
-            Retry
-          </button>
-        </div>
-      )}
       <div
         className={`md:flex flex-col w-64 bg-blue-700 border-r border-gray-200 ${
           sidebarOpen ? "flex" : "hidden"
@@ -395,6 +307,8 @@ const DashboardAdmin = () => {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50">
+  
+
           <div className="flex flex-col space-y-6">
             {/* Header with date picker */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
@@ -628,12 +542,16 @@ const DashboardAdmin = () => {
                                 <div className="text-sm font-medium text-gray-900">
                                   {getSafe(
                                     () =>
-                                      `${reservation.eleve.user.prenom} ${reservation.eleve.user.nom}`
+                                      reservation.eleve?.user?.prenom +
+                                      " " +
+                                      reservation.eleve?.user?.nom,
+                                    "Élève inconnu"
                                   )}
                                 </div>
                                 <div className="text-sm text-gray-500">
                                   {getSafe(
-                                    () => reservation.eleve.niveau_scolaire
+                                    () => reservation.eleve?.niveau_scolaire,
+                                    "Niveau inconnu"
                                   )}
                                 </div>
                               </div>
@@ -652,15 +570,20 @@ const DashboardAdmin = () => {
                                 <div className="text-sm font-medium text-gray-900">
                                   {getSafe(
                                     () =>
-                                      `${reservation.repetiteur.user.prenom} ${reservation.repetiteur.user.nom}`
+                                      reservation.repetiteur?.user?.prenom +
+                                      " " +
+                                      reservation.repetiteur?.user?.nom,
+                                    "Répétiteur inconnu"
                                   )}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                  {getSafe(() =>
-                                    reservation.repetiteur.statut_verif ===
-                                    "verifie"
-                                      ? "Vérifié"
-                                      : "Non vérifié"
+                                  {getSafe(
+                                    () =>
+                                      reservation.repetiteur?.statut_verif ===
+                                      "verifie"
+                                        ? "Vérifié"
+                                        : "Non vérifié",
+                                    "Statut inconnu"
                                   )}
                                 </div>
                               </div>
@@ -694,6 +617,91 @@ const DashboardAdmin = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination */}
+              {!reservationsLoading && reservations.length > 0 && (
+                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                  <div className="flex-1 flex justify-between sm:hidden">
+                    <button
+                      onClick={() => paginate(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      Précédent
+                    </button>
+                    <button
+                      onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Affichage de <span className="font-medium">{(currentPage - 1) * reservationsPerPage + 1}</span> à{" "}
+                        <span className="font-medium">
+                          {Math.min(currentPage * reservationsPerPage, totalReservations)}
+                        </span>{" "}
+                        sur <span className="font-medium">{totalReservations}</span> résultats
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button
+                          onClick={() => paginate(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                            currentPage === 1
+                              ? "text-gray-300 cursor-not-allowed"
+                              : "text-gray-500 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span className="sr-only">Précédent</span>
+                          <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                        
+                        {/* Page numbers */}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                          <button
+                            key={number}
+                            onClick={() => paginate(number)}
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                              currentPage === number
+                                ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                                : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                            }`}
+                          >
+                            {number}
+                          </button>
+                        ))}
+                        
+                        <button
+                          onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                            currentPage === totalPages
+                              ? "text-gray-300 cursor-not-allowed"
+                              : "text-gray-500 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span className="sr-only">Suivant</span>
+                          <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </main>

@@ -2,7 +2,11 @@
 
 namespace App\Models;
 
+
+
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Repetiteur;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 

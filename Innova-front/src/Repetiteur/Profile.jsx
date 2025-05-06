@@ -22,7 +22,7 @@ const ProfileRepetiteur = () => {
   const { user, profile, refetchUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
-    matieres: [],
+    matieres: '',
     niveaux: [],
     tarif_horaire: '',
     biographie: '',
@@ -37,7 +37,7 @@ const ProfileRepetiteur = () => {
     titre: '',
     description: '',
     matiere_id: '',
-    niveau_scolaire: 'college',
+    niveau_scolaire: 'college/lycee',
     tarif_horaire: ''
   });
   const [disponibilites, setDisponibilites] = useState([]);
@@ -121,7 +121,7 @@ const ProfileRepetiteur = () => {
       
       try {
         setLoadingCours(true);
-        const response = await Api.get(`/api/repetiteurs/${user.id}/cours`);
+        const response = await Api.get(`/api/repetiteurs/${user.id}`);
         setCours(response.data);
       } catch (err) {
         console.error("Erreur lors de la récupération des cours:", err);
@@ -134,28 +134,46 @@ const ProfileRepetiteur = () => {
   }, [user]);
 
   // Récupérer les disponibilités du répétiteur
+
   const fetchDisponibilites = async () => {
-    if (!user || user.role !== 'repetiteur') return;
-    
-    try {
-      setLoadingDispos(true);
-      const response = await Api.get(`/api/repetiteurs/${user.id}/disponibilites`);
-      // Assurez-vous que les données sont bien formatées
-      const formattedDispos = response.data.map(dispo => ({
-        ...dispo,
-        // Normalisez les noms de propriétés si nécessaire
-        id: dispo.id || dispo._id,
-        jour: dispo.jour || dispo.day, // selon ce que retourne votre API
-        heure_debut: dispo.heure_debut || dispo.start_time,
-        heure_fin: dispo.heure_fin || dispo.end_time
-      }));
-      setDisponibilites(formattedDispos);
-    } catch (err) {
-      console.error("Erreur lors de la récupération des disponibilités:", err);
-    } finally {
-      setLoadingDispos(false);
+    if (!user || user.role !== 'repetiteur') {
+        setDisponibilites([]);
+        return;
     }
-  };
+
+    setLoadingDispos(true);
+    setError(null);
+
+    try {
+        // Envoyer l'ID utilisateur (pas l'ID répétiteur)
+        const response = await Api.get(`/api/repetiteurs/${user.id}/disponibilites`);
+        
+        if (!response.data.success) {
+            throw new Error(response.data.message || "Erreur de chargement");
+        }
+
+        // Formatage simple des données
+        const disponibilites = response.data.data.map(d => ({
+            id: d.id,
+            jour: d.jour,
+            heure_debut: d.heure_debut,
+            heure_fin: d.heure_fin
+        }));
+
+        setDisponibilites(disponibilites);
+        
+    } catch (err) {
+        console.error("Erreur fetchDisponibilites:", err);
+        setError(err.response?.data?.message || 
+               err.message || 
+               "Erreur lors du chargement des disponibilités");
+        
+        // Réinitialiser les disponibilités en cas d'erreur
+        setDisponibilites([]);
+    } finally {
+        setLoadingDispos(false);
+    }
+};
 
   useEffect(() => {
     fetchDisponibilites();
@@ -230,7 +248,7 @@ const ProfileRepetiteur = () => {
         titre: '',
         description: '',
         matiere_id: '',
-        niveau_scolaire: 'college',
+        niveau_scolaire: 'college/lycee',
         tarif_horaire: ''
       });
     } catch (err) {
@@ -242,22 +260,31 @@ const ProfileRepetiteur = () => {
   };
 
   // Ajout d'une nouvelle disponibilité
+ 
   const handleAddDispo = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
     try {
+      // Vérifier que les champs requis sont remplis
+      if (!newDispo.heure_debut || !newDispo.heure_fin) {
+        throw new Error("Veuillez remplir tous les champs obligatoires");
+      }
+  
       const response = await Api.post('/api/disponibilites', {
-        ...newDispo,
-        repetiteur_id: user.id
+        jour: newDispo.jour,
+        heure_debut: newDispo.heure_debut,
+        heure_fin: newDispo.heure_fin
+        // Ne pas envoyer repetiteur_id, il sera géré par le backend
       });
       
       // Mise à jour optimiste du state
       setDisponibilites(prev => [...prev, {
-        id: response.data.id || response.data._id,
-        jour: newDispo.jour,
-        heure_debut: newDispo.heure_debut,
-        heure_fin: newDispo.heure_fin
+        id: response.data.data.id,
+        jour: response.data.data.jour,
+        heure_debut: response.data.data.heure_debut,
+        heure_fin: response.data.data.heure_fin
       }]);
       
       setShowAddDispo(false);
@@ -267,11 +294,19 @@ const ProfileRepetiteur = () => {
         heure_fin: ''
       });
       
-      // Rafraîchir les données depuis le serveur pour être sûr
-      await fetchDisponibilites();
+      toast.success("Disponibilité ajoutée avec succès !");
     } catch (err) {
-      console.error("Erreur lors de l'ajout de la disponibilité:", err);
-      setError(err.response?.data?.message || "Erreur lors de la création de la disponibilité");
+      console.error("Erreur détaillée:", err.response?.data || err);
+      
+      let errorMessage = "Erreur lors de l'ajout de la disponibilité";
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.errors) {
+        errorMessage = Object.values(err.response.data.errors).flat().join(', ');
+      }
+      
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

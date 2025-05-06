@@ -62,7 +62,7 @@ class ReservationController extends Controller
             'cours_id' => 'required|exists:cours,id', // Assurez-vous que le cours existe
             'date' => 'required|date|after_or_equal:today', // Assurez-vous que la date est aujourd'hui ou dans le futur
             'heure' => 'required|date_format:H:i', // Assurez-vous que l'heure est au format H:i
-            'prix' => 'required|numeric|min:20', // Assurez-vous que le prix est supérieur à 20
+            'prix' => 'required|numeric', // Assurez-vous que le prix est supérieur à 20
             'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee'
         ]);
 

@@ -26,6 +26,7 @@ const Reservation = () => {
         const response = await Api.get(`/api/cours/${id}?with=matiere,repetiteur.user`);
         
         if (response.data) {
+          
           setCours({
             ...response.data,
             matiere_nom: response.data.matiere?.nom || 'Matière inconnue',
@@ -34,6 +35,7 @@ const Reservation = () => {
             // Ajout de disponibilités par défaut si elles ne sont pas fournies
             availability: response.data.availability || generateDefaultAvailability()
           });
+          // console.log(response.data)
         } else {
           setError("Cours non trouvé");
           toast.error("Ce cours n'existe pas ou n'est plus disponible");
@@ -49,7 +51,7 @@ const Reservation = () => {
     
     fetchCours();
   }, [id]);
-
+  
   // Génère des disponibilités par défaut si aucune n'est fournie
   const generateDefaultAvailability = () => {
     const availability = {};

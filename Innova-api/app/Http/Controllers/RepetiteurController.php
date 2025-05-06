@@ -169,41 +169,6 @@ class RepetiteurController extends Controller
     }
 
     // Inscription professeur
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'matieres' => 'required|array',
-            'matieres.*' => 'string',
-            'niveaux' => 'required|array',
-            'niveaux.*' => 'string',
-            'biographie' => 'required|string',
-            'rayon_intervention' => 'required|integer|min:1',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-
-        $user = $request->user();
-
-        if ($user->repetiteur) {
-            return response()->json(['message' => 'Vous êtes déjà inscrit comme professeur'], 400);
-        }
-
-        $repetiteur = Repetiteur::create([
-            'user_id' => $user->id,
-            'matieres' => $this->normalizeJsonData($request->matieres),
-            'niveaux' => $this->normalizeJsonData($request->niveaux),
-            'biographie' => $request->biographie,
-            'rayon_intervention' => $request->rayon_intervention,
-            'statut_verif' => 'non_verifie'
-        ]);
-
-        $user->role = 'repetiteur';
-        $user->save();
-
-        return response()->json($this->formatRepetiteurData($repetiteur), 201);
-    }
 
     public function show($id)
     {
@@ -243,7 +208,7 @@ class RepetiteurController extends Controller
             'user_id' => $repetiteur->user_id,
             'user' => $repetiteur->user,
             'matieres' => $this->parseJsonData($repetiteur->matieres),
-        
+
             'niveaux' => $this->parseJsonData($repetiteur->niveaux),
             'biographie' => $repetiteur->biographie,
             'statut_verif' => $repetiteur->statut_verif,
@@ -262,38 +227,44 @@ class RepetiteurController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'matieres' => 'required|array',
-            'matieres.*' => 'exists:matieres,id',
+            'matiere' => 'required|array',
+            'matiere.*' => 'exists:matieres,id',
             'description' => 'required|string|max:500',
-            'niveau_enseigne' => 'required|string|in:Primaire,Collège/lycee,Tous niveaux',
-            'tarif_horaire' => 'required|numeric|min:1000',
+            'niveau_enseigne' => 'required',
+            'niveau_enseigne.*' => 'exists:niveaux,id',
+
+            'tarif_horaire' => 'required|numeric|min:0',
             'disponibilites' => 'required|string|max:255'
         ]);
 
-        try {
-            // Création du profil
-            $repetiteur = Repetiteur::create([
-                'user_id' => $validated['user_id'],
-                'description' => $validated['description'],
-                'niveau_enseigne' => $validated['niveau_enseigne'],
-                'tarif_horaire' => $validated['tarif_horaire'],
-                'disponibilites' => $validated['disponibilites'],
-                'status' => 'en_attente' // Statut par défaut
-            ]);
+        // try {
+        // Création du profil
+        $repetiteur = Repetiteur::create([
+            'user_id' => $validated['user_id'],
+            'biographie' => $validated['description'],
+            'matieres' => $validated['matiere'],
+            'niveaux' => (array)$validated['niveau_enseigne'],
+            'tarif_horaire' => $validated['tarif_horaire'],
+            'disponibilites' => $validated['disponibilites'],
+            'status' => 'en_attente' // Statut par défaut
+        ]);
 
-            // Attachement des matières
-            $repetiteur->matieres()->attach($validated['matieres']);
+        // Attachement des matières
+        // $repetiteur->matieres()->sync($validated['matiere_ids']);
+        // $repetiteur->matieres()->sync($validated['matiere_ids']);
+        // $repetiteur->matieres()->sync($validated['matieres']);
 
-            return response()->json([
-                'success' => true,
-                'data' => $repetiteur,
-                'message' => 'Profil créé avec succès'
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la création'
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => $repetiteur,
+            'message' => 'Profil créé avec succès'
+        ], 201);
+        // } catch (\Exception $e) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Erreur lors de la création',
+        //         'error' => $e->getMessage()
+        //     ], 500);
+        // }
     }
 }

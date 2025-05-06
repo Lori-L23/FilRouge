@@ -20,7 +20,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, profile, logout, isAuthenticated } = useAuth();
   console.log("pfil: ", profile);
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -37,8 +37,8 @@ const Navbar = () => {
 
   // Liens principaux
   const mainLinks = [
-    { to: "/", text: "Accueil"},
-    { to: "/cours", text: "Cours"},
+    { to: "/", text: "Accueil" },
+    { to: "/cours", text: "Cours" },
     { to: "/apropos", text: "À propos" },
     { to: "/ressources", text: "Ressources" },
     { to: "/contact", text: "Contact" },
@@ -53,9 +53,8 @@ const Navbar = () => {
         icon: <FaBell />,
       },
     ];
-  
+
     if (user?.role === "admin") {
-      
       links.push(
         {
           to: "/DashboardAdmin",
@@ -73,14 +72,14 @@ const Navbar = () => {
       links.push(
         {
           to: "/profile",
-          // text: "Mon Profil",
+          text: "Mon Profil",
           icon: <FaUser />,
-        },
-        {
-          to: "/MesCours",
-          text: "Mes Cours",
-          // icon: <FaChalkboardTeacher />,
-        },
+        }
+        // {
+        //   to: "/MesCours",
+        //   text: "Mes Cours",
+        //   // icon: <FaChalkboardTeacher />,
+        // },
       );
     } else if (profile?.niveau_scolaire) {
       // Élève
@@ -90,14 +89,13 @@ const Navbar = () => {
         icon: <FaUserGraduate />,
       });
     }
-  
+
     return links;
   };
 
-  const links = getUserLinks(user); 
-  console.log('links: ', links);
-  
-  
+  const links = getUserLinks(user);
+  console.log("links: ", links);
+
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
@@ -113,7 +111,7 @@ const Navbar = () => {
 
           {/* Liens desktop */}
           <div className="hidden md:flex items-center space-x-8">
-            <div className="flex space-x-6">
+            <div className="flex space-x-6 text-gray-700 font-medium">
               {mainLinks.map((link) => (
                 <NavLink key={link.to} to={link.to} icon={link.icon}>
                   {link.text}
@@ -143,12 +141,14 @@ const Navbar = () => {
                 <>
                   {links && (
                     <div className="flex items-center space-x-5">
-                      {links.map((link) => {console.log(link);
-                      return (
-                        <NavLink key={link.to} to={link.to} icon={link.icon}>
-                          {link.text}
-                        </NavLink>
-                      )})}
+                      {links.map((link) => {
+                        console.log(link);
+                        return (
+                          <NavLink key={link.to} to={link.to} icon={link.icon}>
+                            {link.text}
+                          </NavLink>
+                        );
+                      })}
                     </div>
                   )}
                   <AuthButton onClick={logout}>Déconnexion</AuthButton>
@@ -208,7 +208,6 @@ const Navbar = () => {
             </div>
           </div>
         )} */}
-
 
         <AnimatePresence>
           {isOpen && (
@@ -293,7 +292,7 @@ const Navbar = () => {
 const NavLink = ({ to, children, icon, badge = false }) => (
   <Link
     to={to}
-    className="flex items-center text-gray-700 hover:text-[#7ED321] transition-colors duration-200 font-medium relative"
+    className="flex items-center text-gray-700 hover:text-[#7ED321] transition-colors duration-200 font-medium relative focus:text-[#7ED321] "
   >
     {icon && <span className="mr-2">{icon}</span>}
     {children}

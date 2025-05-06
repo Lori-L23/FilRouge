@@ -42,6 +42,9 @@ import CoursAd from "./admin/Cours";
 import Paiements from "./admin/Paiements";
 import Reservations from "./admin/Reservations";
 import Parametres from "./admin/Parametres";
+import Confidentialite from "./legal/Confidentialite";
+import MentionsLegales from "./legal/MentionsLegales";
+import CGU from "./legal/CGU";
 
 
 
@@ -80,6 +83,9 @@ function App() {
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:id" element={<ArticleDetail />} />
+                <Route path="/mentions" element={<MentionsLegales />} />
+                <Route path="/confidentialite" element={<Confidentialite />} />
+                <Route path="/cgu" element={<CGU />} />
                 
 
 

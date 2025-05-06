@@ -13,10 +13,10 @@ class Matiere extends Model
         return $this->hasMany(Cours::class);
     }
 
-    public function repetiteurs()
-    {
-        return $this->belongsToMany(User::class, 'cours', 'matiere_id', 'repetiteur_id')
-                    ->where('role', 'repetiteur')
-                    ->distinct();
-    }
+    // public function repetiteurs()
+    // {
+    //     return $this->belongsToMany(User::class, 'cours', 'matiere', 'repetiteur_id')
+    //        ->whereHas('role', 'repetiteur') // Si le rôle est géré via une relation
+    //        ->distinct();
+    // }
 }

@@ -89,7 +89,7 @@ const ProfileEleve = () => {
   };
 
   const fetchPaiements = async () => {
-    return [];
+    // return [];
     try {
       const response = await Api.get("/api/paiements");
       if (response.data?.success) {

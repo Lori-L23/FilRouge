@@ -49,7 +49,7 @@ Route::get('/repetiteurs/{id}/public', [RepetiteurController::class, 'publicShow
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     // Disponibilités
-    Route::get('/repetiteurs/{id}/disponibilites', [DisponibiliteController::class, 'index']);
+    Route::get('/repetiteurs/{user}/disponibilites', [DisponibiliteController::class, 'index']);
     Route::post('/disponibilites', [DisponibiliteController::class, 'store']);
     Route::delete('/disponibilites/{id}', [DisponibiliteController::class, 'destroy']);
 });
@@ -68,7 +68,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::get('/user-with-profile', [AuthController::class, 'getUserWithProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::put('/user', [AuthController::class, 'updateRole']);
+    Route::put('/user/{id}/role', [AuthController::class, 'updateRole']);
 
     // Élèvesp
     Route::prefix('eleves')->group(function () {

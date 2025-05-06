@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use App\Models\Cours;
+use App\Models\Disponibilite;
 use App\Models\Matiere;
 use App\Models\Reservation;
 
@@ -25,7 +26,7 @@ class Repetiteur extends Model
     ];
     protected $casts = [
         'matieres' => 'array',
-        // 'niveaux' => 'array'
+        'niveaux' => 'array'
     ];
 
     public function user()
@@ -37,13 +38,18 @@ class Repetiteur extends Model
     {
         return $this->hasMany(Cours::class);
     }
-    public function matieres()
-    {
-        return $this->belongsToMany(Matiere::class, 'repetiteur_matiere', 'repetiteur_id', 'matiere_id');
-    }
+    // public function matieres()
+    // {
+    //     return $this->belongsToMany(Matiere::class); //, 'repetiteur_matiere', 'repetiteur_id', 'matiere_id'
+    // }
 
     // public function reservations()
     // {
     //     return $this->hasMany(Reservation::class);
     // }
+
+    public function disponibilites()
+{
+    return $this->hasMany(Disponibilite::class);
+}
 }

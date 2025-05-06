@@ -36,8 +36,8 @@ const ProfileRepetiteur = () => {
   const [newCourse, setNewCourse] = useState({
     titre: '',
     description: '',
-    matiere_id: '',
-    niveau_scolaire: 'college/lycee',
+    matiere: '', 
+    niveau_scolaire: 'college',
     tarif_horaire: ''
   });
   const [disponibilites, setDisponibilites] = useState([]);
@@ -236,21 +236,34 @@ const ProfileRepetiteur = () => {
   const handleAddCourse = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
     try {
+      // Validation des champs
+      if (!newCourse.titre || !newCourse.description || !newCourse.matiere || !newCourse.niveau_scolaire || !newCourse.tarif_horaire) {
+        throw new Error("Tous les champs sont obligatoires");
+      }
+  
       const response = await Api.post('/api/cours', {
-        ...newCourse,
+        titre: newCourse.titre,
+        description: newCourse.description,
+        matiere: newCourse.matiere, // Envoi du nom de la matière
+        niveau_scolaire: newCourse.niveau_scolaire,
+        tarif_horaire: parseFloat(newCourse.tarif_horaire),
         repetiteur_id: user.id
       });
+  
       setCours([...cours, response.data]);
       setShowAddCourse(false);
       setNewCourse({
         titre: '',
         description: '',
-        matiere_id: '',
-        niveau_scolaire: 'college/lycee',
+        matiere: '',
+        niveau_scolaire: 'college',
         tarif_horaire: ''
       });
+      
+      toast.success("Cours créé avec succès !");
     } catch (err) {
       console.error("Erreur lors de l'ajout du cours:", err);
       setError(err.response?.data?.message || "Erreur lors de la création du cours");
@@ -258,7 +271,6 @@ const ProfileRepetiteur = () => {
       setLoading(false);
     }
   };
-
   // Ajout d'une nouvelle disponibilité
  
   const handleAddDispo = async (e) => {

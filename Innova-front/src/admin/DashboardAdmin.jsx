@@ -19,8 +19,18 @@ import {
   NoSymbolIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  UserIcon,
+  IdentificationIcon,
+  BookmarkIcon,
+  LightBulbIcon,
+  CalculatorIcon,
+  BeakerIcon,
+  GlobeAltIcon,
+  ChatBubbleLeftRightIcon,
+  LanguageIcon,
 } from "@heroicons/react/24/outline";
-
+import { EyeIcon } from "@heroicons/react/24/outline";
+import { EyeSlashIcon } from "@heroicons/react/24/outline";
 const DashboardAdmin = () => {
   const { user, logout } = useAuth();
   const [stats, setStats] = useState({
@@ -40,7 +50,14 @@ const DashboardAdmin = () => {
   const [authError, setAuthError] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [networkError, setNetworkError] = useState(false);
-  
+  const [expandedReservations, setExpandedReservations] = useState({});
+  const toggleReservationDetails = (reservationId) => {
+    setExpandedReservations((prev) => ({
+      ...prev,
+      [reservationId]: !prev[reservationId],
+    }));
+  };
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [reservationsPerPage] = useState(7);
@@ -81,7 +98,7 @@ const DashboardAdmin = () => {
           start_date: dateRange[0],
           end_date: dateRange[1],
           page: currentPage,
-          per_page: reservationsPerPage
+          per_page: reservationsPerPage,
         },
       };
 
@@ -104,8 +121,12 @@ const DashboardAdmin = () => {
 
       // Handle both direct data and data wrapped in 'data' property
       setStats(statsRes.data.data || statsRes.data);
-      setReservations(reservationsRes.data.data || reservationsRes.data.reservations);
-      setTotalReservations(reservationsRes.data.total || reservationsRes.data.data?.length || 0);
+      setReservations(
+        reservationsRes.data.data || reservationsRes.data.reservations
+      );
+      setTotalReservations(
+        reservationsRes.data.total || reservationsRes.data.data?.length || 0
+      );
     } catch (error) {
       console.error("[DEBUG] Full error:", error);
 
@@ -125,6 +146,41 @@ const DashboardAdmin = () => {
     }
   };
 
+  const getMatiereIcon = (matieres) => {
+    if (!matieres || matieres.length === 0)
+      return <UserIcon className="h-6 w-6" />;
+
+    // Prendre la première matière pour déterminer l'icône
+    const matiere = matieres[0].toLowerCase();
+
+    if (matiere.includes("math")) return <CalculatorIcon className="h-6 w-6" />;
+    if (matiere.includes("physique") || matiere.includes("chimie"))
+      return <BeakerIcon className="h-6 w-6" />;
+    if (
+      matiere.includes("anglais") ||
+      matiere.includes("français") ||
+      matiere.includes("langue")
+    )
+      return <LanguageIcon className="h-6 w-6" />;
+    if (matiere.includes("philo") || matiere.includes("philosophie"))
+      return <LightBulbIcon className="h-6 w-6" />;
+    if (matiere.includes("histoire") || matiere.includes("géographie"))
+      return <GlobeAltIcon className="h-6 w-6" />;
+    if (matiere.includes("svt")) return <BookmarkIcon className="h-6 w-6" />;
+
+    return <IdentificationIcon className="h-6 w-6" />;
+  };
+
+  const getEleveIcon = (niveau) => {
+    if (!niveau) return <UserIcon className="h-6 w-6" />;
+
+    if (niveau.includes("primaire"))
+      return <AcademicCapIcon className="h-6 w-6" />;
+    if (niveau.includes("college")) return <BookOpenIcon className="h-6 w-6" />;
+    if (niveau.includes("lycee")) return <LightBulbIcon className="h-6 w-6" />;
+
+    return <UserIcon className="h-6 w-6" />;
+  };
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -132,16 +188,55 @@ const DashboardAdmin = () => {
   const totalPages = Math.ceil(totalReservations / reservationsPerPage);
 
   const menuItems = [
-    { key: "1", icon: <ChartBarIcon className="h-5 w-5" />, label: "Tableau de bord", path: "/DashboardAdmin" },
-    { key: "2", icon: <UsersIcon className="h-5 w-5" />, label: "Utilisateurs", path: "/admin/utilisateurs" },
-    { key: "3", icon: <UserGroupIcon className="h-5 w-5" />, label: "Répétiteurs", path: "/admin/repetiteurs" },
-    { key: "4", icon: <AcademicCapIcon className="h-5 w-5" />, label: "Élèves", path: "/admin/eleves" },
-    { key: "5", icon: <BookOpenIcon className="h-5 w-5" />, label: "Cours", path: "/admin/cours" },
-    { key: "6", icon: <CurrencyDollarIcon className="h-5 w-5" />, label: "Paiements", path: "/admin/paiements" },
-    { key: "7", icon: <CalendarIcon className="h-5 w-5" />, label: "Réservations", path: "/admin/reservations" },
-    { key: "8", icon: <CogIcon className="h-5 w-5" />, label: "Paramètres", path: "/admin/parametres" },
+    {
+      key: "1",
+      icon: <ChartBarIcon className="h-5 w-5" />,
+      label: "Tableau de bord",
+      path: "/DashboardAdmin",
+    },
+    {
+      key: "2",
+      icon: <UsersIcon className="h-5 w-5" />,
+      label: "Utilisateurs",
+      path: "/admin/utilisateurs",
+    },
+    {
+      key: "3",
+      icon: <UserGroupIcon className="h-5 w-5" />,
+      label: "Répétiteurs",
+      path: "/admin/repetiteurs",
+    },
+    {
+      key: "4",
+      icon: <AcademicCapIcon className="h-5 w-5" />,
+      label: "Élèves",
+      path: "/admin/eleves",
+    },
+    {
+      key: "5",
+      icon: <BookOpenIcon className="h-5 w-5" />,
+      label: "Cours",
+      path: "/admin/cours",
+    },
+    {
+      key: "6",
+      icon: <CurrencyDollarIcon className="h-5 w-5" />,
+      label: "Paiements",
+      path: "/admin/paiements",
+    },
+    {
+      key: "7",
+      icon: <CalendarIcon className="h-5 w-5" />,
+      label: "Réservations",
+      path: "/admin/reservations",
+    },
+    {
+      key: "8",
+      icon: <CogIcon className="h-5 w-5" />,
+      label: "Paramètres",
+      path: "/admin/parametres",
+    },
   ];
-  
 
   const statusBadge = (status) => {
     const statusClasses = {
@@ -307,8 +402,6 @@ const DashboardAdmin = () => {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50">
-  
-
           <div className="flex flex-col space-y-6">
             {/* Header with date picker */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
@@ -524,94 +617,424 @@ const DashboardAdmin = () => {
                         </td>
                       </tr>
                     ) : (
+                      //   reservations.map((reservation) => (
+                      //     <tr key={reservation.id}>
+                      //       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      //         {reservation.id}
+                      //       </td>
+
+                      //       <td className="px-6 py-4 whitespace-nowrap">
+                      //         <div className="flex items-center">
+                      //           <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gray-100">
+                      //             {getEleveIcon(
+                      //               reservation.eleve?.niveau_scolaire
+                      //             )}
+                      //           </div>
+                      //           <div className="ml-4">
+                      //             <div className="text-sm font-medium text-gray-900">
+                      //               {getSafe(
+                      //                 () =>
+                      //                   reservation.eleve?.user?.prenom +
+                      //                   " " +
+                      //                   reservation.eleve?.user?.nom,
+                      //                 "Élève inconnu"
+                      //               )}
+                      //             </div>
+                      //             <div className="text-sm text-gray-500">
+                      //               {getSafe(
+                      //                 () => reservation.eleve?.niveau_scolaire,
+                      //                 "Niveau inconnu"
+                      //               )}
+                      //             </div>
+                      //           </div>
+                      //         </div>
+                      //       </td>
+
+                      //       <td className="px-6 py-4 whitespace-nowrap">
+                      //         <div className="flex items-center">
+                      //           <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gray-100">
+                      //             {getMatiereIcon(
+                      //               reservation.repetiteur?.matieres
+                      //             )}
+                      //           </div>
+                      //           <div className="ml-4">
+                      //             <div className="text-sm font-medium text-gray-900">
+                      //               {getSafe(
+                      //                 () =>
+                      //                   reservation.repetiteur?.user?.prenom +
+                      //                   " " +
+                      //                   reservation.repetiteur?.user?.nom,
+                      //                 "Répétiteur inconnu"
+                      //               )}
+                      //             </div>
+                      //             <div className="text-sm text-gray-500">
+                      //               {getSafe(
+                      //                 () =>
+                      //                   reservation.repetiteur?.statut_verif ===
+                      //                   "verifie"
+                      //                     ? "Vérifié"
+                      //                     : "Non vérifié",
+                      //                 "Statut inconnu"
+                      //               )}
+                      //             </div>
+                      //           </div>
+                      //         </div>
+                      //       </td>
+
+                      //       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      //         {new Date(
+                      //           reservation.date_reservation
+                      //         ).toLocaleDateString("fr-FR", {
+                      //           day: "2-digit",
+                      //           month: "2-digit",
+                      //           year: "numeric",
+                      //           hour: "2-digit",
+                      //           minute: "2-digit",
+                      //         })}
+                      //       </td>
+                      //       <td className="px-6 py-4 whitespace-nowrap">
+                      //         {statusBadge(reservation.statut)}
+                      //       </td>
+                      //       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      //         <Link
+                      //           to={`/admin/reservations/${reservation.id}`}
+                      //           className="text-blue-600 hover:text-blue-900"
+                      //         >
+                      //           Détails
+                      //         </Link>
+                      //       </td>
+                      //     </tr>
+
+                      // ))
                       reservations.map((reservation) => (
-                        <tr key={reservation.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {reservation.id}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
-                                <img
-                                  className="h-10 w-10 rounded-full"
-                                  src={lori}
-                                  alt="Élève"
-                                />
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {getSafe(
-                                    () =>
-                                      reservation.eleve?.user?.prenom +
-                                      " " +
-                                      reservation.eleve?.user?.nom,
-                                    "Élève inconnu"
+                        <React.Fragment key={reservation.id}>
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {reservation.id}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gray-100">
+                                  {getEleveIcon(
+                                    reservation.eleve?.niveau_scolaire
                                   )}
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  {getSafe(
-                                    () => reservation.eleve?.niveau_scolaire,
-                                    "Niveau inconnu"
-                                  )}
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {getSafe(
+                                      () =>
+                                        reservation.eleve?.user?.prenom +
+                                        " " +
+                                        reservation.eleve?.user?.nom,
+                                      "Élève inconnu"
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {getSafe(
+                                      () => reservation.eleve?.niveau_scolaire,
+                                      "Niveau inconnu"
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
-                                <img
-                                  className="h-10 w-10 rounded-full"
-                                  src={lori}
-                                  alt="Répétiteur"
-                                />
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {getSafe(
-                                    () =>
-                                      reservation.repetiteur?.user?.prenom +
-                                      " " +
-                                      reservation.repetiteur?.user?.nom,
-                                    "Répétiteur inconnu"
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gray-100">
+                                  {getMatiereIcon(
+                                    reservation.repetiteur?.matieres
                                   )}
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  {getSafe(
-                                    () =>
-                                      reservation.repetiteur?.statut_verif ===
-                                      "verifie"
-                                        ? "Vérifié"
-                                        : "Non vérifié",
-                                    "Statut inconnu"
-                                  )}
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {getSafe(
+                                      () =>
+                                        reservation.repetiteur?.user?.prenom +
+                                        " " +
+                                        reservation.repetiteur?.user?.nom,
+                                      "Répétiteur inconnu"
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {getSafe(
+                                      () =>
+                                        reservation.repetiteur?.statut_verif ===
+                                        "verifie"
+                                          ? "Vérifié"
+                                          : "Non vérifié",
+                                      "Statut inconnu"
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(
-                              reservation.date_reservation
-                            ).toLocaleDateString("fr-FR", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {statusBadge(reservation.statut)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <Link
-                              to={`/admin/reservations/${reservation.id}`}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              Détails
-                            </Link>
-                          </td>
-                        </tr>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(
+                                reservation.date_reservation
+                              ).toLocaleDateString("fr-FR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {statusBadge(reservation.statut)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() =>
+                                  toggleReservationDetails(reservation.id)
+                                }
+                                className={`mr-3 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                                  expandedReservations[reservation.id]
+                                    ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                    : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                }`}
+                              >
+                                {expandedReservations[reservation.id] ? (
+                                  <>
+                                    <EyeSlashIcon className="h-4 w-4 inline mr-1" />
+                                    Masquer
+                                  </>
+                                ) : (
+                                  <>
+                                    <EyeIcon className="h-4 w-4 inline mr-1" />
+                                    Détails
+                                  </>
+                                )}
+                              </button>
+                              <Link
+                                to={`/admin/reservations/${reservation.id}`}
+                                className="text-blue-600 hover:text-blue-900"
+                              >
+                                Éditer
+                              </Link>
+                            </td>
+                          </tr>
+
+                          {/* Ligne des détails */}
+                          {expandedReservations[reservation.id] && (
+                            <tr className="bg-gray-50">
+                              <td colSpan="6" className="px-6 py-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  {/* Section Élève */}
+                                  <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                    <div className="flex items-center mb-3">
+                                      <AcademicCapIcon className="h-5 w-5 text-blue-600 mr-2" />
+                                      <h4 className="font-medium text-lg text-gray-900">
+                                        Informations élève
+                                      </h4>
+                                    </div>
+                                    <div className="space-y-2 text-sm pl-7">
+                                      <p className="flex items-start">
+                                        <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                          Email:
+                                        </span>
+                                        <span className="text-gray-600 break-all">
+                                          {getSafe(
+                                            () =>
+                                              reservation.eleve?.user?.email,
+                                            "Non disponible"
+                                          )}
+                                        </span>
+                                      </p>
+                                      <p className="flex items-center">
+                                        <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                          Téléphone:
+                                        </span>
+                                        <span className="text-gray-600">
+                                          {getSafe(
+                                            () =>
+                                              reservation.eleve?.user
+                                                ?.telephone,
+                                            "Non disponible"
+                                          )}
+                                        </span>
+                                      </p>
+                                      <p className="flex items-center">
+                                        <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                          Date de naissance:
+                                        </span>
+                                        <span className="text-gray-600">
+                                          {getSafe(
+                                            () =>
+                                              new Date(
+                                                reservation.eleve?.user?.date_naissance
+                                              ).toLocaleDateString("fr-FR"),
+                                            "Non disponible"
+                                          )}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Section Répétiteur */}
+                                  <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                    <div className="flex items-center mb-3">
+                                      <UserIcon className="h-5 w-5 text-purple-600 mr-2" />
+                                      <h4 className="font-medium text-lg text-gray-900">
+                                        Informations répétiteur
+                                      </h4>
+                                    </div>
+                                    <div className="space-y-2 text-sm pl-7">
+                                      <p className="flex items-start">
+                                        <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                          Email:
+                                        </span>
+                                        <span className="text-gray-600 break-all">
+                                          {getSafe(
+                                            () =>
+                                              reservation.repetiteur?.user
+                                                ?.email,
+                                            "Non disponible"
+                                          )}
+                                        </span>
+                                      </p>
+                                      <p className="flex items-center">
+                                        <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                          Téléphone:
+                                        </span>
+                                        <span className="text-gray-600">
+                                          {getSafe(
+                                            () =>
+                                              reservation.repetiteur?.user
+                                                ?.telephone,
+                                            "Non disponible"
+                                          )}
+                                        </span>
+                                      </p>
+                                      <p className="flex items-start">
+                                        <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                          Matières:
+                                        </span>
+                                        <span className="text-gray-600">
+                                          {getSafe(
+                                            () =>
+                                              reservation.repetiteur?.matieres?.join(
+                                                ", "
+                                              ),
+                                            "Non disponible"
+                                          )}
+                                        </span>
+                                      </p>
+                                      <p className="flex items-center">
+                                        <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                          Tarif horaire:
+                                        </span>
+                                        <span className="text-gray-600">
+                                          {getSafe(
+                                            () =>
+                                              `${reservation.repetiteur?.tarif_horaire} FCFA`,
+                                            "Non disponible"
+                                          )}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Section Réservation */}
+                                  <div className="md:col-span-2 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                    <div className="flex items-center mb-3">
+                                      <CalendarIcon className="h-5 w-5 text-green-600 mr-2" />
+                                      <h4 className="font-medium text-lg text-gray-900">
+                                        Détails réservation
+                                      </h4>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm pl-7">
+                                      <div className="space-y-2">
+                                        <p className="flex items-center">
+                                          <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                            Durée:
+                                          </span>
+                                          <span className="text-gray-600">
+                                            {getSafe(
+                                              () =>
+                                                reservation.duree ||
+                                                "Non spécifiée"
+                                            )}
+                                          </span>
+                                        </p>
+                                        <p className="flex items-start">
+                                          <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                            Lieu:
+                                          </span>
+                                          <span className="text-gray-600">
+                                            {getSafe(
+                                              () =>
+                                                reservation.lieu?.nom ||
+                                                "Non spécifié"
+                                            )}
+                                          </span>
+                                        </p>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <p className="flex items-start">
+                                          <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                            Matière:
+                                          </span>
+                                          <span className="text-gray-600">
+                                            {getSafe(
+                                              () =>
+                                                reservation.cours?.titre ||
+                                                "Non spécifiée"
+                                            )}
+                                          </span>
+                                        </p>
+                                        <p className="flex items-center">
+                                          <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                            Niveau:
+                                          </span>
+                                          <span className="text-gray-600 capitalize">
+                                            {getSafe(
+                                              () =>
+                                                reservation.cours
+                                                  ?.niveau_scolaire ||
+                                                "Non spécifié"
+                                            )}
+                                          </span>
+                                        </p>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <p className="flex items-center">
+                                          <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                            Tarif:
+                                          </span>
+                                          <span className="text-gray-600">
+                                            {getSafe(
+                                              () =>
+                                                `${reservation.cours?.tarif_horaire} FCFA/heure` ||
+                                                "Non spécifié"
+                                            )}
+                                          </span>
+                                        </p>
+                                        <p className="flex items-center">
+                                          <span className="font-medium text-gray-700 w-32 flex-shrink-0">
+                                            Créée le:
+                                          </span>
+                                          <span className="text-gray-600">
+                                            {getSafe(
+                                              () =>
+                                                new Date(
+                                                  reservation.created_at
+                                                ).toLocaleDateString("fr-FR", {
+                                                  day: "2-digit",
+                                                  month: "2-digit",
+                                                  year: "numeric",
+                                                }),
+                                              "Non disponible"
+                                            )}
+                                          </span>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       ))
                     )}
                   </tbody>
@@ -634,7 +1057,9 @@ const DashboardAdmin = () => {
                       Précédent
                     </button>
                     <button
-                      onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                      onClick={() =>
+                        paginate(Math.min(totalPages, currentPage + 1))
+                      }
                       disabled={currentPage === totalPages}
                       className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
                         currentPage === totalPages
@@ -648,15 +1073,27 @@ const DashboardAdmin = () => {
                   <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm text-gray-700">
-                        Affichage de <span className="font-medium">{(currentPage - 1) * reservationsPerPage + 1}</span> à{" "}
+                        Affichage de{" "}
                         <span className="font-medium">
-                          {Math.min(currentPage * reservationsPerPage, totalReservations)}
+                          {(currentPage - 1) * reservationsPerPage + 1}
                         </span>{" "}
-                        sur <span className="font-medium">{totalReservations}</span> résultats
+                        à{" "}
+                        <span className="font-medium">
+                          {Math.min(
+                            currentPage * reservationsPerPage,
+                            totalReservations
+                          )}
+                        </span>{" "}
+                        sur{" "}
+                        <span className="font-medium">{totalReservations}</span>{" "}
+                        résultats
                       </p>
                     </div>
                     <div>
-                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <nav
+                        className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                        aria-label="Pagination"
+                      >
                         <button
                           onClick={() => paginate(Math.max(1, currentPage - 1))}
                           disabled={currentPage === 1}
@@ -667,11 +1104,17 @@ const DashboardAdmin = () => {
                           }`}
                         >
                           <span className="sr-only">Précédent</span>
-                          <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                          <ChevronLeftIcon
+                            className="h-5 w-5"
+                            aria-hidden="true"
+                          />
                         </button>
-                        
+
                         {/* Page numbers */}
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                        {Array.from(
+                          { length: totalPages },
+                          (_, i) => i + 1
+                        ).map((number) => (
                           <button
                             key={number}
                             onClick={() => paginate(number)}
@@ -684,9 +1127,11 @@ const DashboardAdmin = () => {
                             {number}
                           </button>
                         ))}
-                        
+
                         <button
-                          onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                          onClick={() =>
+                            paginate(Math.min(totalPages, currentPage + 1))
+                          }
                           disabled={currentPage === totalPages}
                           className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
                             currentPage === totalPages
@@ -695,7 +1140,10 @@ const DashboardAdmin = () => {
                           }`}
                         >
                           <span className="sr-only">Suivant</span>
-                          <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                          <ChevronRightIcon
+                            className="h-5 w-5"
+                            aria-hidden="true"
+                          />
                         </button>
                       </nav>
                     </div>

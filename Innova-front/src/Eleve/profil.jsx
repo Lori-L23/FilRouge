@@ -553,43 +553,6 @@ const ProfileEleve = () => {
     </div>
   );
 
-  // return (
-  //   <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-  //     {showPaymentModal && <PaymentModal />}
-
-  //     <div className="max-w-6xl mx-auto mt-20">
-  //       {/* Header */}
-  //       <div className="flex justify-between items-center mb-8">
-  //         <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-  //           <FaUserGraduate className="mr-2" />
-  //           Mon Profil
-  //         </h1>
-  //         <button
-  //           onClick={handleLogout}
-  //           className="px-4 py-2 bg-[#7ED321] text-white rounded-md hover:bg-[#d0f8a7]"
-  //         >
-  //           Déconnexion
-  //         </button>
-  //       </div>
-
-  //       {/* Profil Section */}
-  //       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-  //         {/* Colonne de gauche - Informations profil */}
-  //         <div className="bg-white rounded-lg shadow p-6 lg:col-span-1">
-  //           <div className="flex items-center mb-6">
-  //             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-  //               <FiUser className="text-blue-500 text-2xl" />
-  //             </div>
-  //             <div>
-  //               <h2 className="text-xl font-semibold">{user?.name}</h2>
-  //               <p className="text-gray-600">{user?.email}</p>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
 };
 
 export default ProfileEleve;

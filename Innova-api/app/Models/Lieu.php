@@ -2,25 +2,32 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Lieu extends Model
 {
-    protected $fillable = [
+    use HasFactory;
 
-        'user_id',
-        'type',
+    protected $fillable = [
         'nom',
         'adresse',
-
-
+        'type',
+        'user_id'
     ];
 
-    public function cours()
-    {
-        return $this->belongsTo(Cours::class);
-    }
-    
-    
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
 }

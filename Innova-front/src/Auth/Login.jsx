@@ -44,7 +44,12 @@ function Login() {
         // Redirection basée sur le rôle après connexion réussie
         if (user?.role === "admin") {
           navigate("/DashboardAdmin");
-        } else {
+        } else
+        if ((user?.role === "eleve")) {
+          navigate("/", { state: { isLoggedIn: true } });
+        }
+        else
+        if ((user?.role === "repetiteur")) {
           navigate("/", { state: { isLoggedIn: true } });
         }
       } else {

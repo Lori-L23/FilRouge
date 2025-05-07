@@ -31,6 +31,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { EyeSlashIcon } from "@heroicons/react/24/outline";
+
+
 const DashboardAdmin = () => {
   const { user, logout } = useAuth();
   const [stats, setStats] = useState({
@@ -73,6 +75,39 @@ const DashboardAdmin = () => {
     console.log("[DEBUG] Current reservations:", reservations);
   }, [user, stats, reservations]);
 
+
+  // Récupérer les lieux d'un utilisateur
+const fetchLieux = async () => {
+  try {
+    const response = await Api.get('/lieux');
+    setLieux(response.data);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des lieux:', error);
+  }
+};
+
+// Créer un nouveau lieu
+const createLieu = async (lieuData) => {
+  try {
+    const response = await Api.post('/lieux', lieuData);
+    toast.success('Lieu créé avec succès');
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la création du lieu:', error);
+    throw error;
+  }
+};
+
+// Supprimer un lieu
+const deleteLieu = async (id) => {
+  try {
+    await Api.delete(`/lieux/${id}`);
+    toast.success('Lieu supprimé avec succès');
+  } catch (error) {
+    console.error('Erreur lors de la suppression du lieu:', error);
+  }
+};
+
   const fetchDashboardData = async () => {
     console.log("[DEBUG] Starting data fetch...");
     setLoading(true);
@@ -102,7 +137,7 @@ const DashboardAdmin = () => {
         },
       };
 
-      console.log("[DEBUG] Sending requests...");
+      // console.log("[DEBUG] Sending requests...");
       const [statsRes, reservationsRes] = await Promise.all([
         Api.get("/api/admin/stats", config).catch((err) => {
           console.error("[DEBUG] Stats error:", err.response);
@@ -114,10 +149,10 @@ const DashboardAdmin = () => {
         }),
       ]);
 
-      console.log("[DEBUG] API responses:", {
-        stats: statsRes.data,
-        reservations: reservationsRes.data,
-      });
+      // console.log("[DEBUG] API responses:", {
+      //   stats: statsRes.data,
+      //   reservations: reservationsRes.data,
+      // });
 
       // Handle both direct data and data wrapped in 'data' property
       setStats(statsRes.data.data || statsRes.data);
@@ -617,95 +652,7 @@ const DashboardAdmin = () => {
                         </td>
                       </tr>
                     ) : (
-                      //   reservations.map((reservation) => (
-                      //     <tr key={reservation.id}>
-                      //       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      //         {reservation.id}
-                      //       </td>
-
-                      //       <td className="px-6 py-4 whitespace-nowrap">
-                      //         <div className="flex items-center">
-                      //           <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gray-100">
-                      //             {getEleveIcon(
-                      //               reservation.eleve?.niveau_scolaire
-                      //             )}
-                      //           </div>
-                      //           <div className="ml-4">
-                      //             <div className="text-sm font-medium text-gray-900">
-                      //               {getSafe(
-                      //                 () =>
-                      //                   reservation.eleve?.user?.prenom +
-                      //                   " " +
-                      //                   reservation.eleve?.user?.nom,
-                      //                 "Élève inconnu"
-                      //               )}
-                      //             </div>
-                      //             <div className="text-sm text-gray-500">
-                      //               {getSafe(
-                      //                 () => reservation.eleve?.niveau_scolaire,
-                      //                 "Niveau inconnu"
-                      //               )}
-                      //             </div>
-                      //           </div>
-                      //         </div>
-                      //       </td>
-
-                      //       <td className="px-6 py-4 whitespace-nowrap">
-                      //         <div className="flex items-center">
-                      //           <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gray-100">
-                      //             {getMatiereIcon(
-                      //               reservation.repetiteur?.matieres
-                      //             )}
-                      //           </div>
-                      //           <div className="ml-4">
-                      //             <div className="text-sm font-medium text-gray-900">
-                      //               {getSafe(
-                      //                 () =>
-                      //                   reservation.repetiteur?.user?.prenom +
-                      //                   " " +
-                      //                   reservation.repetiteur?.user?.nom,
-                      //                 "Répétiteur inconnu"
-                      //               )}
-                      //             </div>
-                      //             <div className="text-sm text-gray-500">
-                      //               {getSafe(
-                      //                 () =>
-                      //                   reservation.repetiteur?.statut_verif ===
-                      //                   "verifie"
-                      //                     ? "Vérifié"
-                      //                     : "Non vérifié",
-                      //                 "Statut inconnu"
-                      //               )}
-                      //             </div>
-                      //           </div>
-                      //         </div>
-                      //       </td>
-
-                      //       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      //         {new Date(
-                      //           reservation.date_reservation
-                      //         ).toLocaleDateString("fr-FR", {
-                      //           day: "2-digit",
-                      //           month: "2-digit",
-                      //           year: "numeric",
-                      //           hour: "2-digit",
-                      //           minute: "2-digit",
-                      //         })}
-                      //       </td>
-                      //       <td className="px-6 py-4 whitespace-nowrap">
-                      //         {statusBadge(reservation.statut)}
-                      //       </td>
-                      //       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      //         <Link
-                      //           to={`/admin/reservations/${reservation.id}`}
-                      //           className="text-blue-600 hover:text-blue-900"
-                      //         >
-                      //           Détails
-                      //         </Link>
-                      //       </td>
-                      //     </tr>
-
-                      // ))
+                      
                       reservations.map((reservation) => (
                         <React.Fragment key={reservation.id}>
                           <tr>
@@ -963,7 +910,7 @@ const DashboardAdmin = () => {
                                           <span className="text-gray-600">
                                             {getSafe(
                                               () =>
-                                                reservation.lieu?.nom ||
+                                                reservation.lieu_id ||
                                                 "Non spécifié"
                                             )}
                                           </span>

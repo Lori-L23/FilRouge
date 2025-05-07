@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ReservationController extends Controller
 {
@@ -56,58 +57,101 @@ class ReservationController extends Controller
     }
 
 
+    // public function store(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'cours_id' => 'required|exists:cours,id', // Assurez-vous que le cours existe
+    //         'date' => 'required|date|after_or_equal:today', // Assurez-vous que la date est aujourd'hui ou dans le futur
+    //         'heure' => 'required|date_format:H:i', // Assurez-vous que l'heure est au format H:i
+    //         'prix' => 'required|numeric', // Assurez-vous que le prix est supérieur à 20
+    //         'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'errors' => $validator->errors()
+    //         ], 422);
+    //     }
+
+    //     try {
+    //         $user = Auth::user();
+    //         $eleve = Eleve::where('user_id', $user->id)->first();
+
+    //         if (!$eleve) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Profil élève non trouvé'
+    //             ], 403);
+    //         }
+
+    //         $cours = Cours::findOrFail($request->cours_id);
+
+    //         $reservation = Reservation::create([
+    //             'eleve_id' => $eleve->id,
+    //             'repetiteur_id' => $cours->repetiteur_id,
+    //             'prix' => $request->prix,
+    //             'date_reservation' => $request->date . ' ' . $request->heure,
+    //             'statut' => $request->statut ?? 'en_attente', // Correction ici
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $reservation, // ->load(['eleve.user', 'repetiteur.user']),
+    //             'message' => 'Réservation créée avec succès'
+    //         ], 201);
+    //     } catch (\Exception $e) {
+    //         Log::error('Erreur création réservation: ' . $e->getMessage());
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Erreur lors de la création: ' . (env('APP_DEBUG') ? $e->getMessage() : ''),
+    //             'error' => env('APP_DEBUG') ? $e->getTrace() : null
+    //         ], 500);
+    //     }
+    // }
+
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'cours_id' => 'required|exists:cours,id', // Assurez-vous que le cours existe
-            'date' => 'required|date|after_or_equal:today', // Assurez-vous que la date est aujourd'hui ou dans le futur
-            'heure' => 'required|date_format:H:i', // Assurez-vous que l'heure est au format H:i
-            'prix' => 'required|numeric', // Assurez-vous que le prix est supérieur à 20
-            'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee'
+        $validated = $request->validate([
+            'cours_id' => 'required|exists:cours,id',
+            'date' => 'required|date',
+            'heure' => 'required|date_format:H:i',
+            'duree' => 'sometimes|integer|min:30',
+            'lieu_id' => 'sometimes|exists:lieux,id'
         ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $user = Auth::user();
-            $eleve = Eleve::where('user_id', $user->id)->first();
-
-            if (!$eleve) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Profil élève non trouvé'
-                ], 403);
-            }
-
-            $cours = Cours::findOrFail($request->cours_id);
-
-            $reservation = Reservation::create([
-                'eleve_id' => $eleve->id,
-                'repetiteur_id' => $cours->repetiteur_id,
-                'prix' => $request->prix,
-                'date_reservation' => $request->date . ' ' . $request->heure,
-                'statut' => $request->statut ?? 'en_attente', // Correction ici
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'data' => $reservation, // ->load(['eleve.user', 'repetiteur.user']),
-                'message' => 'Réservation créée avec succès'
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Erreur création réservation: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la création: ' . (env('APP_DEBUG') ? $e->getMessage() : ''),
-                'error' => env('APP_DEBUG') ? $e->getTrace() : null
-            ], 500);
-        }
+    
+        // Calcul du prix total
+        $cours = Cours::find($validated['cours_id']);
+        $dureeHeures = ($validated['duree'] ?? 60) / 60;
+        $prixTotal = $cours->tarif_horaire * $dureeHeures;
+    
+        // Création de la réservation
+        $reservation = Reservation::create([
+            'eleve_id' => Auth::user()->id,
+            'repetiteur_id' => $cours->repetiteur_id,
+            'date_reservation' => Carbon::parse($validated['date'].' '.$validated['heure']),
+            'statut' => 'en_attente',
+            'duree' => $validated['duree'] ?? 60,
+            'lieu_id' => $validated['lieu_id'] ?? null,
+            'prix_total' => $prixTotal
+        ]);
+    
+        // Créer une transaction associée
+        $transaction = $reservation->transaction()->create([
+            'user_id' => Auth::user()->id,
+            'montant' => $prixTotal,
+            'methode_paiement' => 'en_attente',
+            'statut' => 'en_attente',
+            'reference' => 'RES-'.Str::random(10)
+        ]);
+    
+        return response()->json([
+            'success' => true,
+            'reservation' => $reservation,
+            'transaction' => $transaction
+        ]);
     }
+
 
     public function show($id)
     {

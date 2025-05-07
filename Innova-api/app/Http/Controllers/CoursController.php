@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Cours;
@@ -56,14 +57,14 @@ class CoursController extends Controller
     //         'niveau_scolaire' => 'required|string', // Nom de champ corrigé
     //         'tarif_horaire' => 'required|numeric',  // Faute de frappe corrigée
     //     ]);
-    
+
     //     $user = Auth::user();
     //     $repetiteur = $user->repetiteur;
-    
+
     //     if (!$repetiteur) {
     //         return response()->json(['message' => 'Seuls les répétiteurs peuvent créer des cours.'], 403);
     //     }
-    
+
     //     $cours = $repetiteur->cours()->create([
     //         'titre' => $request->titre,
     //         'description' => $request->description,
@@ -71,56 +72,63 @@ class CoursController extends Controller
     //         'niveau_scolaire' => $request->niveau_scolaire, // Champ corrigé
     //         'tarif_horaire' => $request->tarif_horaire     // Faute de frappe corrigée
     //     ]);
-    
+
     //     return response()->json($cours, 201);
     // }
 
 
     public function store(Request $request)
-{
-    $request->validate([
-        'titre' => 'required|string|max:255',
-        'description' => 'required|string',
-        'matiere' => 'required|string|max:100', // Validation pour le nom de la matière
-        'niveau_scolaire' => 'required|string',
-        'tarif_horaire' => 'required|numeric',
-    ]);
+    {
+        $request->validate([
+            'titre' => 'required|string|max:255',
+            'description' => 'required|string',
+            'matiere' => 'required|string|max:100', // Validation pour le nom de la matière
+            'niveau_scolaire' => 'required|string',
+            'tarif_horaire' => 'required|numeric',
+        ]);
 
-    $user = Auth::user();
-    $repetiteur = $user->repetiteur;
+        $user = Auth::user();
+        $repetiteur = $user->repetiteur;
 
-    if (!$repetiteur) {
-        return response()->json(['message' => 'Seuls les répétiteurs peuvent créer des cours.'], 403);
+        if (!$repetiteur) {
+            return response()->json(['message' => 'Seuls les répétiteurs peuvent créer des cours.'], 403);
+        }
+
+        $cours = $repetiteur->cours()->create([
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'matiere' => $request->matiere, // Stockage direct du nom
+            'niveau_scolaire' => $request->niveau_scolaire,
+            'tarif_horaire' => $request->tarif_horaire
+        ]);
+
+        return response()->json($cours, 201);
     }
-
-    $cours = $repetiteur->cours()->create([
-        'titre' => $request->titre,
-        'description' => $request->description,
-        'matiere' => $request->matiere, // Stockage direct du nom
-        'niveau_scolaire' => $request->niveau_scolaire,
-        'tarif_horaire' => $request->tarif_horaire
-    ]);
-
-    return response()->json($cours, 201);
-}
 
     public function show($id)
-{
-    try {
-        // On charge le cours avec les relations 'matiere' et 'repetiteur.user'
-        $cours = Cours::with(['matiere', 'repetiteur.user'])->findOrFail($id);
-        
-        return response()->json($cours);
-    } catch (ModelNotFoundException $e) {
-        return response()->json(['error' => 'Cours not found'], 404);
-    }
-}
+    {
+        $cours = Cours::with(['matiere', 'repetiteur.user', 'disponibilites'])
+            ->findOrFail($id);
 
-    
-    
+        // Formater les disponibilités pour le frontend
+        $formattedAvailability = $this->formatDisponibilites($cours->disponibilites);
+
+        return response()->json([
+            ...$cours->toArray(),
+            'availability' => $formattedAvailability,
+            'matiere_nom' => $cours->matiere->nom,
+            'professeur_nom' => $cours->repetiteur->user->nom_complet,
+            'tarif' => $cours->tarif_horaire . '€/h'
+        ]);
+    }
+
+    private function formatDisponibilites($disponibilites) {}
+
+
+
     /**
      * Mettre à jour un cours.
-     */    
+     */
 
     public function update(Request $request, $id)
     {
@@ -148,7 +156,7 @@ class CoursController extends Controller
     public function mesCours()
     {
         // Récupérer l'utilisateur connecté
-    
+
 
         $user = \Illuminate\Support\Facades\Auth::user();
         // Accéder au répétiteur via la relation

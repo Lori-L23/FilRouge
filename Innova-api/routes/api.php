@@ -15,6 +15,9 @@ use App\Http\Controllers\CoursController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DisponibiliteController;
 use App\Http\Controllers\DataController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\LieuController;
+
 
 
 
@@ -58,7 +61,25 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/stats', [AdminController::class, 'getStats']);
     Route::get('/admin/reservations/latest', [AdminController::class, 'getLatestReservations']);
 });
+Route::post('/transactions', [TransactionController::class, 'create'])->middleware('auth:sanctum');
+Route::post('/transactions/{id}/confirm', [TransactionController::class, 'confirm'])->middleware('auth:sanctum');
 
+Route::group(['middleware' => 'auth:sanctum'], function() {
+    // Récupérer tous les lieux de l'utilisateur
+    Route::get('/lieux', [LieuController::class, 'index']);
+    
+    // Créer un nouveau lieu
+    Route::post('/lieux', [LieuController::class, 'store']);
+    
+    // Récupérer un lieu spécifique
+    Route::get('/lieux/{id}', [LieuController::class, 'show']);
+    
+    // Mettre à jour un lieu
+    Route::put('/lieux/{id}', [LieuController::class, 'update']);
+    
+    // Supprimer un lieu
+    Route::delete('/lieux/{id}', [LieuController::class, 'destroy']);
+});
 // ---------------------------
 // Routes Protégées (Authentifiées)
 // ---------------------------

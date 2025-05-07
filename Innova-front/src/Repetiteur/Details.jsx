@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   FaStar,
@@ -7,13 +7,17 @@ import {
   FaClock,
 } from "react-icons/fa";
 import Api from "../Services/Api";
-import icon from "../assets/found1.jpg";
+import icon from "../assets/icon.png";
+import { useAuth } from "../contexts/AuthContext";
 
 const Details = () => {
   const { id } = useParams();
   const [repetiteur, setRepetiteur] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchRepetiteur = async () => {
@@ -38,7 +42,7 @@ const Details = () => {
               ).toFixed(1)
             : null;
 
-        // Formater les matières (en tenant compte des différents formats de stockage)
+        // Formater les matières
         let matieres = [];
         try {
           if (typeof data.matieres === 'string') {
@@ -51,7 +55,7 @@ const Details = () => {
           matieres = [];
         }
 
-        // Formater les niveaux (similaire aux matières)
+        // Formater les niveaux
         let niveaux = [];
         try {
           if (typeof data.niveaux === 'string') {
@@ -91,6 +95,18 @@ const Details = () => {
     fetchRepetiteur();
   }, [id]);
 
+  const handleReservationClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      navigate('/login', { 
+        state: { 
+          from: location.pathname,
+          message: "Veuillez vous connecter pour réserver un cours"
+        } 
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -111,7 +127,7 @@ const Details = () => {
           <div className="md:w-1/3 p-6 bg-gray-50">
             <div className="w-full h-64 rounded-lg overflow-hidden mb-6 bg-gray-200 flex items-center justify-center">
               <img
-                src={repetiteur.photo || icon}
+                src={repetiteur?.photo || icon}
                 alt={`${repetiteur.user.prenom} ${repetiteur.user.nom}`}
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -161,7 +177,10 @@ const Details = () => {
               </div>
 
               <div className="pt-4">
-                <Link to={`/reservation/${id}`}>
+                <Link 
+                  to={`/reservation/${id}`}
+                  onClick={handleReservationClick}
+                >
                   <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200">
                     Réserver un cours
                   </button>

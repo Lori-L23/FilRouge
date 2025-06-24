@@ -22,7 +22,7 @@ function DevenirProfesseur() {
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       toast.error("Vous devez être connecté pour accéder à cette page");
-      navigate("/connexion");
+      navigate("/login");
       return;
     }
 

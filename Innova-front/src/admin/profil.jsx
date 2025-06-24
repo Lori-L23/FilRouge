@@ -91,9 +91,9 @@ const ProfileAdministrateur = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 ">
           {/* Profil Card */}
-          <div className="lg:col-span-1 bg-white rounded-lg shadow p-6">
+          <div className="lg:col-span-1 bg-white rounded-lg shadow p-6 ">
             <div className="flex flex-col items-center mb-6">
               <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center mb-4">
                 <img

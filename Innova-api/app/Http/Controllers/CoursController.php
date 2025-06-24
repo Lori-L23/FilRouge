@@ -15,68 +15,6 @@ class CoursController extends Controller
         return response()->json(Cours::all());
     }
 
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'titre' => 'required|string|max:255',
-    //         'description' => 'required|string',
-    //         'matiere_id' => 'required|exists:matieres,id',
-    //         'niveau scolaire' => 'required',
-    //         'tarif_horaire' =>'required|numeric',
-    //     ]);
-
-    //     // Récupérer l'utilisateur connecté via Sanctum
-    //     $user = \Illuminate\Support\Facades\Auth::user();
-    //     // Accéder au répétiteur via la relation définie dans User
-    //     $repetiteur = $user->repetiteur;
-
-    //     if (!$repetiteur) {
-    //         return response()->json(['message' => 'Seuls les répétiteurs peuvent créer des cours.'], 403);
-    //     }
-
-    //     // Créer le cours
-    //     $cours = $repetiteur->cours()->create([
-    //         'titre' => $request->titre,
-    //         'description' => $request->description,
-    //         'matiere_id' => $request->matiere_id,
-    //         'niveau scolaire'=> $request->niveau_scolaire,
-    //         'tarif_horiare'=>$request->tarif_horaire
-
-    //     ]);
-
-    //     return response()->json($cours, 201);
-    // }
-
-
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'titre' => 'required|string|max:255',
-    //         'description' => 'required|string',
-    //         'matiere_id' => 'required|exists:matieres,id',
-    //         'niveau_scolaire' => 'required|string', // Nom de champ corrigé
-    //         'tarif_horaire' => 'required|numeric',  // Faute de frappe corrigée
-    //     ]);
-
-    //     $user = Auth::user();
-    //     $repetiteur = $user->repetiteur;
-
-    //     if (!$repetiteur) {
-    //         return response()->json(['message' => 'Seuls les répétiteurs peuvent créer des cours.'], 403);
-    //     }
-
-    //     $cours = $repetiteur->cours()->create([
-    //         'titre' => $request->titre,
-    //         'description' => $request->description,
-    //         'matiere_id' => $request->matiere_id,
-    //         'niveau_scolaire' => $request->niveau_scolaire, // Champ corrigé
-    //         'tarif_horaire' => $request->tarif_horaire     // Faute de frappe corrigée
-    //     ]);
-
-    //     return response()->json($cours, 201);
-    // }
-
-
     public function store(Request $request)
     {
         $request->validate([
@@ -107,20 +45,21 @@ class CoursController extends Controller
 
     public function show($id)
     {
-        $cours = Cours::with(['matiere', 'repetiteur.user', 'disponibilites'])
-            ->findOrFail($id);
+        $cours = Cours::with(['matiere', 'repetiteur.user']) //, 'disponibilites
+            ->find($id);
 
         // Formater les disponibilités pour le frontend
-        $formattedAvailability = $this->formatDisponibilites($cours->disponibilites);
+        // $formattedAvailability = $this->formatDisponibilites($cours->disponibilites);
 
         return response()->json([
             ...$cours->toArray(),
-            'availability' => $formattedAvailability,
+            // 'availability' => $formattedAvailability,
             'matiere_nom' => $cours->matiere->nom,
             'professeur_nom' => $cours->repetiteur->user->nom_complet,
             'tarif' => $cours->tarif_horaire . '€/h'
         ]);
     }
+
 
     private function formatDisponibilites($disponibilites) {}
 

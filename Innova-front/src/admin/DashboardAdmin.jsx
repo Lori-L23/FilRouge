@@ -348,11 +348,11 @@ const deleteLieu = async (id) => {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`md:flex flex-col w-64 bg-blue-700 border-r border-gray-200 ${
+        className={`md:flex flex-col w-64 bg-blue-700 border-r border-gray-200 mt-20 ${
           sidebarOpen ? "flex" : "hidden"
         }`}
       >
-        <div className="flex items-center justify-center h-16 border-b border-gray-200">
+        <div className="flex items-center justify-center h-16 border-b border-gray-200 ">
           <span className="text-xl font-semibold text-white">InnovaLearn</span>
         </div>
         <div className="flex flex-col flex-grow p-4 overflow-y-auto">
@@ -385,7 +385,7 @@ const deleteLieu = async (id) => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden mt-20">
         {/* Top navigation */}
         <header className="bg-white shadow-sm z-10">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6">

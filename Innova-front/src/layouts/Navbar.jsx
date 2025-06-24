@@ -48,10 +48,10 @@ const Navbar = () => {
   const getUserLinks = (user) => {
     console.log("profile admin", user);
     const links = [
-      {
-        to: "/notifications",
-        icon: <FaBell />,
-      },
+      // {
+      //   to: "/notifications",
+      //   icon: <FaBell />,
+      // },
     ];
 
     if (user?.role === "admin") {

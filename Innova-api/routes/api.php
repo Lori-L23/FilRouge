@@ -88,7 +88,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Gestion utilisateur connecté
     Route::get('/user', [AuthController::class, 'getUser']);
     Route::get('/user-with-profile', [AuthController::class, 'getUserWithProfile']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', action: [AuthController::class, 'logout']);
     Route::put('/user/{id}/role', [AuthController::class, 'updateRole']);
 
     // Élèvesp
@@ -130,6 +130,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     // Réservations
+    Route::post('/reservations', [ReservationController::class, 'store']);
     Route::get('/reservations/latest', [ReservationController::class, 'getLatestReservations']);
     Route::apiResource('reservations', ReservationController::class);
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);

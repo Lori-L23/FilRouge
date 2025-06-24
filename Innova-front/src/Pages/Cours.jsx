@@ -119,7 +119,9 @@ const Cours = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20 text-center">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4 mt-20">Nos Cours de Soutien</h1>
+          <h1 className="text-4xl font-bold mb-4 mt-20">
+            Nos Cours de Soutien
+          </h1>
           <p className="text-lg mb-6">
             Trouvez le professeur idéal pour progresser dans toutes les matières
           </p>
@@ -198,7 +200,7 @@ const Cours = () => {
                       {course.price}
                     </span>
                     <Link
-                      to="/details"
+                      to={`/detailscours/${course.id}`}
                       className="text-blue-600 hover:text-[#7ED321] font-medium flex items-center text-sm"
                     >
                       Voir <FaChevronRight className="ml-1" />
@@ -251,8 +253,8 @@ const Cours = () => {
                       {course.price}
                     </span>
                     <Link
-                      to="/details"
-                      className="text-blue-600 hover:text-[#7ED321] font-medium flex items-center"
+                      to={`/detailscours/${course.id}`}
+                      className="text-blue-600 hover:text-[#7ED321] font-medium flex items-center text-sm"
                     >
                       Voir détails <FaChevronRight className="ml-1" />
                     </Link>

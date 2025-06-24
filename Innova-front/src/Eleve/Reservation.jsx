@@ -92,15 +92,18 @@
 
     const confirmBooking = async () => {
       try {
+       
         // Formatage correct pour votre structure DB
         const reservationData = {
           cours_id: parseInt(id), // Nécessaire pour trouver le répétiteur
           date: selectedDate, // Format YYYY-MM-DD
           heure: selectedTime.padEnd(5, ':00'), // Format HH:MM
           prix_total : cours.tarif_horaire, // Prix par heure
+          
+          // lieu_id: '',
           statut: 'en_attente'
         };
-    
+        
         // Debug
         console.log('Données envoyées:', reservationData);
     
@@ -119,7 +122,7 @@
           config: error.config
         });
     
-        if (error.response?.status === 403) {
+        if (error.response?.status == 403) {
           toast.error('Action non autorisée pour votre rôle');
         } else if (error.response?.status === 422) {
           // Affichez les erreurs de validation
@@ -143,7 +146,7 @@
 
     if (error || !cours) {
       return (
-        <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl mx-auto text-center py-10">
+        <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl mx-auto text-center py-10 mt-20">
           <p className="text-red-500">{error || "Impossible de charger les détails du cours"}</p>
           <button 
             onClick={() => window.location.reload()} 
@@ -156,9 +159,9 @@
     }
 
     return (
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl mx-auto mt-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Réserver : {cours.titre}</h2>
+      <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl mx-auto ">
+        <div className="mb-8 mt-20">
+          <h2 className="text-2xl font-bold mb-4 ">Réserver : {cours.titre}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="flex items-center bg-blue-50 p-4 rounded-lg">
@@ -260,7 +263,7 @@
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-yellow-50 p-4 rounded-lg text-yellow-800">
+                  <div className="bg-yellow-50 p-4 rounded-lg text-yellow-800 mb-20">
                     <p>Aucun créneau disponible pour cette date.</p>
                     <p className="mt-2">Veuillez contacter le professeur pour plus d'options.</p>
                   </div>
@@ -279,6 +282,7 @@
                 <p><span className="font-medium">Titre:</span> {cours.titre}</p>
                 <p><span className="font-medium">Professeur:</span> {cours.professeur_nom}</p>
                 <p><span className="font-medium">Tarif horaire:</span> {cours.tarif}</p>
+                {/* <p><span className="font-medium">lieu:</span> </p> */}
                 <p><span className="font-medium">Date:</span> {new Date(selectedDate).toLocaleDateString("fr-FR", {
                   weekday: "long",
                   day: "numeric",
@@ -299,7 +303,7 @@
                 onClick={confirmBooking}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg flex items-center justify-center transition"
               >
-                <FaCheck className="mr-2" /> Confirmer la réservation
+                <FaCheck className="mr-2 " /> Confirmer la réservation
               </button>
             </div>
           </div>

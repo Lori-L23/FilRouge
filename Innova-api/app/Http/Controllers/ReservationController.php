@@ -110,6 +110,7 @@ class ReservationController extends Controller
     //     }
     // }
 
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -117,7 +118,7 @@ class ReservationController extends Controller
             'date' => 'required|date',
             'heure' => 'required|date_format:H:i',
             'duree' => 'sometimes|integer|min:30',
-            'lieu_id' => 'sometimes|exists:lieux,id'
+            // 'lieu_id' => 'required|exists:lieux,id'
         ]);
     
         // Calcul du prix total
@@ -131,9 +132,12 @@ class ReservationController extends Controller
             'repetiteur_id' => $cours->repetiteur_id,
             'date_reservation' => Carbon::parse($validated['date'].' '.$validated['heure']),
             'statut' => 'en_attente',
+            // 'cours_id'=> $cours,
             'duree' => $validated['duree'] ?? 60,
-            'lieu_id' => $validated['lieu_id'] ?? null,
-            'prix_total' => $prixTotal
+            // 'lieu_id' => $validated['lieu_id'] ?? null,
+            'prix_total' => $prixTotal,
+
+
         ]);
     
         // Créer une transaction associée

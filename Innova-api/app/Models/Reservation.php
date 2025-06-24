@@ -19,7 +19,7 @@ class Reservation extends Model
         'eleve_id',
         'repetiteur_id',
         'cours_id',
-        'lieu_id',
+        // 'lieu_id',
         'prix_total',
         'date_reservation', 
         'statut'

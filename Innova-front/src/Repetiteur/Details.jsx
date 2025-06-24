@@ -9,6 +9,7 @@ import {
 import Api from "../Services/Api";
 import icon from "../assets/icon.png";
 import { useAuth } from "../contexts/AuthContext";
+import { toast } from "react-toastify";
 
 const Details = () => {
   const { id } = useParams();
@@ -98,6 +99,7 @@ const Details = () => {
   const handleReservationClick = (e) => {
     if (!isAuthenticated) {
       e.preventDefault();
+      toast('Veuillez vous connecter pour réserver un cours')
       navigate('/login', { 
         state: { 
           from: location.pathname,

@@ -45,9 +45,7 @@ import Parametres from "./admin/Parametres";
 import Confidentialite from "./legal/Confidentialite";
 import MentionsLegales from "./legal/MentionsLegales";
 import CGU from "./legal/CGU";
-
-
-
+import Detailscours from "./Pages/details";
 function App() {
   return (
     <>
@@ -79,15 +77,15 @@ function App() {
                 <Route path="/repetiteurs/:id" element={<Details />} />
 
                 <Route path="/equipe" element={<TeamPage />} />
-                <Route path="/temoignages" element={<Temoignages />} /> 
+                <Route path="/temoignages" element={<Temoignages />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:id" element={<ArticleDetail />} />
                 <Route path="/mentions" element={<MentionsLegales />} />
                 <Route path="/confidentialite" element={<Confidentialite />} />
                 <Route path="/cgu" element={<CGU />} />
-                
-
+                {/* <Route path="/details/:id" element={<Details />} /> */}
+                <Route path="/detailscours/:id" element={<Detailscours />} />
 
                 {/* <Route path="/valeurs" element={<Valeurs />} /> */}
 
@@ -98,33 +96,29 @@ function App() {
                 <Route path="/profilad" element={<Profilad />} />
                 <Route path="/MesCours" element={<MesCours />} />
                 <Route path="/ProfileSwitcher" element={<ProfileSwitcher />} />
-              <Route  element={<AdminLayout />}>
-                <Route path="/admin/utilisateurs" element={<Utilisateurs />} />
-                <Route path="/admin/repetiteurs" element={<Repetiteurs />} />
-                <Route path="/admin/eleves" element={<Eleves />} />
-                <Route path="/admin/cours" element={<CoursAd />} />
-                <Route path="/admin/paiements" element={<Paiements />} />
-                <Route path="/admin/reservations" element={<Reservations />} />
-                <Route path="/admin/parametres" element={<Parametres />} />
+                <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
+                <Route path="/FeedbackForm" element={<FeedbackForm />} />
+                <Route path="/reservation/:id" element={<Reservation />} />
+                <Route path="/dashboard-stats" element={<DashboardStats />} />
+                <Route element={<AdminLayout />}>
+                  <Route
+                    path="/admin/utilisateurs"
+                    element={<Utilisateurs />}
+                  />
+                  <Route path="/admin/repetiteurs" element={<Repetiteurs />} />
+                  <Route path="/admin/eleves" element={<Eleves />} />
+                  <Route path="/admin/cours" element={<CoursAd />} />
+                  <Route path="/admin/paiements" element={<Paiements />} />
+                  <Route
+                    path="/admin/reservations"
+                    element={<Reservations />}
+                  />
+                  <Route path="/admin/parametres" element={<Parametres />} />
+                </Route>
               </Route>
-              </Route>
 
-
-
-              {/* <Route path="/" element={<Login />} /> */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
-              <Route path="/FeedbackForm" element={<FeedbackForm />} />
-              <Route path="/reservation/:id" element={<Reservation />} />
-              {/* <Route path="/tableaudonnees" element={<TableauDonnees />} /> */}
-              <Route path="/dashboard-stats" element={<DashboardStats />} />
-              
-              {/* 
-          <Route path="/confirmation" element={<confirmation />} />
-          <Route path="/recherche" element={<Recherche />} />
-          */}
-              {/* <Route path="/rechercher" element={<Rechercher />} /> */}
             </Routes>
           </BrowserRouter>
         </AuthProvider>

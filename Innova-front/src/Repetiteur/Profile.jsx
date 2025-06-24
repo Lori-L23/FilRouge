@@ -96,7 +96,7 @@ const ProfileRepetiteur = () => {
       return [];
     }
   };
-  if(typeof field === 'text') {
+  if(typeof field === 'string') {
     con
   }
 

@@ -1,9 +1,8 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "cd Innova-api && composer install --no-interaction --prefer-dist --optimize-autoloader"
+    "builder": "docker"
   },
-  "start": {
-    "cmd": "cd Innova-api && php artisan serve --host=0.0.0.0 --port=$PORT"
+  "deploy": {
+    "startCommand": "docker run -p $PORT:$PORT laravel-app"
   }
 }

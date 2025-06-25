@@ -1,26 +1,36 @@
-# Étape 1 : Image de base PHP avec les extensions nécessaires
-FROM php:8.1-cli
+FROM php:8.2-fpm
 
-# Installer dépendances système & extensions PHP nécessaires à Laravel
+# Installer les dépendances système
 RUN apt-get update && apt-get install -y \
-    unzip zip git curl libzip-dev libonig-dev libxml2-dev libpng-dev libjpeg-dev libfreetype6-dev \
-    && docker-php-ext-configure zip \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl
+    build-essential \
+    libpng-dev \
+    libjpeg-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    curl \
+    unzip \
+    git \
+    libzip-dev \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Installer Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Définir le dossier de travail
-WORKDIR /app
+# Définir le répertoire de travail
+WORKDIR /var/www
 
-# Copier tout le projet dans le conteneur
-COPY . .
+# Copier le projet Laravel
+COPY ./Innova-api /var/www
 
-# Aller dans le dossier Laravel et installer les dépendances
-RUN cd Innova-api && composer install --no-interaction --prefer-dist --optimize-autoloader
+# Installer les dépendances Laravel
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Exposer le port (utilisé par Laravel)
-ENV PORT=8000
+# Donner les bons droits
+RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
 
-# Commande de démarrage du serveur Laravel
-CMD ["sh", "-c", "cd Innova-api && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT"]
+# Exposer le port Laravel
+EXPOSE 8000
+
+# Lancer le serveur Laravel
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

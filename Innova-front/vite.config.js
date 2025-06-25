@@ -14,8 +14,8 @@ export default defineConfig({
       '@contexts': path.resolve(__dirname, 'src/contexts')
     }
   },
-  server: {
-    host: 'localhost',
-    port: 3000
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true
   }
 });

@@ -3,7 +3,7 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import { AuthProvider } from './Contexts/AuthContext'; // Vérifie que le chemin est correct
+import { AuthProvider } from './contexts/AuthContext.jsx'; // Vérifie que le chemin est correct
 
 
 

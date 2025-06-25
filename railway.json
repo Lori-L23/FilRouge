@@ -1,8 +1,9 @@
 {
   "build": {
-    "builder": "docker"
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "docker run -p $PORT:$PORT laravel-app"
+    "startCommand": "php artisan serve --host=0.0.0.0 --port=$PORT"
   }
 }

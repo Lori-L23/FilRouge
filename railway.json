@@ -1,7 +1,9 @@
 {
   "build": {
-    "builder": "nixpacks",
-    "buildCommand": "cd Innova-api && composer install --no-interaction --prefer-dist --optimize-autoloader",
-    "startCommand": "cd Innova-api && php artisan serve --host=0.0.0.0 --port=$PORT"
+    "builder": "NIXPACKS",
+    "buildCommand": "cd Innova-api && composer install --no-interaction --prefer-dist --optimize-autoloader"
+  },
+  "start": {
+    "cmd": "cd Innova-api && php artisan serve --host=0.0.0.0 --port=$PORT"
   }
 }

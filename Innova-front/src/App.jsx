@@ -15,7 +15,7 @@ import Profil from "./Eleve/profil";
 import Profile from "./Repetiteur/Profile";
 import Layout from "./components/Layout";
 import TeamPage from "./components/TeamPage";
-import { AuthProvider } from "./contexts/AuthContext"; // adapte si le dossier s'appelle "context" ou "contexts"
+import { AuthProvider } from "./contexts/AuthContext"; 
 import TrouverProfesseur from "./Pages/TrouverProfesseur";
 import DevenirProfesseur from "./Pages/DevenirProfesseur";
 import Reservation from "./Eleve/Reservation";

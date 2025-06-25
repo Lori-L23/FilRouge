@@ -11,7 +11,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      '@contexts': path.resolve(__dirname, 'src/contexts')
+      // '@contexts': path.resolve(__dirname, 'src/contexts')
+      '@contexts': '/src/contexts'
+
     }
   },
   build: {

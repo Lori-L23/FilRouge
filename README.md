@@ -84,7 +84,7 @@ cd FilRouge
 ## creer un fichier .env
 
 - VITE_API_BASE_URL=http://localhost:8000
-- VITE_APP_URL=http://localhost:3000 // mettez la route de votre frontend
+- VITE_APP_URL=http://localhost:5173 // mettez la route de votre frontend
 
 ## installez les dependances
 

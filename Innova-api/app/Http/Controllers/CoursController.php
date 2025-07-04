@@ -12,7 +12,23 @@ class CoursController extends Controller
 {
     public function index()
     {
-        return response()->json(Cours::all());
+        // Récupérer tous les cours avec les relations nécessaires
+        $cours = Cours::with(['matiere', 'repetiteur.user'])->get();
+
+        // Formater les données pour le frontend
+        $formattedCours = $cours->map(function ($cours) {
+            return [
+                'id' => $cours->id,
+                'titre' => $cours->titre,
+                'description' => $cours->description,
+                'matiere_nom' => $cours->matiere->nom,
+                'professeur_nom' => $cours->repetiteur->user->nom_complet,
+                'niveau_scolaire' => $cours->niveau_scolaire,
+                'tarif' => $cours->tarif_horaire . 'fcfa/h',
+            ];
+        });
+
+        return response()->json($formattedCours);
     }
 
     public function store(Request $request)
@@ -20,7 +36,7 @@ class CoursController extends Controller
         $request->validate([
             'titre' => 'required|string|max:255',
             'description' => 'required|string',
-            'matiere' => 'required|string|max:100', // Validation pour le nom de la matière
+            'matiere_id' => 'required|string|max:100', // Validation pour le nom de la matière
             'niveau_scolaire' => 'required|string',
             'tarif_horaire' => 'required|numeric',
         ]);
@@ -35,7 +51,7 @@ class CoursController extends Controller
         $cours = $repetiteur->cours()->create([
             'titre' => $request->titre,
             'description' => $request->description,
-            'matiere' => $request->matiere, // Stockage direct du nom
+            'matiere_id' => $request->matiere_id, // Stockage direct du nom
             'niveau_scolaire' => $request->niveau_scolaire,
             'tarif_horaire' => $request->tarif_horaire
         ]);

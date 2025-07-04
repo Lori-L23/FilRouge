@@ -13,6 +13,11 @@ class Matiere extends Model
         return $this->hasMany(Cours::class);
     }
 
+    public function repetiteurs()
+{
+    return $this->belongsToMany(Repetiteur::class, 'matiere_repetiteur');
+}
+
     // public function repetiteurs()
     // {
     //     return $this->belongsToMany(User::class, 'cours', 'matiere', 'repetiteur_id')

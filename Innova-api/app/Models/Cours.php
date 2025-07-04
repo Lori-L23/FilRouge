@@ -13,8 +13,8 @@ class Cours extends Model
         'titre',
         'description',
         'matiere_id',
-        'matiere',
-        'repetiteur_id',
+        // 'matiere',
+        // 'repetiteur_id',
         'niveau_scolaire',
         'tarif_horaire',
     ];

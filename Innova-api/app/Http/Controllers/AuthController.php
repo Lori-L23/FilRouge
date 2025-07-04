@@ -18,16 +18,26 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'nom' => 'required|string',
-                'prenom' => 'required|string',
+                'nom' => 'required|string|max:255',
+                'prenom' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
-                'telephone' => 'required|string',
-                'password' => 'required|confirmed',
+                'telephone' => 'required|string|max:20|unique:users,telephone',
+                'password' => 'required|string|min:8|confirmed',
                 'role' => 'required|in:eleve,repetiteur,admin',
-                'date_naissance' => 'required|date',
+                'date_naissance' => 'required|date|before:-16 years',
+
+                // Champs spécifiques aux répétiteurs
+                'matieres' => 'required_if:role,repetiteur|array',
+                'matieres.*' => 'exists:matieres,id',
+                'niveau_principal' => 'required_if:role,repetiteur|in:primaire,college/lycee',
+                'classes_college' => 'required_if:niveau_principal,college/lycee|array|min:1',
+                'classes_college.*' => 'in:6eme,5eme,4eme,3eme,seconde,premiere,terminale',
+                'biographie' => 'required_if:role,repetiteur|string|min:20|max:1000',
+                'tarif_horaire' => 'required_if:role,repetiteur|numeric|min:0',
+                'rayon_intervention' => 'sometimes|integer|min:1|max:100',
             ]);
 
-            // Création de l'utilisateur de base
+            // Création de l'utilisateur
             $user = User::create([
                 'nom' => $validated['nom'],
                 'prenom' => $validated['prenom'],
@@ -36,10 +46,9 @@ class AuthController extends Controller
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
                 'date_naissance' => $validated['date_naissance'],
-                'statut' => 'actif' // Ajout du statut par défaut
+                'statut' => 'actif'
             ]);
 
-            // Création des données spécifiques au rôle
             $profileData = null;
 
             if ($validated['role'] === 'eleve') {
@@ -49,44 +58,44 @@ class AuthController extends Controller
                     'date_naissance' => $validated['date_naissance']
                 ]);
             } elseif ($validated['role'] === 'repetiteur') {
-                $photoPath = $request->hasFile('photo')
-                    ? $request->file('photo')->store('repetiteurs', 'public')
-                    : null;
-
                 $profileData = Repetiteur::create([
                     'user_id' => $user->id,
-                    'matieres' => json_encode($request->input('matieres', [])),
-                    'niveaux' => json_encode($request->input('niveaux', [])),
-                    'biographie' => $request->input('biographie', ''),
-                    'photo' => $photoPath,
+                    'niveau_principal' => $validated['niveau_principal'],
+                    'classes_college' => $validated['niveau_principal'] === 'college/lycee'
+                        ? $validated['classes_college']
+                        : null,
+                    'biographie' => $validated['biographie'],
+                    'tarif_horaire' => $validated['tarif_horaire'],
+                    'rayon_intervention' => $validated['rayon_intervention'] ?? 10,
                     'statut_verif' => 'non_verifie',
-                    'rayon_intervention' => $request->input('rayon_intervention', 10),
-                    'tarif_horaire' => $request->input('tarif_horaire', 0)
                 ]);
-            }elseif ($validated['role'] === 'admin') {
+            } elseif ($validated['role'] === 'admin') {
                 $profileData = Admin::create([
-                    'user_id' => $user->id,
+                    'user_id' => $user->id
                 ]);
-            } else {
-                throw new \Exception('Invalid role');
             }
+            // Synchroniser les matières (array d'ids)
+            $profileData->matieres()->sync($validated['matieres']);
 
-            // Création du token d'accès
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
+                'success' => true,
                 'user' => $user,
                 'profile' => $profileData,
-                'token' => $token
+                'token' => $token,
+                'message' => 'Inscription réussie'
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
-                'message' => 'Validation error',
+                'success' => false,
+                'message' => 'Erreur de validation',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Server error',
+                'success' => false,
+                'message' => 'Erreur du serveur',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -104,6 +113,7 @@ class AuthController extends Controller
             if (!Auth::attempt($credentials)) {
                 throw ValidationException::withMessages([
                     'email' => ['Invalid credentials'],
+
                 ]);
             }
             // return response()->json(['message' => 'Unauthorized'], 401);

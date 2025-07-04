@@ -18,157 +18,157 @@ use App\Http\Controllers\DataController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\LieuController;
 
-
-
-
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 */
 
-// ---------------------------
+// ====================
 // Routes Publiques
-// ---------------------------
+// ====================
 
 // Authentification
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// Matières (publiques)
-Route::get('/matieres/list', [MatiereController::class, 'publicList']);
-Route::apiResource('matieres', MatiereController::class)->only(['show']);
-Route::get('/matieres', [MatiereController::class, 'index']);
-
-// Recherche de répétiteurs
-Route::get('/repetiteurs/search', [MatiereController::class, 'searchRep']);
-Route::get('/repetiteurs', [UserController::class, 'getRepetiteurs']);
-Route::get('/repetiteurs/${user.id}/cours', [RepetiteurController::class, 'getcours']);
-
-// Affichage public d'un répétiteur
-Route::get('/repetiteurs/{id}/public', [RepetiteurController::class, 'publicShow']);
-
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    // Disponibilités
-    Route::get('/repetiteurs/{user}/disponibilites', [DisponibiliteController::class, 'index']);
-    Route::post('/disponibilites', [DisponibiliteController::class, 'store']);
-    Route::delete('/disponibilites/{id}', [DisponibiliteController::class, 'destroy']);
+// Ressources publiques
+Route::prefix('matieres')->group(function () {
+    Route::get('/', [MatiereController::class, 'index']);
+    Route::get('/list', [MatiereController::class, 'publicList']);
+    Route::get('/{id}', [MatiereController::class, 'show']);
 });
 
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::get('/admin/stats', [AdminController::class, 'getStats']);
-    Route::get('/admin/reservations/latest', [AdminController::class, 'getLatestReservations']);
+Route::prefix('repetiteurs')->group(function () {
+    Route::get('/', [UserController::class, 'getRepetiteurs']);
+    Route::get('/search', [MatiereController::class, 'searchRep']);
+    Route::get('/{id}/public', [RepetiteurController::class, 'publicShow']);
+    Route::get('/{id}/cours', [RepetiteurController::class, 'getCoursByRepetiteur']);
 });
-Route::post('/transactions', [TransactionController::class, 'create'])->middleware('auth:sanctum');
-Route::post('/transactions/{id}/confirm', [TransactionController::class, 'confirm'])->middleware('auth:sanctum');
 
-Route::group(['middleware' => 'auth:sanctum'], function() {
-    // Récupérer tous les lieux de l'utilisateur
-    Route::get('/lieux', [LieuController::class, 'index']);
-    
-    // Créer un nouveau lieu
-    Route::post('/lieux', [LieuController::class, 'store']);
-    
-    // Récupérer un lieu spécifique
-    Route::get('/lieux/{id}', [LieuController::class, 'show']);
-    
-    // Mettre à jour un lieu
-    Route::put('/lieux/{id}', [LieuController::class, 'update']);
-    
-    // Supprimer un lieu
-    Route::delete('/lieux/{id}', [LieuController::class, 'destroy']);
-});
-// ---------------------------
-// Routes Protégées (Authentifiées)
-// ---------------------------
+// ====================
+// Routes Authentifiées
+// ====================
 Route::middleware(['auth:sanctum'])->group(function () {
+    
+    // Gestion utilisateur
+    Route::prefix('user')->group(function () {
+        Route::get('/', [AuthController::class, 'getUser']);
+        Route::get('/with-profile', [AuthController::class, 'getUserWithProfile']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+    });
 
-    // Gestion utilisateur connecté
-    Route::get('/user', [AuthController::class, 'getUser']);
-    Route::get('/user-with-profile', [AuthController::class, 'getUserWithProfile']);
-    Route::post('/logout', action: [AuthController::class, 'logout']);
-    Route::put('/user/{id}/role', [AuthController::class, 'updateRole']);
+    // Profil
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'show']);
+        Route::put('/', [ProfileController::class, 'update']);
+        Route::get('/eleve', [ProfileController::class, 'showEleve']);
+        Route::get('/repetiteur', [ProfileController::class, 'showRepetiteur']);
+        Route::get('/admin', [ProfileController::class, 'showAdmin']);
+    });
 
-    // Élèvesp
+    // Élèves
     Route::prefix('eleves')->group(function () {
+        Route::get('/', [EleveController::class, 'index']);
+        Route::post('/', [EleveController::class, 'store']);
         Route::get('/{id}', [EleveController::class, 'showWithReservations']);
         Route::put('/{id}', [EleveController::class, 'update']);
         Route::delete('/{id}', [EleveController::class, 'destroy']);
-        Route::post('/', [EleveController::class, 'store']);
-        Route::get('/', [EleveController::class, 'index']);
         Route::get('/{id}/reservations', [EleveController::class, 'getUserReservations']);
     });
-    // Profil de l'utilisateur connecté
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::get('/profile/eleve', [ProfileController::class, 'showEleve']);
-    Route::get('/profile/repetiteur', [ProfileController::class, 'showRepetiteur']);
-    Route::get('/profile/admin', [ProfileController::class, 'showAdmin']);
-    Route::put('/profile', [ProfileController::class, 'update']);
-
 
     // Répétiteurs
     Route::prefix('repetiteurs')->group(function () {
+        Route::get('/', [RepetiteurController::class, 'index']);
+        Route::post('/', [RepetiteurController::class, 'store']);
         Route::get('/{id}', [RepetiteurController::class, 'show']);
         Route::put('/{id}', [RepetiteurController::class, 'update']);
         Route::get('/{id}/search', [RepetiteurController::class, 'search']);
-        Route::post('/', [RepetiteurController::class, 'store']);
-        Route::get('/', [RepetiteurController::class, 'index']);
+        Route::get('/{id}/matieres', [RepetiteurController::class, 'getMatieresByRepetiteur']);
     });
 
-
-
-    // Gestion des Cours
+    // Cours
     Route::prefix('cours')->group(function () {
-        Route::get('/mes-cours', [CoursController::class, 'mesCours']);
         Route::get('/', [CoursController::class, 'index']);
         Route::post('/', [CoursController::class, 'store']);
+        Route::get('/mes-cours', [CoursController::class, 'mesCours']);
         Route::get('/{id}', [CoursController::class, 'show']);
         Route::put('/{id}', [CoursController::class, 'update']);
         Route::delete('/{id}', [CoursController::class, 'destroy']);
     });
 
     // Réservations
-    Route::post('/reservations', [ReservationController::class, 'store']);
-    Route::get('/reservations/latest', [ReservationController::class, 'getLatestReservations']);
-    Route::apiResource('reservations', ReservationController::class);
-    Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
-
-
-    // Paiements
-    Route::apiResource('paiements', PaiementController::class)->only(['show']);
-    Route::patch('/paiements/{id}/status', [PaiementController::class, 'updateStatus']);
-    Route::get('/paiements', [PaiementController::class, 'index']);
-    Route::get('/paiements/summary', [PaiementController::class, 'summary']);
-    Route::post('/paiements/process', [PaiementController::class, 'processPayment']);
-
-    // Feedbacks
-    Route::apiResource('feedbacks', FeedbackController::class)->except(['update', 'destroy']);
-
-
-    // Admin 
-    Route::prefix('admin')->middleware('can:admin')->group(function () {
-        // Route::get('/stats', [AdminController::class, 'getStats']);
-        Route::get('/recent-users', [AdminController::class, 'recentUsers']);
-        // Route::get('/reservations/latest', [AdminController::class, 'getLatestReservations']);
-        Route::get('/{id}', [AdminController::class, 'show']);
-
-
-        // Rapports
-        Route::prefix('reports')->group(function () {
-            Route::get('/reservations', [AdminController::class, 'reservationsReport']);
-            Route::get('/paiements', [AdminController::class, 'paiementsReport']);
-            Route::get('/utilisateurs', [AdminController::class, 'usersReport']);
-        });
+    Route::prefix('reservations')->group(function () {
+        Route::get('/', [ReservationController::class, 'index']);
+        Route::post('/', [ReservationController::class, 'store']);
+        Route::get('/latest', [ReservationController::class, 'getLatestReservations']);
+        Route::get('/{id}', [ReservationController::class, 'show']);
+        Route::put('/{id}', [ReservationController::class, 'update']);
+        Route::delete('/{id}', [ReservationController::class, 'destroy']);
+        Route::patch('/{id}/status', [ReservationController::class, 'updateStatus']);
     });
 
-    Route::middleware(['auth:sanctum'])->group(function () {
+    // Paiements
+    Route::prefix('paiements')->group(function () {
+        Route::get('/', [PaiementController::class, 'index']);
+        Route::get('/summary', [PaiementController::class, 'summary']);
+        Route::post('/process', [PaiementController::class, 'processPayment']);
+        Route::get('/{id}', [PaiementController::class, 'show']);
+        Route::patch('/{id}/status', [PaiementController::class, 'updateStatus']);
+    });
+
+    // Transactions
+    Route::prefix('transactions')->group(function () {
+        Route::post('/', [TransactionController::class, 'create']);
+        Route::post('/{id}/confirm', [TransactionController::class, 'confirm']);
+    });
+
+    // Feedbacks
+    Route::prefix('feedbacks')->group(function () {
+        Route::get('/', [FeedbackController::class, 'index']);
+        Route::post('/', [FeedbackController::class, 'store']);
+        Route::get('/{id}', [FeedbackController::class, 'show']);
+    });
+
+    // Lieux
+    Route::prefix('lieux')->group(function () {
+        Route::get('/', [LieuController::class, 'index']);
+        Route::post('/', [LieuController::class, 'store']);
+        Route::get('/{id}', [LieuController::class, 'show']);
+        Route::put('/{id}', [LieuController::class, 'update']);
+        Route::delete('/{id}', [LieuController::class, 'destroy']);
+    });
+
+    // Disponibilités
+    Route::prefix('disponibilites')->group(function () {
+        Route::get('/repetiteurs/{user_id}/disponibilites', [DisponibiliteController::class, 'index']);
+        Route::post('/', [DisponibiliteController::class, 'store']);
+        Route::delete('/{id}', [DisponibiliteController::class, 'destroy']);
+    });
+
+    // Données
+    Route::prefix('data')->group(function () {
         Route::get('/users', [DataController::class, 'getUsers']);
         Route::get('/eleves', [DataController::class, 'getEleves']);
         Route::get('/repetiteurs', [DataController::class, 'getRepetiteurs']);
         Route::get('/cours', [DataController::class, 'getCours']);
         Route::get('/reservations', [DataController::class, 'getReservations']);
         Route::get('/paiements', [DataController::class, 'getPaiements']);
+    });
+
+    // ====================
+    // Routes Admin
+    // ====================
+    Route::middleware('can:admin')->prefix('admin')->group(function () {
+        Route::get('/stats', [AdminController::class, 'getStats']);
+        Route::get('/recent-users', [AdminController::class, 'recentUsers']);
+        Route::get('/{id}', [AdminController::class, 'show']);
+        
+        // Rapports
+        Route::prefix('reports')->group(function () {
+            Route::get('/reservations', [AdminController::class, 'reservationsReport']);
+            Route::get('/paiements', [AdminController::class, 'paiementsReport']);
+            Route::get('/utilisateurs', [AdminController::class, 'usersReport']);
+        });
     });
 });

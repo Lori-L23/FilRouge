@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, profile, logout, isAuthenticated } = useAuth();
-  console.log("pfil: ", profile);
+  console.log("Profile data:", profile);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -46,13 +46,7 @@ const Navbar = () => {
 
   // Liens utilisateur selon son profil
   const getUserLinks = (user) => {
-    console.log("profile admin", user);
-    const links = [
-      // {
-      //   to: "/notifications",
-      //   icon: <FaBell />,
-      // },
-    ];
+    const links = [];
 
     if (user?.role === "admin") {
       links.push(
@@ -63,26 +57,19 @@ const Navbar = () => {
         },
         {
           to: "/Profilad",
-          // text: "Mon Profil",
+          text: "Mon Profil",
           icon: <FaUser />,
         }
       );
     } else if (profile?.biographie) {
       // Répétiteur
-      links.push(
-        {
-          to: "/profile",
-          text: "Mon Profil",
-          icon: <FaUser />,
-        }
-        // {
-        //   to: "/MesCours",
-        //   text: "Mes Cours",
-        //   // icon: <FaChalkboardTeacher />,
-        // },
-      );
-    } else if (profile?.niveau_scolaire) {
-      // Élève
+      links.push({
+        to: "/profile",
+        text: "Mon Profil",
+        icon: <FaUser />,
+      });
+    } else if (profile?.niveau_scolaire || isAuthenticated) {
+      // Élève ou utilisateur de base
       links.push({
         to: "/profil",
         text: "Mon Profil",
@@ -94,7 +81,7 @@ const Navbar = () => {
   };
 
   const links = getUserLinks(user);
-  console.log("links: ", links);
+  console.log("Generated links:", links);
 
   return (
     <nav
@@ -139,18 +126,13 @@ const Navbar = () => {
                 </>
               ) : (
                 <>
-                  {links && (
-                    <div className="flex items-center space-x-5">
-                      {links.map((link) => {
-                        console.log(link);
-                        return (
-                          <NavLink key={link.to} to={link.to} icon={link.icon}>
-                            {link.text}
-                          </NavLink>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <div className="flex items-center space-x-5">
+                    {links.map((link) => (
+                      <NavLink key={link.to} to={link.to} icon={link.icon}>
+                        {link.text}
+                      </NavLink>
+                    ))}
+                  </div>
                   <AuthButton onClick={logout}>Déconnexion</AuthButton>
                 </>
               )}
@@ -173,42 +155,6 @@ const Navbar = () => {
         </div>
 
         {/* Menu mobile ouvert */}
-        {/* {isOpen && (
-          <div className="md:hidden fixed inset-0 bg-white z-40 pt-20 px-6 overflow-y-auto">
-            <div className="flex flex-col space-y-4">
-              {mainLinks.map((link) => (
-                <MobileNavLink key={link.to} to={link.to} onClick={closeMenu} icon={link.icon}>
-                  {link.text}
-                </MobileNavLink>
-              ))}
-
-              <div className="border-t border-gray-200 pt-4">
-                {!isAuthenticated ? (
-                  <>
-                    <MobileAuthButton onClick={() => { navigate("/login"); closeMenu(); }} icon={<FaSignInAlt />}>
-                      Connexion
-                    </MobileAuthButton>
-                    <MobileAuthButton primary onClick={() => { navigate("/register"); closeMenu(); }} icon={<FaUserPlus />}>
-                      Inscription
-                    </MobileAuthButton>
-                  </>
-                ) : (
-                  <>
-                    {profile && getUserLinks().map((link) => (
-                      <MobileNavLink key={link.to} to={link.to} onClick={closeMenu} icon={link.icon}>
-                        {link.text}
-                      </MobileNavLink>
-                    ))}
-                    <MobileAuthButton className="bg-[#7ED321] text-white" primary onClick={() => { logout(); closeMenu(); }}>
-                      Déconnexion
-                    </MobileAuthButton>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )} */}
-
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -255,17 +201,16 @@ const Navbar = () => {
                     </>
                   ) : (
                     <>
-                      {profile &&
-                        getUserLinks().map((link) => (
-                          <MobileNavLink
-                            key={link.to}
-                            to={link.to}
-                            onClick={closeMenu}
-                            icon={link.icon}
-                          >
-                            {link.text}
-                          </MobileNavLink>
-                        ))}
+                      {links.map((link) => (
+                        <MobileNavLink
+                          key={link.to}
+                          to={link.to}
+                          onClick={closeMenu}
+                          icon={link.icon}
+                        >
+                          {link.text}
+                        </MobileNavLink>
+                      ))}
                       <MobileAuthButton
                         className="bg-[#7ED321] text-white"
                         primary
@@ -292,7 +237,7 @@ const Navbar = () => {
 const NavLink = ({ to, children, icon, badge = false }) => (
   <Link
     to={to}
-    className="flex items-center text-gray-700 hover:text-[#7ED321] transition-colors duration-200 font-medium relative focus:text-[#7ED321] "
+    className="flex items-center text-gray-700 hover:text-[#7ED321] transition-colors duration-200 font-medium relative focus:text-[#7ED321]"
   >
     {icon && <span className="mr-2">{icon}</span>}
     {children}

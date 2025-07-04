@@ -11,30 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('repetiteurs', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->foreignId('user_id')->constrained()->onDelete('cascade');
-        //     $table->json('matieres'); // pour répétiteur
-        //     $table->enum('niveaux', ['primaire', 'College/lycee'])->nullable(); // pour répétiteur
-        //     $table->text('biographie'); // pour répétiteur
-        //     $table->enum('statut_verif', ['non_verifie', 'verifie'])->default('non_verifie'); // pour répétiteur
-        //     $table->timestamps();
-        //     $table->integer('rayon_intervention')->default(10); // en km
-        //     $table->string('photo')->nullable();
-
-
-        // });
 
         Schema::create('repetiteurs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('matieres')->constrained()->onDelete('cascade'); // Ajouté pour la relation avec les matières
-            $table->json('niveaux'); // Changé de enum à json pour stocker multiple
+
+            // $table->foreignId('matieres_id')->constrained()->onDelete('cascade');
+
+            $table->enum('niveau_principal', ['primaire', 'college/lycee'])->default('college/lycee');
+            $table->json('classes_college')->nullable();
+
             $table->text('biographie');
             $table->enum('statut_verif', ['non_verifie', 'verifie'])->default('non_verifie');
-            $table->integer('tarif_horaire')->nullable(); 
+            $table->integer('tarif_horaire')->nullable();
             $table->integer('rayon_intervention')->default(10);
             $table->string('photo')->nullable();
+
             $table->timestamps();
         });
     }

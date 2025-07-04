@@ -36,7 +36,7 @@ const ProfileEleve = () => {
 
   // Charger les données initiales
   useEffect(() => {
-    if (profile) {
+    if (profile ) {
       setFormData({
         telephone: profile.telephone || "",
         niveau_scolaire: profile.niveau_scolaire || "",
@@ -61,7 +61,7 @@ const ProfileEleve = () => {
       }
     }
 
-    fetchReservations(profile.id);
+    fetchReservations(profile?.id);
     fetchPaiements();
   }, [profile, location.state]);
 
@@ -88,25 +88,45 @@ const ProfileEleve = () => {
     }
   };
 
-  const fetchPaiements = async () => {
-    // return [];
-    try {
-      const response = await Api.get("/api/paiements");
-      if (response.data?.success) {
-        setPaiements(response.data.data || []);
-      } else {
-        throw new Error(
-          response.data?.message || "Réponse invalide du serveur"
-        );
-      }
-    } catch (error) {
-      console.error("Erreur paiements:", error);
-      toast.error(
-        error.response?.data?.message ||
-          "Erreur lors du chargement des paiements"
-      );
+const fetchPaiements = async () => {
+  try {
+    const response = await Api.get("/api/paiements");
+    
+    // Vérification plus robuste de la réponse
+    if (!response.data) {
+      throw new Error("Aucune donnée reçue du serveur");
     }
-  };
+
+    // Différents formats de réponse possibles
+    if (Array.isArray(response.data)) {
+      // Cas où l'API retourne directement un tableau
+      setPaiements(response.data);
+    } else if (response.data.data && Array.isArray(response.data.data)) {
+      // Cas où les données sont dans une propriété data
+      setPaiements(response.data.data);
+    } else if (response.data.success && response.data.data) {
+      // Cas où la réponse a un format {success: true, data: [...]}
+      setPaiements(response.data.data);
+    } else {
+      throw new Error("Format de réponse inattendu");
+    }
+
+  } catch (error) {
+    console.error("Erreur paiements:", {
+      error: error.message,
+      response: error.response?.data,
+    });
+    
+    toast.error(
+      error.response?.data?.message || 
+      error.message || 
+      "Erreur lors du chargement des paiements"
+    );
+    
+    // Retourner un tableau vide en cas d'erreur
+    return [];
+  }
+};
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

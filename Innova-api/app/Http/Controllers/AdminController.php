@@ -107,4 +107,31 @@ class AdminController extends Controller
             ->limit(10)
             ->get(['id', 'nom', 'prenom', 'email', 'telephone', 'role', 'created_at']);
     }
+
+    private function getAIFeedback(string $bio): array
+    {
+        $client = new \GuzzleHttp\Client();
+        $response = $client->post('https://api.openai.com/v1/chat/completions', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => "Analyse cette biographie de professeur. Identifie 3 points forts et 3 points à améliorer. Sois concis."
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => $bio
+                    ]
+                ],
+                'temperature' => 0.7
+            ]
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
 }

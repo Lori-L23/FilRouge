@@ -98,7 +98,7 @@ cd FilRouge
 
 ## Frontend (dans un autre terminal)
 
-- nom run dev
+- npm run dev
 
 ## lancer votre base de donne
 

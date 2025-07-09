@@ -24,70 +24,34 @@ const Details = () => {
     const fetchRepetiteur = async () => {
       try {
         setLoading(true);
-        const response = await Api.get(
-          `/api/repetiteurs/${id}?with=user,cours.matiere,feedback,disponibilites`
-        );
+        const response = await Api.get(`/api/repetiteurs/public/${id}`);
 
-        if (!response.data) {
-          throw new Error("Répétiteur non trouvé");
+        if (!response.data.success) {
+          throw new Error(response.data.message || "Erreur de chargement");
         }
 
-        const data = response.data;
-
-        // Calcul de la note moyenne
-        const avgRating =
-          data.feedback?.length > 0
-            ? (
-                data.feedback.reduce((sum, fb) => sum + fb.note, 0) /
-                data.feedback.length
-              ).toFixed(1)
-            : null;
-
-        // Formater les matières
-        let matieres = [];
-        try {
-          if (typeof data.matieres === 'string') {
-            matieres = JSON.parse(data.matieres.replace(/\\/g, ''));
-          } else if (Array.isArray(data.matieres)) {
-            matieres = data.matieres;
-          }
-        } catch (e) {
-          console.error("Erreur de parsing des matières:", e);
-          matieres = [];
-        }
-
-        // Formater les niveaux
-        let niveaux = [];
-        try {
-          if (typeof data.niveaux === 'string') {
-            niveaux = JSON.parse(data.niveaux.replace(/\\/g, ''));
-          } else if (Array.isArray(data.niveaux)) {
-            niveaux = data.niveaux;
-          }
-        } catch (e) {
-          console.error("Erreur de parsing des niveaux:", e);
-          niveaux = [];
-        }
-
-        // Formater les disponibilités
-        const disponibilites = data.disponibilites?.map(d => ({
-          jour: d.jour,
-          heure: `${d.heure_debut} - ${d.heure_fin}`
-        })) || [];
+        const data = response.data.data;
 
         setRepetiteur({
           ...data,
-          avgRating,
-          matieres,
-          niveaux,
-          disponibilites,
-          cours: Array.isArray(data.cours) ? data.cours : [],
+          avgRating:
+            data.feedback?.length > 0
+              ? data.feedback.reduce((sum, fb) => sum + fb.note, 0) /
+                data.feedback.length
+              : null,
           tarif: data.tarif_horaire
-            ? `${data.tarif_horaire}€/h`
+            ? `${data.tarif_horaire}Fcfa/h`
             : "Non spécifié",
+          niveaux: Array.isArray(data.classes_college)
+            ? data.classes_college
+            : [],
+          matieres: Array.isArray(data.matieres)
+            ? data.matieres.map((m) => (typeof m === "object" ? m.nom : m))
+            : [],
         });
       } catch (err) {
-        setError(err.message);
+        console.error("Détails erreur:", err.response?.data || err.message);
+        setError(err.response?.data?.message || err.message);
       } finally {
         setLoading(false);
       }
@@ -99,12 +63,12 @@ const Details = () => {
   const handleReservationClick = (e) => {
     if (!isAuthenticated) {
       e.preventDefault();
-      toast('Veuillez vous connecter pour réserver un cours')
-      navigate('/login', { 
-        state: { 
+      toast("Veuillez vous connecter pour réserver un cours");
+      navigate("/login", {
+        state: {
           from: location.pathname,
-          message: "Veuillez vous connecter pour réserver un cours"
-        } 
+          message: "Veuillez vous connecter pour réserver un cours",
+        },
       });
     }
   };
@@ -179,7 +143,7 @@ const Details = () => {
               </div>
 
               <div className="pt-4">
-                <Link 
+                <Link
                   to={`/reservation/${id}`}
                   onClick={handleReservationClick}
                 >
@@ -229,18 +193,19 @@ const Details = () => {
               </p>
             </div>
 
+            {/* Matières enseignées */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-3">
                 Matières enseignées
               </h2>
               <div className="flex flex-wrap gap-2">
-                {repetiteur.matieres.length > 0 ? (
+                {repetiteur.matieres?.length > 0 ? (
                   repetiteur.matieres.map((matiere, index) => (
                     <span
                       key={index}
                       className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
                     >
-                      {typeof matiere === 'object' ? matiere.nom || matiere : matiere}
+                      {matiere}
                     </span>
                   ))
                 ) : (
@@ -249,16 +214,17 @@ const Details = () => {
               </div>
             </div>
 
+            {/* Niveaux enseignés */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-3">Niveaux enseignés</h2>
               <div className="flex flex-wrap gap-2">
-                {repetiteur.niveaux.length > 0 ? (
+                {repetiteur.niveaux?.length > 0 ? (
                   repetiteur.niveaux.map((niveau, index) => (
                     <span
                       key={index}
                       className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
                     >
-                      {typeof niveau === 'object' ? niveau.niveau || niveau : niveau}
+                      {niveau}
                     </span>
                   ))
                 ) : (
@@ -272,26 +238,48 @@ const Details = () => {
               {repetiteur.cours.length > 0 ? (
                 <div className="space-y-4">
                   {repetiteur.cours.map((cours) => (
-                    <div key={cours.id} className="border-b pb-4 last:border-b-0">
+                    <div
+                      key={cours.id}
+                      className="border-b pb-4 last:border-b-0"
+                    >
                       <h3 className="font-medium text-lg">{cours.titre}</h3>
                       <p className="text-gray-600 mb-2">{cours.description}</p>
                       <div className="flex flex-wrap gap-2">
                         <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
-                          {cours.matiere?.nom || 'Matière inconnue'}
+                          {cours.matiere?.nom || "Matière inconnue"}
                         </span>
                         <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
                           Niveau: {cours.niveau_scolaire}
                         </span>
                         <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                          Tarif: {cours.tarif_horaire}€/h
+                          Tarif: {cours.tarif_horaire}Fcfa/h
                         </span>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500">Aucun cours proposé pour le moment</p>
+                <p className="text-gray-500">
+                  Aucun cours proposé pour le moment
+                </p>
               )}
+            </div>
+            <div className="flex items-start">
+              <FaClock className="text-gray-500 mr-2 mt-1" />
+              <div>
+                <span className="font-medium">Disponibilités:</span>
+                {repetiteur.disponibilites?.length > 0 ? (
+                  <ul className="ml-2 list-disc list-inside">
+                    {repetiteur.disponibilites.map((dispo, index) => (
+                      <li key={index} className="text-sm">
+                        {dispo.jour}: {dispo.heure_debut} - {dispo.heure_fin}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="ml-2 text-sm">Non spécifiées</span>
+                )}
+              </div>
             </div>
           </div>
         </div>

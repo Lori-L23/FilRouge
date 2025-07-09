@@ -113,7 +113,12 @@ class Repetiteur extends Model
      */
     public function getClassesCollegeAttribute($value)
     {
-        return $value ? json_decode($value, true) : [];
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return is_array($value) ? $value : [];
     }
 
     /**

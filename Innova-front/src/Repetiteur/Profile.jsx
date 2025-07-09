@@ -64,7 +64,12 @@ const ProfileRepetiteur = () => {
     { id: 5, nom: "Physique-Chimie" },
     { id: 6, nom: "Philosophie" },
     { id: 7, nom: "Histoire-Géographie" },
-    { id: 8, nom: "SVT" },
+    { id: 8, nom: "Français" },
+    { id: 9, nom: "Informatique" },
+    { id: 10, nom: "Physique" },
+    { id: 11, nom: "ECM" },
+    { id: 11, nom: "Geographie" },
+
   ];
 
   const niveauxOptions = [

@@ -56,11 +56,32 @@ class RepetiteurController extends Controller
         }
     }
 
-    // Lister tous les répétiteurs actifs
+    // // Lister tous les répétiteurs actifs
+    // public function index()
+    // {
+    //     try {
+    //         $repetiteurs = Repetiteur::with(['user', 'cours.matiere'])
+    //             ->whereHas('user', fn($q) => $q->where('statut', 'actif'))
+    //             ->get()
+    //             ->map(fn($rep) => $this->formatRepetiteurData($rep));
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $repetiteurs
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Error fetching repetiteurs: ' . $e->getMessage());
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Erreur lors de la récupération des répétiteurs',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     public function index()
     {
         try {
-            $repetiteurs = Repetiteur::with(['user', 'cours.matiere'])
+            $repetiteurs = Repetiteur::with(['user', 'cours.matiere', 'matieres'])
                 ->whereHas('user', fn($q) => $q->where('statut', 'actif'))
                 ->get()
                 ->map(fn($rep) => $this->formatRepetiteurData($rep));
@@ -78,27 +99,145 @@ class RepetiteurController extends Controller
             ], 500);
         }
     }
-
     // Afficher un répétiteur (public)
-    public function publicShow($id)
-    {
-        try {
-            $repetiteur = Repetiteur::with(['user', 'cours.matiere', 'disponibilites'])
-                ->whereHas('user', fn($q) => $q->where('statut', 'actif'))
-                ->findOrFail($id);
+public function publicShow($id)
+{
+    try {
+        // Charge toutes les relations nécessaires avec sélection des colonnes
+        $repetiteur = Repetiteur::with([
+            'user' => function($query) {
+                $query->select('id', 'nom', 'prenom', 'email', 'telephone', 'date_naissance');
+            },
+            'cours' => function($query) {
+                $query->select('id', 'titre', 'description', 'matiere_id', 'repetiteur_id', 'niveau_scolaire', 'tarif_horaire')
+                      ->with(['matiere' => function($q) {
+                          $q->select('id', 'nom', 'niveau');
+                      }]);
+            },
+            'disponibilites' => function($query) {
+                $query->select('id', 'repetiteur_id', 'jour', 'heure_debut', 'heure_fin');
+            },
+            'matieres' => function($query) {
+                $query->select('matieres.id', 'matieres.nom', 'matieres.niveau');
+            }
+        ])
+        ->whereHas('user', fn($q) => $q->where('statut', 'actif'))
+        ->select('id', 'user_id', 'niveau_principal', 'classes_college', 'biographie', 'statut_verif', 'tarif_horaire', 'rayon_intervention')
+        ->findOrFail($id);
 
-            return response()->json([
-                'success' => true,
-                'data' => $this->formatRepetiteurData($repetiteur)
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error fetching repetiteur: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Répétiteur non trouvé',
-                'error' => $e->getMessage()
-            ], 404);
+        // Vérification des données critiques
+        if (!$repetiteur->user) {
+            throw new \Exception("L'utilisateur associé n'existe pas ou n'est pas actif");
         }
+
+        // Formatage des données
+        $formattedData = [
+            'id' => $repetiteur->id,
+            'user' => [
+                'id' => $repetiteur->user->id,
+                'nom' => $repetiteur->user->nom,
+                'prenom' => $repetiteur->user->prenom,
+                'email' => $repetiteur->user->email,
+                'telephone' => $repetiteur->user->telephone,
+                'date_naissance' => $repetiteur->user->date_naissance
+            ],
+            'niveau_principal' => $repetiteur->niveau_principal,
+            'classes_college' => $repetiteur->classes_college,
+            'biographie' => $repetiteur->biographie,
+            'statut_verif' => $repetiteur->statut_verif,
+            'tarif_horaire' => $repetiteur->tarif_horaire,
+            'rayon_intervention' => $repetiteur->rayon_intervention,
+            'matieres' => $repetiteur->matieres->map(function($matiere) {
+                return [
+                    'id' => $matiere->id,
+                    'nom' => $matiere->nom,
+                    'niveau' => $matiere->niveau
+                ];
+            }),
+            'disponibilites' => $repetiteur->disponibilites->map(function($dispo) {
+                return [
+                    'id' => $dispo->id,
+                    'jour' => $dispo->jour,
+                    'heure_debut' => substr($dispo->heure_debut, 0, 5),
+                    'heure_fin' => substr($dispo->heure_fin, 0, 5)
+                ];
+            }),
+            'cours' => $repetiteur->cours->map(function($cours) {
+                return [
+                    'id' => $cours->id,
+                    'titre' => $cours->titre,
+                    'description' => $cours->description,
+                    'niveau_scolaire' => $cours->niveau_scolaire,
+                    'tarif_horaire' => $cours->tarif_horaire,
+                    'matiere' => $cours->matiere ? [
+                        'id' => $cours->matiere->id,
+                        'nom' => $cours->matiere->nom,
+                        'niveau' => $cours->matiere->niveau
+                    ] : null
+                ];
+            })
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $formattedData
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error("RepetiteurController@publicShow - Erreur: " . $e->getMessage());
+        Log::error("Stack trace: " . $e->getTraceAsString());
+        Log::error("Données requête: " . json_encode(request()->all()));
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la récupération du répétiteur',
+            'error' => env('APP_DEBUG') ? $e->getMessage() : null
+        ], 500);
+    }
+}
+
+    private function formatRepetiteurData($repetiteur)
+    {
+        return [
+            'id' => $repetiteur->id,
+            'user' => [
+                'id' => $repetiteur->user->id,
+                'nom' => $repetiteur->user->nom,
+                'prenom' => $repetiteur->user->prenom,
+                'email' => $repetiteur->user->email,
+                'telephone' => $repetiteur->user->telephone
+            ],
+            'niveau_principal' => $repetiteur->niveau_principal,
+            'classes_college' => json_decode($repetiteur->classes_college) ?? [],
+            'biographie' => $repetiteur->biographie,
+            'tarif_horaire' => $repetiteur->tarif_horaire,
+            'photo' => $repetiteur->photo ? asset('storage/' . $repetiteur->photo) : null,
+            'matieres' => $repetiteur->matieres->map(function ($matiere) {
+                return [
+                    'id' => $matiere->id,
+                    'nom' => $matiere->nom
+                ];
+            }),
+            'disponibilites' => $repetiteur->disponibilites->map(function ($dispo) {
+                return [
+                    'id' => $dispo->id,
+                    'jour' => $dispo->jour,
+                    'heure_debut' => $dispo->heure_debut,
+                    'heure_fin' => $dispo->heure_fin
+                ];
+            }),
+            'cours' => $repetiteur->cours->map(function ($cours) {
+                return [
+                    'id' => $cours->id,
+                    'titre' => $cours->titre,
+                    'tarif_horaire' => $cours->tarif_horaire,
+                    'matiere' => $cours->matiere ? [
+                        'id' => $cours->matiere->id,
+                        'nom' => $cours->matiere->nom
+                    ] : null
+                ];
+            })
+        ];
     }
 
     // Recherche avancée de répétiteurs
@@ -181,7 +320,7 @@ class RepetiteurController extends Controller
     {
         try {
             $validated = $request->validate([
-                'matieres'=> 'required_if:niveau_principal,college/lycee|array',
+                'matieres' => 'required_if:niveau_principal,college/lycee|array',
                 'niveau_principal' => 'required|in:' . implode(',', $this->niveauxPrincipaux),
                 'classes_college' => 'required_if:niveau_principal,college/lycee|array',
                 'classes_college.*' => 'in:' . implode(',', $this->classesCollege),
@@ -233,48 +372,6 @@ class RepetiteurController extends Controller
     }
 
     // Formatage des données du répétiteur
-    protected function formatRepetiteurData($repetiteur)
-    {
-        return [
-            'id' => $repetiteur->id,
-            'user_id' => $repetiteur->user_id,
-            'user' => [
-                'id' => $repetiteur->user->id,
-                'nom' => $repetiteur->user->nom,
-                'prenom' => $repetiteur->user->prenom,
-                'email' => $repetiteur->user->email,
-                'telephone' => $repetiteur->user->telephone,
-                'date_naissance' => $repetiteur->user->date_naissance,
-            ],
-            'matieres' => $repetiteur->matieres()->get()->map(function ($matiere) {
-                return [
-                    'id' => $matiere->id,
-                    'nom' => $matiere->nom,
-                ];
-            }),
-            'niveau_principal' => $repetiteur->niveau_principal,
-            'classes_college' => $repetiteur->classes_college
-                ? $this->parseJsonData($repetiteur->classes_college)
-                : null,
-            'biographie' => $repetiteur->biographie,
-            'statut_verif' => $repetiteur->statut_verif,
-            'tarif_horaire' => $repetiteur->tarif_horaire,
-            'rayon_intervention' => $repetiteur->rayon_intervention,
-            // 'photo' => $repetiteur->photo ? asset('storage/' . $repetiteur->photo) : null,
-            'disponibilites' => $repetiteur->disponibilites,
-            'cours' => $repetiteur->cours->map(function ($cours) {
-                return [
-                    'id' => $cours->id,
-                    'matiere' => $cours->matiere->nom,
-                    'niveau' => $cours->niveau_scolaire,
-                    'tarif' => $cours->tarif_horaire,
-                    'titre' => $cours->titre,
-                    'description' => $cours->description,
-                ];
-            })
-        ];
-    }
-
     function getCoursByRepetiteur($userId)
     {
         try {
@@ -303,27 +400,26 @@ class RepetiteurController extends Controller
             ], 500);
         }
     }
-    function getMatieresByRepetiteur($userId)
+    public function getMatieresByRepetiteur($repetiteurId)
     {
         try {
-            $repetiteur = Repetiteur::where('user_id', $userId)->firstOrFail();
-            $matieres = $repetiteur->matieres()->get();
+            $repetiteur = Repetiteur::with('matieres')->findOrFail($repetiteurId);
 
             return response()->json([
                 'success' => true,
-                'data' => $matieres->map(function ($m) {
+                'data' => $repetiteur->matieres->map(function ($matiere) {
                     return [
-                        'id' => $m->id,
-                        'nom' => $m->nom,
+                        'id' => $matiere->id,
+                        'nom' => $matiere->nom,
+                        'niveau' => $matiere->niveau
                     ];
                 })
             ]);
         } catch (\Exception $e) {
-            Log::error('Error fetching matieres by repetiteur: ' . $e->getMessage());
+            Log::error('Error fetching matieres: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des matières',
-                'error' => $e->getMessage()
+                'message' => 'Erreur lors de la récupération des matières'
             ], 500);
         }
     }

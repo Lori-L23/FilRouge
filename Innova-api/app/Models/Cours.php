@@ -21,7 +21,7 @@ class Cours extends Model
 
     public function matiere()
     {
-        return $this->belongsTo(Matiere::class);
+        return $this->belongsTo(Matiere::class );
     }
 
     public function repetiteur()

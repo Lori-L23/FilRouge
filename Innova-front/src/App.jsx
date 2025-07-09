@@ -65,9 +65,7 @@ function App() {
                   path="/devenir-contributeur"
                   element={<DevenirContributeur />}
                 />
-                <Route
-                  path="/trouverprofesseur"
-                  element={<TrouverProfesseur />}
+                <Route path="/trouverprofesseur" element={<TrouverProfesseur />}
                 />
                 <Route
                   path="/devenirprofesseur"

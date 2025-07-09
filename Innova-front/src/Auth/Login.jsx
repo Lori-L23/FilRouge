@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaGoogle } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
-import { auth, googleProvider } from "../components/firebase";
+// import { auth, googleProvider } from "../components/firebase";
 import { signInWithPopup } from "firebase/auth";
 
 function Login() {
@@ -11,7 +11,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
-  const [loading, setLoading] = useState(false); // Déplacé ici si non fourni par useAuth
+  const [loading, setLoading] = useState(false); // chargement de l'état de chargement
   const navigate = useNavigate();
   const { login, user } = useAuth(); // Ajout de user depuis le contexte
 
@@ -44,12 +44,9 @@ function Login() {
         // Redirection basée sur le rôle après connexion réussie
         if (user?.role === "admin") {
           navigate("/DashboardAdmin");
-        } else
-        if ((user?.role === "eleve")) {
+        } else if (user?.role === "eleve") {
           navigate("/", { state: { isLoggedIn: true } });
-        }
-        else
-        if ((user?.role === "repetiteur")) {
+        } else if (user?.role === "repetiteur") {
           navigate("/", { state: { isLoggedIn: true } });
         }
       } else {
@@ -67,137 +64,156 @@ function Login() {
    * Connexion avec Google
    */
   const signInWithGoogle = async () => {
+    setLoading(true);
+    setError("");
+    setFieldErrors({});
+
     try {
-      setLoading(true);
-      await signInWithPopup(auth, googleProvider);
-      navigate("/"); // Redirection après connexion Google
-    } catch (error) {
-      console.error("Google sign-in error:", error);
-      setError(error.message || "Erreur lors de la connexion avec Google");
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Vérification du rôle de l'utilisateur
+      if (user) {
+        // Redirection basée sur le rôle après connexion réussie
+        if (user.role === "admin") {
+          navigate("/DashboardAdmin");
+        } else if (user.role === "eleve") {
+          navigate("/", { state: { isLoggedIn: true } });
+        } else if (user.role === "repetiteur") {
+          navigate("/", { state: { isLoggedIn: true } });
+        }
+      }
+    } catch (err) {
+      console.error("Google sign-in error:", err);
+      setError("Échec de la connexion avec Google");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
-        {/* En-tête */}
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-[#7ED321]">
-            Se connecter avec InnovaLearn
-          </h2>
-        </div>
-
-        {/* Bouton Google */}
-        <button
-          type="button"
-          className="w-full border rounded-lg p-3 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors disabled:opacity-50"
-          onClick={signInWithGoogle}
-          disabled={loading}
-        >
-          <FaGoogle className="text-red-500 mr-2" />
-          <span className="font-medium">Continue with Google</span>
-        </button>
-
-        {/* Séparateur */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-green-500 to-green-600 flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
+          {/* En-tête */}
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-bold text-[#7ED321]">
+              Se connecter avec InnovaLearn
+            </h2>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">ou</span>
-          </div>
-        </div>
 
-        {/* Message d'erreur global */}
-        {error && (
-          <div className="px-4 py-3 rounded bg-red-50">
-            <p className="text-red-500 text-sm">{error}</p>
-          </div>
-        )}
+          {/* Bouton Google */}
+          <button
+            type="button"
+            className="w-full border rounded-lg p-3 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors disabled:opacity-50"
+            onClick={signInWithGoogle}
+            disabled={loading}
+          >
+            <FaGoogle className="text-red-500 mr-2" />
+            <span className="font-medium">Continue with Google</span>
+          </button>
 
-        {/* Formulaire de connexion */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            {/* Champ Email */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className={`appearance-none block w-full px-3 py-2 border ${
-                  fieldErrors.email ? "border-red-500" : "border-gray-300"
-                } rounded-md placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
-                placeholder="Adresse email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+          {/* Séparateur */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">ou</span>
+            </div>
+          </div>
+
+          {/* Message d'erreur global */}
+          {error && (
+            <div className="px-4 py-3 rounded bg-red-50">
+              <p className="text-red-500 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Formulaire de connexion */}
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              {/* Champ Email */}
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    fieldErrors.email ? "border-red-500" : "border-gray-300"
+                  } rounded-md placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                  placeholder="Adresse email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                />
+                {fieldErrors.email && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {fieldErrors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Champ Mot de passe */}
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Mot de passe
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    fieldErrors.password ? "border-red-500" : "border-gray-300"
+                  } rounded-md placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                  placeholder="Mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+                {fieldErrors.password && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {fieldErrors.password}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Bouton de soumission */}
+            <div className="space-y-4">
+              <button
+                type="submit"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                 disabled={loading}
-              />
-              {fieldErrors.email && (
-                <p className="mt-1 text-sm text-red-500">{fieldErrors.email}</p>
-              )}
-            </div>
-
-            {/* Champ Mot de passe */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Mot de passe
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className={`appearance-none block w-full px-3 py-2 border ${
-                  fieldErrors.password ? "border-red-500" : "border-gray-300"
-                } rounded-md placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
-                placeholder="Mot de passe"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-              />
-              {fieldErrors.password && (
-                <p className="mt-1 text-sm text-red-500">
-                  {fieldErrors.password}
-                </p>
-              )}
-            </div>
-          </div>
+                {loading ? "Connexion en cours..." : "Se connecter"}
+              </button>
 
-          {/* Bouton de soumission */}
-          <div className="space-y-4">
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              disabled={loading}
-            >
-              {loading ? "Connexion en cours..." : "Se connecter"}
-            </button>
-
-            {/* Lien vers l'inscription */}
-            <div className="text-center text-sm">
-              <Link
-                to="/register"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                Pas de compte ? S'inscrire
-              </Link>
+              {/* Lien vers l'inscription */}
+              <div className="text-center text-sm">
+                <Link
+                  to="/register"
+                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  Pas de compte ? S'inscrire
+                </Link>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

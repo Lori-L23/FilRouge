@@ -17,6 +17,9 @@ use App\Http\Controllers\DisponibiliteController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\LieuController;
+use App\Http\Controllers\TutorValidationControlleur;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContributorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +34,11 @@ use App\Http\Controllers\LieuController;
 // Authentification
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/validate-tutor', [TutorValidationControlleur::class, 'validateTutor']);
+//contact
+Route::post('/contact', [ContactController::class, 'submit']);
+// Contributeurs
+Route::post('/contributors', [ContributorController::class, 'store']);
 
 // Ressources publiques
 Route::prefix('matieres')->group(function () {
@@ -39,10 +47,11 @@ Route::prefix('matieres')->group(function () {
     Route::get('/{id}', [MatiereController::class, 'show']);
 });
 
+
 Route::prefix('repetiteurs')->group(function () {
     Route::get('/', [UserController::class, 'getRepetiteurs']);
     Route::get('/search', [MatiereController::class, 'searchRep']);
-    Route::get('/{id}/public', [RepetiteurController::class, 'publicShow']);
+    Route::get('/public/{id}', [RepetiteurController::class, 'publicShow']);
     Route::get('/{id}/cours', [RepetiteurController::class, 'getCoursByRepetiteur']);
 });
 
@@ -50,13 +59,17 @@ Route::prefix('repetiteurs')->group(function () {
 // Routes Authentifiées
 // ====================
 Route::middleware(['auth:sanctum'])->group(function () {
-    
+
     // Gestion utilisateur
     Route::prefix('user')->group(function () {
         Route::get('/', [AuthController::class, 'getUser']);
         Route::get('/with-profile', [AuthController::class, 'getUserWithProfile']);
         Route::post('/logout', [AuthController::class, 'logout']);
     });
+
+    //contact
+    Route::post('/contact', [ContactController::class, 'submit']);
+
 
     // Profil
     Route::prefix('profile')->group(function () {
@@ -92,7 +105,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [CoursController::class, 'index']);
         Route::post('/', [CoursController::class, 'store']);
         Route::get('/mes-cours', [CoursController::class, 'mesCours']);
-        Route::get('/{id}', [CoursController::class, 'show']);
+        Route::get('/rep/{id}', [CoursController::class, 'show']);
         Route::put('/{id}', [CoursController::class, 'update']);
         Route::delete('/{id}', [CoursController::class, 'destroy']);
     });
@@ -163,7 +176,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/stats', [AdminController::class, 'getStats']);
         Route::get('/recent-users', [AdminController::class, 'recentUsers']);
         Route::get('/{id}', [AdminController::class, 'show']);
-        
+
         // Rapports
         Route::prefix('reports')->group(function () {
             Route::get('/reservations', [AdminController::class, 'reservationsReport']);

@@ -179,7 +179,7 @@ export default function TrouverProfesseur() {
                 <ProfesseurCard
                   key={repetiteur.id}
                   repetiteur={repetiteur}
-                  matieres={repetiteur.repetiteur.matieres}
+                  matieres={repetiteur.matieres}
                   note={4}
                 />
               ))

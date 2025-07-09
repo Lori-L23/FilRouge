@@ -7,6 +7,7 @@ use App\Models\Repetiteur;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class CoursController extends Controller
 {
@@ -58,27 +59,64 @@ class CoursController extends Controller
 
         return response()->json($cours, 201);
     }
-
     public function show($id)
     {
-        $cours = Cours::with(['matiere', 'repetiteur.user']) //, 'disponibilites
-            ->find($id);
+        try {
+            // Charge le cours avec toutes les relations nécessaires
+            $cours = Cours::with([
+                'matiere',
+                'repetiteur.user',
+                'repetiteur.matieres' // Ajoutez cette relation si vous voulez les matières du répétiteur
+            ])->findOrFail($id);
 
-        // Formater les disponibilités pour le frontend
-        // $formattedAvailability = $this->formatDisponibilites($cours->disponibilites);
+            // Formatage de la réponse
+            $response = [
+                'success' => true,
+                'data' => [
+                    'id' => $cours->id,
+                    'titre' => $cours->titre,
+                    'description' => $cours->description,
+                    'niveau_scolaire' => $cours->niveau_scolaire,
+                    'tarif_horaire' => $cours->tarif_horaire,
+                    'matiere' => optional($cours->matiere, function ($matiere) {
+                        return [
+                            'id' => $matiere->id,
+                            'nom' => $matiere->nom
+                        ];
+                    }),
+                    'repetiteur' => optional($cours->repetiteur, function ($repetiteur) {
+                        return [
+                            'id' => $repetiteur->id,
+                            'user' => optional($repetiteur->user, function ($user) {
+                                return [
+                                    'id' => $user->id,
+                                    'nom' => $user->nom,
+                                    'prenom' => $user->prenom
+                                ];
+                            }),
+                            // Ajoutez les matières du répétiteur si nécessaire
+                            'matieres' => $repetiteur->matieres->map(function ($matiere) {
+                                return [
+                                    'id' => $matiere->id,
+                                    'nom' => $matiere->nom
+                                ];
+                            })->toArray()
+                        ];
+                    })
+                ]
+            ];
 
-        return response()->json([
-            ...$cours->toArray(),
-            // 'availability' => $formattedAvailability,
-            'matiere_nom' => $cours->matiere->nom,
-            'professeur_nom' => $cours->repetiteur->user->nom_complet,
-            'tarif' => $cours->tarif_horaire . '€/h'
-        ]);
+            return response()->json($response);
+        } catch (\Exception $e) {
+            Log::error("Erreur dans CoursController@show: " . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Cours non trouvé',
+                'error' => env('APP_DEBUG') ? $e->getMessage() : null
+            ], 404);
+        }
     }
-
-
-    private function formatDisponibilites($disponibilites) {}
-
 
 
     /**

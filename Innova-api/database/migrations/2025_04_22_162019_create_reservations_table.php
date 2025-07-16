@@ -13,21 +13,43 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('eleve_id');
-            $table->unsignedBigInteger('repetiteur_id');
-            $table->dateTime('date_reservation');
-            $table->enum('statut', ['en_attente', 'acceptee', 'refusee', 'annulee']);
-            $table->unsignedBigInteger('cours_id')->nullable();
-            $table->decimal('prix_total', 10, 2)->nullable();
-            $table->unsignedBigInteger('transaction_id')->nullable();
-            // $table->integer('duree')->nullable(); 
+            $table->foreignId('eleve_id')->constrained('eleves')->onDelete('cascade');
+            $table->foreignId('repetiteur_id')->constrained('repetiteurs')->onDelete('cascade');
+            $table->foreignId('cours_id')->constrained('cours')->onDelete('cascade');
+            $table->foreignId('matiere_id')->constrained('matieres')->onDelete('cascade');
+            
+            // Informations de base
+            $table->date('date');
+            $table->time('heure');
+            $table->decimal('duree_heures', 5, 2)->default(1.00); // Durée par défaut de 1 heure
+            
+            // Statut
+            $table->enum('statut', [
+                'en_attente', 
+                'acceptee', 
+                'refusee', 
+                'annulee', 
+                'terminee'
+            ])->default('en_attente');
+            
+            // Paiement
+            $table->decimal('prix_total', 10, 2);
+            $table->enum('statut_paiement', [
+                'en_attente', 
+                'paye', 
+                'rembourse', 
+                'echec'
+            ])->default('en_attente');
+            
+            // Autres informations
+            $table->text('raison_annulation')->nullable();
+            $table->text('notes')->nullable();
+            
             $table->timestamps();
-        
-            $table->foreign('eleve_id')->references('id')->on('eleves')->onDelete('cascade');
-            $table->foreign('repetiteur_id')->references('id')->on('repetiteurs')->onDelete('cascade');
-            // $table->foreign('lieu_id')->references('id')->on('lieux')->onDelete('cascade');
-            $table->foreign('cours_id')->references('id')->on('cours')->onDelete('cascade');
-            $table->foreign('transaction_id')->references('id')->on('transactions')->onDelete('cascade');
+            
+            // Index pour améliorer les performances
+            $table->index(['date', 'heure']);
+            $table->index(['statut', 'statut_paiement']);
         });
     }
 

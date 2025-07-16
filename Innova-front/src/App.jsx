@@ -50,10 +50,8 @@ function App() {
   return (
     <>
       <div>
-        {/* <h1>Innova</h1>
-      <p>Bienvenue sur notre application !</p> */}
+     
         <AuthProvider>
-          <BrowserRouter>
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<Accueil />} />
@@ -118,7 +116,6 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
             </Routes>
-          </BrowserRouter>
         </AuthProvider>
       </div>
       <ToastContainer />

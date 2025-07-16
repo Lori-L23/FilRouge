@@ -3,12 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Cours;
-use App\Models\Repetiteur;
-use App\Models\Paiement;
-use App\Models\Transaction;
-use App\Models\Lieu;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Reservation extends Model
@@ -18,49 +12,76 @@ class Reservation extends Model
     protected $fillable = [
         'eleve_id',
         'repetiteur_id',
-        'cours_id',
-        // 'lieu_id',
+        'cours_id', // Rendre nullable si nécessaire
+        'matiere_id', // Rendre nullable si nécessaire
+        'date',
+        'heure',
+        'duree_heures',
         'prix_total',
-        'date_reservation', 
-        'statut'
+        'statut',
+        'statut_paiement',
+        'notes',
+        'lieu_id' // Ajouté si utilisé
     ];
+
     protected $casts = [
-     'date_reservation' => 'datetime',
-     'id' => 'integer',
-     'eleve_id' => 'integer',
-     'prix' => 'float',
-     'statut' => 'string'
+        'date' => 'date:Y-m-d', // Format explicite
+        'heure' => 'string', // Stocké comme string pour HH:MM:SS
+        'duree_heures' => 'decimal:2', // Meilleure précision
+        'prix_total' => 'decimal:2'
     ];
-    /** 
-     * Relations
-     */
+
+    // Relations avec withDefault() pour éviter les erreurs
     public function cours()
     {
-        return $this->belongsTo(Cours::class);
+        return $this->belongsTo(Cours::class)->withDefault();
     }
 
     public function eleve()
     {
-        return $this->belongsTo(Eleve::class);
+        return $this->belongsTo(Eleve::class)->withDefault();
     }
 
     public function repetiteur()
     {
-        return $this->belongsTo(Repetiteur::class);
+        return $this->belongsTo(Repetiteur::class)->withDefault();
     }
-    public function paiement()
+
+    public function matiere()
     {
-        return $this->hasOne(Paiement::class);
+        return $this->belongsTo(Matiere::class)->withDefault();
     }
+
     public function transaction()
     {
-        return $this->hasOne(Transaction::class);
+        return $this->hasOne(Transaction::class)->withDefault();
     }
+
     public function lieu()
     {
-        return $this->belongsTo(Lieu::class);
+        return $this->belongsTo(Lieu::class)->withDefault();
     }
 
+    // Nouvelle méthode pour vérifier la disponibilité
+    public static function isTimeSlotAvailable($repetiteurId, $date, $heure, $duree)
+    {
+        $start = \Carbon\Carbon::parse("$date $heure");
+        $end = $start->copy()->addHours($duree);
 
-    
+        return !static::where('repetiteur_id', $repetiteurId)
+            ->where('date', $date)
+            ->whereNotIn('statut', ['annulee', 'refusee'])
+            ->where(function($query) use ($start, $end) {
+                $query->where(function($q) use ($start, $end) {
+                    $q->where('heure', '>=', $start->format('H:i:s'))
+                      ->where('heure', '<', $end->format('H:i:s'));
+                })->orWhere(function($q) use ($start) {
+                    $q->whereRaw(
+                        'ADDTIME(heure, SEC_TO_TIME(duree_heures * 3600)) > ?',
+                        [$start->format('H:i:s')]
+                    )->where('heure', '<=', $start->format('H:i:s'));
+                });
+            })
+            ->exists();
+    }
 }

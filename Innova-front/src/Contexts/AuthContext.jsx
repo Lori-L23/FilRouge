@@ -49,7 +49,11 @@ export const AuthProvider = ({ children }) => {
       await Api.get("/sanctum/csrf-cookie");
 
       // Récupération des données combinées
-      const { data } = await Api.get("/api/user/with-profile");
+      const { data } = await Api.get('/api/user/with-profile', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!data.user || !data.profile_type) {
         throw new Error("Données utilisateur incomplètes");

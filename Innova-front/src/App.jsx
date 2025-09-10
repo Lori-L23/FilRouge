@@ -15,7 +15,8 @@ import Profil from "./Eleve/profil";
 import Profile from "./Repetiteur/Profile";
 import Layout from "./components/Layout";
 import TeamPage from "./components/TeamPage";
-import { AuthProvider } from './contexts/AuthContext.jsx';
+
+
 import TrouverProfesseur from "./Pages/TrouverProfesseur";
 import DevenirProfesseur from "./Pages/DevenirProfesseur";
 import Reservation from "./Eleve/Reservation";
@@ -50,73 +51,71 @@ function App() {
   return (
     <>
       <div>
-     
-        <AuthProvider>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route path="/" element={<Accueil />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/apropos" element={<Apropos />} />
-                <Route path="/cours" element={<Cours />} />
-                <Route path="/ressources" element={<Ressources />} />
+
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Accueil />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/apropos" element={<Apropos />} />
+              <Route path="/cours" element={<Cours />} />
+              <Route path="/ressources" element={<Ressources />} />
+              <Route
+                path="/devenir-contributeur"
+                element={<DevenirContributeur />}
+              />
+              <Route path="/trouverprofesseur" element={<TrouverProfesseur />}
+              />
+              <Route
+                path="/devenirprofesseur"
+                element={<DevenirProfesseur />}
+              />
+              <Route path="/acc2" element={<Acc2 />} />
+              <Route path="/repetiteurs/:id" element={<Details />} />
+
+              <Route path="/equipe" element={<TeamPage />} />
+              <Route path="/temoignages" element={<Temoignages />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<ArticleDetail />} />
+              <Route path="/mentions" element={<MentionsLegales />} />
+              <Route path="/confidentialite" element={<Confidentialite />} />
+              <Route path="/cgu" element={<CGU />} />
+              {/* <Route path="/details/:id" element={<Details />} /> */}
+              <Route path="/detailscours/:id" element={<Detailscours />} />
+
+              {/* <Route path="/valeurs" element={<Valeurs />} /> */}
+
+              <Route path="/Recherche" element={<Recherche />} />
+
+              <Route path="/profil" element={<Profil />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profilad" element={<Profilad />} />
+              <Route path="/MesCours" element={<MesCours />} />
+              <Route path="/ProfileSwitcher" element={<ProfileSwitcher />} />
+              <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
+              <Route path="/FeedbackForm" element={<FeedbackForm />} />
+              <Route path="/reservation/:id" element={<Reservation />} />
+              <Route path="/dashboard-stats" element={<DashboardStats />} />
+              <Route element={<AdminLayout />}>
                 <Route
-                  path="/devenir-contributeur"
-                  element={<DevenirContributeur />}
+                  path="/admin/utilisateurs"
+                  element={<Utilisateurs />}
                 />
-                <Route path="/trouverprofesseur" element={<TrouverProfesseur />}
-                />
+                <Route path="/admin/repetiteurs" element={<Repetiteurs />} />
+                <Route path="/admin/eleves" element={<Eleves />} />
+                <Route path="/admin/cours" element={<CoursAd />} />
+                <Route path="/admin/paiements" element={<Paiements />} />
                 <Route
-                  path="/devenirprofesseur"
-                  element={<DevenirProfesseur />}
+                  path="/admin/reservations"
+                  element={<Reservations />}
                 />
-                <Route path="/acc2" element={<Acc2 />} />
-                <Route path="/repetiteurs/:id" element={<Details />} />
-
-                <Route path="/equipe" element={<TeamPage />} />
-                <Route path="/temoignages" element={<Temoignages />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<ArticleDetail />} />
-                <Route path="/mentions" element={<MentionsLegales />} />
-                <Route path="/confidentialite" element={<Confidentialite />} />
-                <Route path="/cgu" element={<CGU />} />
-                {/* <Route path="/details/:id" element={<Details />} /> */}
-                <Route path="/detailscours/:id" element={<Detailscours />} />
-
-                {/* <Route path="/valeurs" element={<Valeurs />} /> */}
-
-                <Route path="/Recherche" element={<Recherche />} />
-
-                <Route path="/profil" element={<Profil />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/profilad" element={<Profilad />} />
-                <Route path="/MesCours" element={<MesCours />} />
-                <Route path="/ProfileSwitcher" element={<ProfileSwitcher />} />
-                <Route path="/DashboardAdmin" element={<DashboardAdmin />} />
-                <Route path="/FeedbackForm" element={<FeedbackForm />} />
-                <Route path="/reservation/:id" element={<Reservation />} />
-                <Route path="/dashboard-stats" element={<DashboardStats />} />
-                <Route element={<AdminLayout />}>
-                  <Route
-                    path="/admin/utilisateurs"
-                    element={<Utilisateurs />}
-                  />
-                  <Route path="/admin/repetiteurs" element={<Repetiteurs />} />
-                  <Route path="/admin/eleves" element={<Eleves />} />
-                  <Route path="/admin/cours" element={<CoursAd />} />
-                  <Route path="/admin/paiements" element={<Paiements />} />
-                  <Route
-                    path="/admin/reservations"
-                    element={<Reservations />}
-                  />
-                  <Route path="/admin/parametres" element={<Parametres />} />
-                </Route>
+                <Route path="/admin/parametres" element={<Parametres />} />
               </Route>
+            </Route>
 
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-            </Routes>
-        </AuthProvider>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Routes>
       </div>
       <ToastContainer />
     </>

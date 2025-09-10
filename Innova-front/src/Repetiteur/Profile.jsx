@@ -100,8 +100,7 @@ useEffect(() => {
     const loadData = async () => {
       await fetchMatieresEnseignees();
 
-      // Debug: Afficher la valeur avant parsing
-      console.log('classes_college raw:', profile.classes_college);
+
       
       let parsedClasses = [];
       try {
@@ -326,9 +325,7 @@ const handleSubmit = async (e) => {
       </div>
     );
   }
-  console.log("Matieres enseignees:", matieresEnseignees);
-  console.log("FormData matieres:", formData.matieres);
-  console.log("Matieres options:", matieresOptions);
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">

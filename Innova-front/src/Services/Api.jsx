@@ -1,6 +1,5 @@
 import axios from "axios";
-import { useAuth } from "./contexts/AuthContext"; // Import correct du contexte
-
+import { useAuth } from "../contexts/AuthContext"; 
 const Api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000",
   headers: {

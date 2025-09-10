@@ -12,8 +12,8 @@ class Reservation extends Model
     protected $fillable = [
         'eleve_id',
         'repetiteur_id',
-        'cours_id', // Rendre nullable si nécessaire
-        'matiere_id', // Rendre nullable si nécessaire
+        'cours_id', 
+        'matiere_id', 
         'date',
         'heure',
         'duree_heures',

@@ -158,7 +158,7 @@ class ReservationController extends Controller
                 'eleve_id' => 'required|exists:eleves,id',
                 'repetiteur_id' => 'required|exists:repetiteurs,id',
                 'cours_id' => 'nullable|exists:cours,id',
-                'matiere_id' => 'nullable|exists:matieres,id',
+                'matiere_id' => 'nullable|exists:matiere_repetiteur,id',
                 'date' => 'required|date|after_or_equal:today',
                 'heure' => 'required|date_format:H:i:s',
                 'duree_heures' => 'required|numeric|min:0.5|max:8',

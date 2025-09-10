@@ -155,7 +155,6 @@ export const AuthProvider = ({ children }) => {
    * Nettoie le localStorage et les headers API
    */
   const logout = useCallback(() => {
-    // console.log("logout Déclenché");
 
     // Nettoyage côté client quoi qu'il arrive
     localStorage.removeItem("auth_token");
@@ -168,9 +167,10 @@ export const AuthProvider = ({ children }) => {
       loading: false,
       error: null,
     });
-
  
-  }, []);
+  }, 
+
+  []);
 
   // Valeurs fournies par le contexte
   const contextValue = {

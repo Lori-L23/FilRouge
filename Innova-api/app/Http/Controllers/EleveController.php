@@ -67,7 +67,7 @@ class EleveController extends Controller
                 'eleve'
             ])
                 ->where('eleve_id', $id)
-                ->orderBy('date_reservation', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->get();
 
             // 3. Formater la réponse
@@ -76,7 +76,7 @@ class EleveController extends Controller
                 'data' => $reservations->map(function ($reservation) {
                     return [
                         'id' => $reservation->id,
-                        'date_reservation' => $reservation->date_reservation,
+                        'created_at' => $reservation->created_at,
                         'statut' => $reservation->statut,
                         'prix' => $reservation->prix,
                         'repetiteur' => $reservation->repetiteur ? [

@@ -145,7 +145,6 @@ useEffect(() => {
   const fetchMatieresEnseignees = async () => {
     try {
       const response = await Api.get(`/api/repetiteurs/${user.id}/matieres`);
-      console.log("Réponse API matières:", response.data); // Debug
       if (response.data.success) {
         setMatieresEnseignees(response.data.data);
       }

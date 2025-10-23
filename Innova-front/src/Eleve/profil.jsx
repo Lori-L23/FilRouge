@@ -18,7 +18,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 const ProfileEleve = () => {
   const { user, profile, refetchUser, logout } = useAuth();
-  console.log(user.telephone);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -47,7 +46,6 @@ const ProfileEleve = () => {
     // Vérification robuste des données de réservation
     if (location.state?.reservationSuccess) {
       const { reservationId, amount } = location.state;
-      console.log("Données de réservation:", location.state);
 
       if (reservationId && amount) {
         setReservationDetails({
@@ -69,7 +67,6 @@ const ProfileEleve = () => {
     try {
       const response = await Api.get(`/api/eleves/${eleve_id}/reservations`);
 
-      console.log("Réponse API:", response.data); // Pour débogage
 
       if (response.data?.success) {
         // Accédez maintenant à response.data.data.reservations
@@ -253,7 +250,6 @@ const fetchPaiements = async () => {
     </div>
   );
 
-  console.log(reservations);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -436,9 +432,9 @@ const fetchPaiements = async () => {
                       {reservations.map((reservation) => (
                         <tr key={reservation.id}>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {reservation.date_reservation
+                            {reservation.created_at
                               ? new Date(
-                                  reservation.date_reservation
+                                  reservation.created_at  
                                 ).toLocaleDateString()
                               : "N/A"}
                           </td>

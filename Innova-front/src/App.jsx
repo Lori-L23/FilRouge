@@ -16,6 +16,7 @@ import Profile from "./Repetiteur/Profile";
 import Layout from "./components/Layout";
 import TeamPage from "./components/TeamPage";
 
+import { AuthProvider } from './contexts/AuthContext';
 
 import TrouverProfesseur from "./Pages/TrouverProfesseur";
 import DevenirProfesseur from "./Pages/DevenirProfesseur";
@@ -52,6 +53,7 @@ function App() {
     <>
       <div>
 
+        <AuthProvider>
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Accueil />} />
@@ -116,6 +118,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Routes>
+        </AuthProvider>
       </div>
       <ToastContainer />
     </>

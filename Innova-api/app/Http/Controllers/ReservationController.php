@@ -143,174 +143,335 @@ class ReservationController extends Controller
     /**
      * Crée une nouvelle réservation
      */
-    public function store(Request $request)
-    {
-        try {
-            // Vérification que seuls les élèves peuvent créer des réservations
-            $user = $this->checkRole(['eleve']);
+    // public function store(Request $request)
+    // {
+    //     try {
+    //         // Vérification que seuls les élèves peuvent créer des réservations
+    //         $user = $this->checkRole(['eleve']);
 
-            if ($user instanceof \Illuminate\Http\JsonResponse) {
-                return $user;
-            }
+    //         if ($user instanceof \Illuminate\Http\JsonResponse) {
+    //             return $user;
+    //         }
+    //         // Récupérer l'élève associé à l'utilisateur connecté
+    //     $eleve = Eleve::where('user_id', $user->id)->first();
 
-            // Validation des données
-            $validator = Validator::make($request->all(), [
-                'eleve_id' => 'required|exists:eleves,id',
-                'repetiteur_id' => 'required|exists:repetiteurs,id',
-                'cours_id' => 'nullable|exists:cours,id',
-                'matiere_id' => 'nullable|exists:matiere_repetiteur,id',
-                'date' => 'required|date|after_or_equal:today',
-                'heure' => 'required|date_format:H:i:s',
-                'duree_heures' => 'required|numeric|min:0.5|max:8',
-                'prix_total' => 'nullable|numeric|min:0',
-                'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee,terminee',
-                'statut_paiement' => 'sometimes|in:en_attente,paye,rembourse,echec',
-                'notes' => 'nullable|string|max:1000'
-            ]);
+    //     if (!$eleve) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Aucun profil élève trouvé pour cet utilisateur'
+    //         ], 404);
+    //     }
+    //         // Validation des données
+    //         $validator = Validator::make($request->all(), [
+    //             'repetiteur_id' => 'required|exists:repetiteurs,id',
+    //             'cours_id' => 'nullable|exists:cours,id',
+    //             'matiere_id' => 'nullable|exists:matiere_repetiteur,id',
+    //             'date' => 'required|date|after_or_equal:today',
+    //             'heure' => 'required|date_format:H:i:s',
+    //             'duree_heures' => 'required|numeric|min:0.5|max:8',
+    //             'prix_total' => 'nullable|numeric|min:0',
+    //             'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee,terminee',
+    //             'statut_paiement' => 'sometimes|in:en_attente,paye,rembourse,echec',
+    //             'notes' => 'nullable|string|max:1000'
+    //         ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Données de validation invalides',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+    //         if ($validator->fails()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Données de validation invalides',
+    //                 'errors' => $validator->errors()
+    //             ], 422);
+    //         }
 
-            DB::beginTransaction();
+    //         DB::beginTransaction();
 
-            // Vérifications de sécurité
-            $eleve = Eleve::findOrFail($request->eleve_id);
-            $repetiteur = Repetiteur::with('user')->findOrFail($request->repetiteur_id);
+    //         // Vérifications de sécurité
+    //         // $eleve = Eleve::findOrFail($request->eleve_id);
+    //         $repetiteur = Repetiteur::with('user')->findOrFail($request->repetiteur_id);
 
-            // Vérifier que l'élève authentifié correspond à l'élève de la réservation
-            if ($eleve->user_id !== $user->id) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Vous ne pouvez réserver que pour votre propre compte'
-                ], 403);
-            }
+    //         // Vérifier que l'élève authentifié correspond à l'élève de la réservation
+    //         // if ($eleve->user_id !== $user->id) {
+    //         //     DB::rollBack();
+    //         //     return response()->json([
+    //         //         'success' => false,
+    //         //         'message' => 'Vous ne pouvez réserver que pour votre propre compte'
+    //         //     ], 403);
+    //         // }
 
-            // Récupération des informations du cours et matière
-            $cours = null;
-            $matiere = null;
+    //         // Récupération des informations du cours et matière
+    //         $cours = null;
+    //         $matiere = null;
 
-            if ($request->cours_id) {
-                $cours = Cours::findOrFail($request->cours_id);
-            }
+    //         if ($request->cours_id) {
+    //             $cours = Cours::findOrFail($request->cours_id);
+    //         }
 
-            if ($request->matiere_id) {
-                $matiere = Matiere::findOrFail($request->matiere_id);
-            }
+    //         if ($request->matiere_id) {
+    //             $matiere = Matiere::findOrFail($request->matiere_id);
+    //         }
 
-            // Calcul du prix total
-            $prixTotal = $request->prix_total ?? ($repetiteur->tarif_horaire * $request->duree_heures);
+    //         // Calcul du prix total
+    //         $prixTotal = $request->prix_total ?? ($repetiteur->tarif_horaire * $request->duree_heures);
 
-            // Vérification de la disponibilité
-            $dateHeure = Carbon::parse($request->date . ' ' . $request->heure);
-            $finCours = $dateHeure->copy()->addHours($request->duree_heures);
+    //         // Vérification de la disponibilité
+    //         $dateHeure = Carbon::parse($request->date . ' ' . $request->heure);
+    //         $finCours = $dateHeure->copy()->addHours($request->duree_heures);
 
-            $conflits = Reservation::where('repetiteur_id', $repetiteur->id)
-                ->where('date', $request->date)
-                ->whereNotIn('statut', ['annulee', 'refusee'])
-                ->where(function ($query) use ($request, $finCours) {
-                    $query->where(function ($q) use ($request, $finCours) {
-                        $q->where('heure', '>=', $request->heure)
-                            ->where('heure', '<', $finCours->format('H:i:s'));
-                    })->orWhere(function ($q) use ($request, $finCours) {
-                        $q->whereRaw(
-                            'ADDTIME(heure, SEC_TO_TIME(duree_heures * 3600)) > ?',
-                            [$request->heure]
-                        )->where('heure', '<=', $request->heure);
-                    });
-                })
-                ->exists();
+    //         $conflits = Reservation::where('repetiteur_id', $repetiteur->id)
+    //             ->where('date', $request->date)
+    //             ->whereNotIn('statut', ['annulee', 'refusee'])
+    //             ->where(function ($query) use ($request, $finCours) {
+    //                 $query->where(function ($q) use ($request, $finCours) {
+    //                     $q->where('heure', '>=', $request->heure)
+    //                         ->where('heure', '<', $finCours->format('H:i:s'));
+    //                 })->orWhere(function ($q) use ($request, $finCours) {
+    //                     $q->whereRaw(
+    //                         'ADDTIME(heure, SEC_TO_TIME(duree_heures * 3600)) > ?',
+    //                         [$request->heure]
+    //                     )->where('heure', '<=', $request->heure);
+    //                 });
+    //             })
+    //             ->exists();
 
-            if ($conflits) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ce créneau horaire n\'est pas disponible'
-                ], 409);
-            }
+    //         if ($conflits) {
+    //             DB::rollBack();
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Ce créneau horaire n\'est pas disponible'
+    //             ], 409);
+    //         }
 
-            // Création de la réservation
-            $reservationData = [
-                'eleve_id' => $eleve->id,
-                'repetiteur_id' => $repetiteur->id,
-                'date' => $request->date,
-                'heure' => $request->heure,
-                'duree_heures' => $request->duree_heures,
-                'prix_total' => $prixTotal,
-                'statut' => $request->statut ?? 'en_attente',
-                'statut_paiement' => $request->statut_paiement ?? 'en_attente',
-                'notes' => $request->notes,
-            ];
+    //         // Création de la réservation
+    //         $reservationData = [
+    //             'eleve_id' => $eleve->id,
+    //             'repetiteur_id' => $repetiteur->id,
+    //             'date' => $request->date,
+    //             'heure' => $request->heure,
+    //             'duree_heures' => $request->duree_heures,
+    //             'prix_total' => $prixTotal,
+    //             'statut' => $request->statut ?? 'en_attente',
+    //             'statut_paiement' => $request->statut_paiement ?? 'en_attente',
+    //             'notes' => $request->notes,
+    //         ];
 
-            if ($cours) {
-                $reservationData['cours_id'] = $cours->id;
-            }
+    //         if ($cours) {
+    //             $reservationData['cours_id'] = $cours->id;
+    //         }
 
-            if ($matiere) {
-                $reservationData['matiere_id'] = $matiere->id;
-            }
+    //         if ($matiere) {
+    //             $reservationData['matiere_id'] = $matiere->id;
+    //         }
 
-            $reservation = Reservation::create($reservationData);
+    //         $reservation = Reservation::create($reservationData);
 
-            // Création de la transaction associée
-            $transactionData = [
-                'user_id' => $user->id,
-                'montant' => $prixTotal,
-                'methode_paiement' => 'en_attente',
-                'statut' => 'en_attente',
-                'reference' => 'RES-' . strtoupper(Str::random(10)),
-                'description' => "Réservation cours avec {$repetiteur->user->prenom} {$repetiteur->user->nom}"
-            ];
+    //         // Création de la transaction associée
+    //         $transactionData = [
+    //             'user_id' => $user->id,
+    //             'montant' => $prixTotal,
+    //             'methode_paiement' => 'en_attente',
+    //             'statut' => 'en_attente',
+    //             'reference' => 'RES-' . strtoupper(Str::random(10)),
+    //             'description' => "Réservation cours avec {$repetiteur->user->prenom} {$repetiteur->user->nom}"
+    //         ];
 
-            $transaction = Transaction::create(array_merge($transactionData, [
-                'reservation_id' => $reservation->id
-            ]));
+    //         $transaction = Transaction::create(array_merge($transactionData, [
+    //             'reservation_id' => $reservation->id
+    //         ]));
 
-            DB::commit();
+    //         DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'reservation' => $reservation->load([
-                        'eleve.user',
-                        'repetiteur.user',
-                        'cours',
-                        'matiere',
-                        'transaction'
-                    ]),
-                    'transaction' => $transaction
-                ],
-                'message' => 'Réservation créée avec succès'
-            ], 201);
-        } catch (ModelNotFoundException $e) {
-            DB::rollBack();
-            Log::error('ReservationController@store - Model not found: ' . $e->getMessage());
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => [
+    //                 'reservation' => $reservation->load([
+    //                     'eleve.user',
+    //                     'repetiteur.user',
+    //                     'cours',
+    //                     'matiere',
+    //                     'transaction'
+    //                 ]),
+    //                 'transaction' => $transaction
+    //             ],
+    //             'message' => 'Réservation créée avec succès'
+    //         ], 201);
+    //     } catch (ModelNotFoundException $e) {
+    //         DB::rollBack();
+    //         Log::error('ReservationController@store - Model not found: ' . $e->getMessage());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Ressource non trouvée'
-            ], 404);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('ReservationController@store Error: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
-                'request_data' => $request->all(),
-                'trace' => $e->getTraceAsString()
-            ]);
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Ressource non trouvée'
+    //         ], 404);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         Log::error('ReservationController@store Error: ' . $e->getMessage(), [
+    //             'user_id' => Auth::id(),
+    //             'request_data' => $request->all(),
+    //             'trace' => $e->getTraceAsString()
+    //         ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la création de la réservation',
-                'error' => config('app.debug') ? $e->getMessage() : null
-            ], 500);
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Erreur lors de la création de la réservation',
+    //             'error' => config('app.debug') ? $e->getMessage() : null
+    //         ], 500);
+    //     }
+    // }
+
+public function store(Request $request)
+{
+    try {
+        // Vérification que seuls les élèves peuvent créer des réservations
+        $user = $this->checkRole(['eleve']);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
-    }
 
+        // Récupérer l'élève associé à l'utilisateur connecté
+        $eleve = Eleve::where('user_id', $user->id)->first();
+
+        if (!$eleve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun profil élève trouvé pour cet utilisateur'
+            ], 404);
+        }
+
+        // Validation des données
+        $validator = Validator::make($request->all(), [
+            'repetiteur_id' => 'required|exists:repetiteurs,id',
+            'cours_id' => 'nullable|exists:cours,id',
+            'matiere_id' => 'nullable|exists:matiere_repetiteur,id',
+            'date' => 'required|date|after_or_equal:today',
+            'heure' => 'required|date_format:H:i:s',
+            'duree_heures' => 'required|numeric|min:0.5|max:8',
+            'prix_total' => 'nullable|numeric|min:0',
+            'statut' => 'sometimes|in:en_attente,acceptee,refusee,annulee,terminee',
+            'statut_paiement' => 'sometimes|in:en_attente,paye,rembourse,echec',
+            'notes' => 'nullable|string|max:1000'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Données de validation invalides',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        $repetiteur = Repetiteur::with('user')->findOrFail($request->repetiteur_id);
+
+        // Calcul du prix total
+        $prixTotal = $request->prix_total ?? ($repetiteur->tarif_horaire * $request->duree_heures);
+
+        // Vérification de la disponibilité
+        $dateHeure = Carbon::parse($request->date . ' ' . $request->heure);
+        $finCours = $dateHeure->copy()->addHours($request->duree_heures);
+
+        $conflits = Reservation::where('repetiteur_id', $repetiteur->id)
+            ->where('date', $request->date)
+            ->whereNotIn('statut', ['annulee', 'refusee'])
+            ->where(function ($query) use ($request, $finCours) {
+                $query->where(function ($q) use ($request, $finCours) {
+                    $q->where('heure', '>=', $request->heure)
+                        ->where('heure', '<', $finCours->format('H:i:s'));
+                })->orWhere(function ($q) use ($request, $finCours) {
+                    $q->whereRaw(
+                        'ADDTIME(heure, SEC_TO_TIME(duree_heures * 3600)) > ?',
+                        [$request->heure]
+                    )->where('heure', '<=', $request->heure);
+                });
+            })
+            ->exists();
+
+        if ($conflits) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce créneau horaire n\'est pas disponible'
+            ], 409);
+        }
+
+        // Création de la réservation avec gestion des valeurs null
+        $reservationData = [
+            'eleve_id' => $eleve->id,
+            'repetiteur_id' => $repetiteur->id,
+            'date' => $request->date,
+            'heure' => $request->heure,
+            'duree_heures' => $request->duree_heures,
+            'prix_total' => $prixTotal,
+            'statut' => $request->statut ?? 'en_attente',
+            'statut_paiement' => $request->statut_paiement ?? 'en_attente',
+            'notes' => $request->notes,
+        ];
+
+        // Ajout conditionnel des IDs
+        if (!empty($request->cours_id)) {
+            $reservationData['cours_id'] = $request->cours_id;
+        }
+
+        if (!empty($request->matiere_id)) {
+            $reservationData['matiere_id'] = $request->matiere_id;
+        }
+
+        $reservation = Reservation::create($reservationData);
+
+        // Création de la transaction associée
+        $transactionData = [
+            'user_id' => $user->id,
+            'montant' => $prixTotal,
+            'methode_paiement' => 'en_attente',
+            'statut' => 'en_attente',
+            'reference' => 'RES-' . strtoupper(Str::random(10)),
+            'description' => "Réservation cours avec {$repetiteur->user->prenom} {$repetiteur->user->nom}"
+        ];
+
+        $transaction = Transaction::create(array_merge($transactionData, [
+            'reservation_id' => $reservation->id
+        ]));
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'reservation' => $reservation->load([
+                    'eleve.user',
+                    'repetiteur.user',
+                    'cours',
+                    'matiereRepetiteur',
+                    'transaction'
+                ]),
+                'transaction' => $transaction
+            ],
+            'message' => 'Réservation créée avec succès'
+        ], 201);
+    } catch (ModelNotFoundException $e) {
+        DB::rollBack();
+        Log::error('ReservationController@store - Model not found: ' . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Ressource non trouvée'
+        ], 404);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('ReservationController@store Error: ' . $e->getMessage(), [
+            'user_id' => Auth::id(),
+            'request_data' => $request->all(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la création de la réservation',
+            'error' => config('app.debug') ? $e->getMessage() : null
+        ], 500);
+    }
+}
     /**
      * Affiche une réservation spécifique
      */

@@ -144,9 +144,11 @@ const Reservation = () => {
 
     try {
       setBookingLoading(true);
+       console.log("User ID:", user.id);
+    console.log("User object:", user);
 
       const reservationData = {
-        eleve_id: user.id,
+        // eleve_id: user.id,
         repetiteur_id: parseInt(id),
         cours_id: repetiteur.cours_principaux?.[0]?.id || null,
         matiere_id: repetiteur.matiere_principale?.id || null,
@@ -156,6 +158,7 @@ const Reservation = () => {
         prix_total: repetiteur.tarif_horaire || 0,
         statut: "en_attente",
         statut_paiement: "en_attente",
+        mode_paiement: "mobile money",
       };
 
       console.log("Données de réservation:", reservationData);

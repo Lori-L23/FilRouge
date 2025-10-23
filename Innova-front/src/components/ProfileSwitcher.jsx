@@ -9,7 +9,6 @@ export default function ProfilePage() {
   if (!user) return <div>Veuillez vous connecter</div>;
 
   const RenderProfile = () => {
-    console.log('type: ', profileType);
 
     switch (profileType) {
       case "eleve":

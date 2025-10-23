@@ -21,17 +21,17 @@ class Reservation extends Model
         'statut',
         'statut_paiement',
         'notes',
-        'lieu_id' // Ajouté si utilisé
+        'lieu_id'
     ];
 
     protected $casts = [
-        'date' => 'date:Y-m-d', // Format explicite
-        'heure' => 'string', // Stocké comme string pour HH:MM:SS
-        'duree_heures' => 'decimal:2', // Meilleure précision
+        'date' => 'date:Y-m-d',
+        'heure' => 'string',
+        'duree_heures' => 'decimal:2',
         'prix_total' => 'decimal:2'
     ];
 
-    // Relations avec withDefault() pour éviter les erreurs
+    // Relations
     public function cours()
     {
         return $this->belongsTo(Cours::class)->withDefault();
@@ -47,9 +47,16 @@ class Reservation extends Model
         return $this->belongsTo(Repetiteur::class)->withDefault();
     }
 
+    // CORRECTION : Relation avec la table matiere_repetiteur
+    public function matiereRepetiteur()
+    {
+        return $this->belongsTo(Matiere_Repetiteur::class, 'matiere_id')->withDefault();
+    }
+
+    // Gardez aussi l'accès à la matière via la relation
     public function matiere()
     {
-        return $this->belongsTo(Matiere::class)->withDefault();
+        return $this->belongsTo(Matiere::class, 'matiere_id')->withDefault();
     }
 
     public function transaction()
@@ -62,7 +69,7 @@ class Reservation extends Model
         return $this->belongsTo(Lieu::class)->withDefault();
     }
 
-    // Nouvelle méthode pour vérifier la disponibilité
+    // Méthode pour vérifier la disponibilité
     public static function isTimeSlotAvailable($repetiteurId, $date, $heure, $duree)
     {
         $start = \Carbon\Carbon::parse("$date $heure");

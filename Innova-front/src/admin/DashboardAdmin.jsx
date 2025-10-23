@@ -70,9 +70,7 @@ const DashboardAdmin = () => {
   }, [dateRange, currentPage]);
 
   useEffect(() => {
-    console.log("[DEBUG] Current user:", user);
-    console.log("[DEBUG] Current stats:", stats);
-    console.log("[DEBUG] Current reservations:", reservations);
+
   }, [user, stats, reservations]);
 
 
@@ -109,7 +107,6 @@ const deleteLieu = async (id) => {
 };
 
   const fetchDashboardData = async () => {
-    console.log("[DEBUG] Starting data fetch...");
     setLoading(true);
     setReservationsLoading(true);
     setApiError(null);
@@ -137,7 +134,6 @@ const deleteLieu = async (id) => {
         },
       };
 
-      // console.log("[DEBUG] Sending requests...");
       const [statsRes, reservationsRes] = await Promise.all([
         Api.get("/api/admin/stats", config).catch((err) => {
           console.error("[DEBUG] Stats error:", err.response);
@@ -149,10 +145,7 @@ const deleteLieu = async (id) => {
         }),
       ]);
 
-      // console.log("[DEBUG] API responses:", {
-      //   stats: statsRes.data,
-      //   reservations: reservationsRes.data,
-      // });
+   
 
       // Handle both direct data and data wrapped in 'data' property
       setStats(statsRes.data.data || statsRes.data);
@@ -717,7 +710,7 @@ const deleteLieu = async (id) => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {new Date(
-                                reservation.date_reservation
+                                reservation.created_at
                               ).toLocaleDateString("fr-FR", {
                                 day: "2-digit",
                                 month: "2-digit",

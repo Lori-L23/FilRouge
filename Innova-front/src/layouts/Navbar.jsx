@@ -19,7 +19,6 @@ import { motion, AnimatePresence } from "framer-motion";
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, profile, logout, isAuthenticated } = useAuth();
-  console.log("Profile data:", profile);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -81,7 +80,6 @@ const Navbar = () => {
   };
 
   const links = getUserLinks(user);
-  console.log("Generated links:", links);
 
   return (
     <nav

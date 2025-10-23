@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('eleve_id')->constrained('eleves')->onDelete('cascade');
             $table->foreignId('repetiteur_id')->constrained('repetiteurs')->onDelete('cascade');
-            $table->foreignId('cours_id')->constrained('cours')->onDelete('cascade');
-            $table->foreignId('matiere_id')->constrained('matieres')->onDelete('cascade');
+            $table->foreignId('cours_id')->nullable()->constrained('cours')->onDelete('cascade');
+            $table->foreignId('matiere_id')->nullable()->constrained('matiere_repetiteur')->onDelete('cascade');
             
             // Informations de base
             $table->date('date');

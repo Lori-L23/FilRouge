@@ -20,7 +20,7 @@ const Reservation = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   // États principaux
   const [repetiteur, setRepetiteur] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
@@ -30,6 +30,8 @@ const Reservation = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [selectedMatiere, setSelectedMatiere] = useState(null);
+
 
   // Mapping des jours de la semaine
   const daysMap = useMemo(() => ({
@@ -93,6 +95,7 @@ const Reservation = () => {
         tarif: data.tarif_horaire
           ? `${data.tarif_horaire} Fcfa/h`
           : "Non spécifié",
+        matieres: data.matieres || [],
       });
     } catch (error) {
       console.error("Erreur de chargement:", {
@@ -123,7 +126,7 @@ const Reservation = () => {
 
   const handleCustomDateSelect = useCallback((date) => {
     if (!date) return;
-    
+
     setCustomDate(date);
     const dateString = date.toISOString().split("T")[0];
     setSelectedDate(dateString);
@@ -134,6 +137,34 @@ const Reservation = () => {
     setSelectedTime(time);
     setStep(2);
   }, []);
+  const MatiereSelector = () => (
+    <div className="mb-6">
+      <h3 className="flex items-center text-lg font-semibold mb-4">
+        <FaBook className="mr-2 text-blue-600" />
+        Choisissez une matière
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {repetiteur.matieres?.length > 0 ? (
+          repetiteur.matieres.map((matiere) => (
+            <button
+              key={matiere.id}
+              onClick={() => setSelectedMatiere(matiere)}
+              className={`p-4 rounded-lg border-2 font-medium transition ${selectedMatiere?.id === matiere.id
+                ? "bg-blue-600 text-white border-blue-600 shadow-lg"
+                : "bg-white hover:bg-blue-50 border-gray-200 hover:border-blue-300 text-gray-700"
+                }`}
+            >
+              {matiere.nom}
+            </button>
+          ))
+        ) : (
+          <p className="text-gray-500 italic col-span-full">
+            Aucune matière disponible pour ce professeur
+          </p>
+        )}
+      </div>
+    </div>
+  );
 
   // Confirmation de la réservation
   const confirmBooking = useCallback(async () => {
@@ -142,16 +173,29 @@ const Reservation = () => {
       return;
     }
 
+    // Vérifier si une matière est sélectionnée
+    const matiereAReserver = selectedMatiere || repetiteur.matieres?.[0];
+
+    if (!matiereAReserver) {
+      toast.error("Aucune matière disponible pour ce professeur");
+      return;
+    }
+
     try {
       setBookingLoading(true);
-       console.log("User ID:", user.id);
-    console.log("User object:", user);
+      // Récupérer la première matière enseignée par le répétiteur
+      const matierePrincipale = repetiteur.matieres?.[0];
+
+
+      // DEBUG: Vérifiez les données reçues
+      console.log("Matières du répétiteur:", repetiteur.matieres);
+      console.log("Matière principale:", matierePrincipale);
+      console.log("Cours disponibles:", repetiteur.cours);
 
       const reservationData = {
-        // eleve_id: user.id,
         repetiteur_id: parseInt(id),
-        cours_id: repetiteur.cours_principaux?.[0]?.id || null,
-        matiere_id: repetiteur.matiere_principale?.id || null,
+        cours_id: repetiteur.cours?.[0]?.id || null,
+        matiere_id: matiereAReserver?.id || null,
         date: selectedDate,
         heure: selectedTime.padEnd(8, ":00"),
         duree_heures: 2.0,
@@ -302,7 +346,8 @@ const Reservation = () => {
             repetiteur.matieres.map((matiere) => (
               <span
                 key={matiere.id}
-                className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                className={`bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium ${selectedMatiere?.id === matiere.id ? 'ring-2 ring-blue-500' : ''
+                  }`}
               >
                 {matiere.nom}
               </span>
@@ -348,11 +393,10 @@ const Reservation = () => {
               <button
                 key={date}
                 onClick={() => handleDateSelect(new Date(date))}
-                className={`p-3 rounded-lg text-sm font-medium transition ${
-                  selectedDate === date
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                }`}
+                className={`p-3 rounded-lg text-sm font-medium transition ${selectedDate === date
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  }`}
               >
                 {formatShortDate(date)}
               </button>
@@ -376,18 +420,17 @@ const Reservation = () => {
               Date sélectionnée : <span className="font-medium">{formatDate(selectedDate)}</span>
             </p>
           </div>
-          
+
           {repetiteur.availability[selectedDate]?.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               {repetiteur.availability[selectedDate].map((time) => (
                 <button
                   key={time}
                   onClick={() => handleTimeSelect(time)}
-                  className={`p-3 rounded-lg border-2 font-medium transition ${
-                    selectedTime === time
-                      ? "bg-blue-600 text-white border-blue-600 shadow-lg"
-                      : "bg-white hover:bg-blue-50 border-gray-200 hover:border-blue-300 text-gray-700"
-                  }`}
+                  className={`p-3 rounded-lg border-2 font-medium transition ${selectedTime === time
+                    ? "bg-blue-600 text-white border-blue-600 shadow-lg"
+                    : "bg-white hover:bg-blue-50 border-gray-200 hover:border-blue-300 text-gray-700"
+                    }`}
                 >
                   {time}
                 </button>
@@ -425,7 +468,7 @@ const Reservation = () => {
           <div className="flex justify-between">
             <span className="font-medium text-gray-700">Matières:</span>
             <span className="text-gray-900">
-              {repetiteur.matieres?.map((m) => m.nom).join(", ") || "Non spécifiées"}
+            {selectedMatiere?.nom || repetiteur.matieres?.[0]?.nom || "Non spécifiée"}
             </span>
           </div>
           <div className="flex justify-between">
@@ -456,11 +499,10 @@ const Reservation = () => {
         <button
           onClick={confirmBooking}
           disabled={bookingLoading}
-          className={`flex-1 py-3 px-6 rounded-lg flex items-center justify-center transition font-medium ${
-            bookingLoading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
-          }`}
+          className={`flex-1 py-3 px-6 rounded-lg flex items-center justify-center transition font-medium ${bookingLoading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
         >
           {bookingLoading ? (
             <>
@@ -491,9 +533,13 @@ const Reservation = () => {
     <div className="bg-white rounded-lg shadow-xl p-6 max-w-6xl mx-auto">
       <div className="mt-20">
         <TeacherInfo />
-        
-        {step === 1 && <DateTimeSelector />}
-        {step === 2 && <BookingSummary />}
+
+        {step === 1 && (
+          <>
+            <MatiereSelector />
+            <DateTimeSelector />
+          </>
+        )}        {step === 2 && <BookingSummary />}
       </div>
     </div>
   );

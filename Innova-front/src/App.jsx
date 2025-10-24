@@ -84,6 +84,7 @@ function App() {
               <Route path="/cgu" element={<CGU />} />
               {/* <Route path="/details/:id" element={<Details />} /> */}
               <Route path="/detailscours/:id" element={<Detailscours />} />
+              <Route path="/repetiteur/:id" element={<Profile />} />
 
               {/* <Route path="/valeurs" element={<Valeurs />} /> */}
 
@@ -98,7 +99,7 @@ function App() {
               <Route path="/FeedbackForm" element={<FeedbackForm />} />
               <Route path="/reservation/:id" element={<Reservation />} />
               <Route path="/dashboard-stats" element={<DashboardStats />} />
-              <Route element={<AdminLayout />}>
+              {/* <Route element={<AdminLayout />}> */}
                 <Route
                   path="/admin/utilisateurs"
                   element={<Utilisateurs />}
@@ -112,7 +113,7 @@ function App() {
                   element={<Reservations />}
                 />
                 <Route path="/admin/parametres" element={<Parametres />} />
-              </Route>
+              {/* </Route> */}
             </Route>
 
             <Route path="/login" element={<Login />} />

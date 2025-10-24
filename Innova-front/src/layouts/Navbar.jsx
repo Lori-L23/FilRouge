@@ -214,6 +214,7 @@ const Navbar = () => {
                         primary
                         onClick={() => {
                           logout();
+                          navigate("/login");
                           closeMenu();
                         }}
                       >

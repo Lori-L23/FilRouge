@@ -163,4 +163,28 @@ class CoursController extends Controller
         $cours = $repetiteur->cours()->with('matiere')->get();
         return response()->json($cours);
     }
+    public function showcours($id)
+    {
+        try {
+            $cours = Cours::with(['matiere', 'repetiteur.user'])->findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => $cours
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cours non trouvé'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error("Erreur dans CoursController@showcours: " . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur',
+                'error' => env('APP_DEBUG') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
 }

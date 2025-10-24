@@ -342,7 +342,7 @@ public function store(Request $request)
         $validator = Validator::make($request->all(), [
             'repetiteur_id' => 'required|exists:repetiteurs,id',
             'cours_id' => 'nullable|exists:cours,id',
-            'matiere_id' => 'nullable|exists:matiere_repetiteur,id',
+            'matiere_id' => 'nullable|exists:matieres,id',
             'date' => 'required|date|after_or_equal:today',
             'heure' => 'required|date_format:H:i:s',
             'duree_heures' => 'required|numeric|min:0.5|max:8',

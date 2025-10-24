@@ -7,6 +7,7 @@ use App\Models\Cours;
 use App\Models\Disponibilite;
 use App\Models\Matiere;
 use App\Models\Reservation;
+use App\Models\MatiereRepetiteur;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
@@ -63,7 +64,7 @@ class Repetiteur extends Model
 
     public function matieres()
     {
-        return $this->belongsToMany(Matiere::class, 'matiere_repetiteur');
+        return $this->belongsToMany(Matiere::class, 'matiere_repetiteur', 'repetiteur_id', 'matiere_id');
     }
 
     /**
@@ -140,4 +141,10 @@ class Repetiteur extends Model
     {
         return in_array($matiereId, $this->matieres);
     }
+
+    public function matiereRepetiteurs()
+    {
+        return $this->hasMany(Matiere_Repetiteur::class);
+    }
+
 }

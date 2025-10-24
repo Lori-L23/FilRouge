@@ -42,6 +42,7 @@ const ProfileEleve = () => {
         objectif: profile.objectif || "",
       });
     }
+    console.log("profile eleve:", profile);
 
     // Vérification robuste des données de réservation
     if (location.state?.reservationSuccess) {
@@ -216,7 +217,7 @@ const fetchPaiements = async () => {
             prête.
           </p>
           <p className="text-lg font-semibold">
-            Montant: {reservationDetails?.amount} €
+            Montant: {reservationDetails?.amount} Fcfa
           </p>
           <p className="text-sm text-gray-600">
             Vous serez redirigé vers notre plateforme de paiement sécurisé.
@@ -471,8 +472,9 @@ const fetchPaiements = async () => {
                                   setReservationDetails({
                                     id: reservation.id,
                                     amount:
-                                      reservation.prix ||
+                                      reservation.prix_total ||
                                       reservation.tarif ||
+                                      reservation.montant ||
                                       0,
                                   });
                                   setShowPaymentModal(true);

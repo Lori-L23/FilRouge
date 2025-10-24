@@ -119,5 +119,14 @@ class EleveController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Eleve $eleve) {}
+    public function destroy(Eleve $eleve) {
+        $eleve->delete();
+        return response()->json(null, 204);
+    }
+
+    public function show($id)
+    {
+        $eleve = Eleve::with('user')->where('user_id', $id)->firstOrFail();
+        return response()->json($eleve);
+    }
 }

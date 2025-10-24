@@ -17,6 +17,7 @@ import { FaChalkboardTeacher } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import Api from "../Services/Api";
 import defaultPhoto from "../assets/profile.jpg";
+import { toast } from "react-toastify";
 
 const ProfileRepetiteur = () => {
   const { user, profile, refetchUser } = useAuth();
@@ -95,43 +96,43 @@ const ProfileRepetiteur = () => {
   ];
 
   // Initialiser les données
-useEffect(() => {
-  if (profile) {
-    const loadData = async () => {
-      await fetchMatieresEnseignees();
+  useEffect(() => {
+    if (profile) {
+      const loadData = async () => {
+        await fetchMatieresEnseignees();
 
 
-      
-      let parsedClasses = [];
-      try {
-        parsedClasses = profile.classes_college 
-          ? Array.isArray(profile.classes_college)
-            ? profile.classes_college
-            : typeof profile.classes_college === 'string' && profile.classes_college.startsWith('[')
-              ? JSON.parse(profile.classes_college)
-              : [profile.classes_college]
-          : [];
-      } catch (err) {
-        console.error('Error parsing classes_college:', err);
-        parsedClasses = [];
-      }
 
-      setFormData({
-        niveau_principal: profile.niveau_principal || "college/lycee",
-        classes_college: parsedClasses,
-        biographie: profile.biographie || "",
-        tarif_horaire: profile.tarif_horaire || "",
-        rayon_intervention: profile.rayon_intervention || 10,
-        matieres: [], // Rempli après fetchMatieresEnseignees
-      });
+        let parsedClasses = [];
+        try {
+          parsedClasses = profile.classes_college
+            ? Array.isArray(profile.classes_college)
+              ? profile.classes_college
+              : typeof profile.classes_college === 'string' && profile.classes_college.startsWith('[')
+                ? JSON.parse(profile.classes_college)
+                : [profile.classes_college]
+            : [];
+        } catch (err) {
+          console.error('Error parsing classes_college:', err);
+          parsedClasses = [];
+        }
 
-      await fetchCours();
-      await fetchDisponibilites();
-    };
+        setFormData({
+          niveau_principal: profile.niveau_principal || "college/lycee",
+          classes_college: parsedClasses,
+          biographie: profile.biographie || "",
+          tarif_horaire: profile.tarif_horaire || "",
+          rayon_intervention: profile.rayon_intervention || 10,
+          matieres: [], // Rempli après fetchMatieresEnseignees
+        });
 
-    loadData();
-  }
-}, [profile]);
+        await fetchCours();
+        await fetchDisponibilites();
+      };
+
+      loadData();
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (matieresEnseignees.length > 0) {
@@ -142,16 +143,29 @@ useEffect(() => {
     }
   }, [matieresEnseignees]);
 
-  const fetchMatieresEnseignees = async () => {
-    try {
-      const response = await Api.get(`/api/repetiteurs/${user.id}/matieres`);
-      if (response.data.success) {
-        setMatieresEnseignees(response.data.data);
-      }
-    } catch (err) {
-      console.error("Erreur chargement matières:", err);
+const fetchMatieresEnseignees = async () => {
+  try {
+    // Utilisez profile.id (ID du répétiteur) au lieu de user.id (ID de l'utilisateur)
+    const repetiteurId = profile?.id;
+    
+    if (!repetiteurId) {
+      console.error("ID répétiteur non trouvé");
+      return;
     }
-  };
+
+    const response = await Api.get(`/api/repetiteurs/${repetiteurId}/matieres`);
+    
+    console.log("Réponse matières:", response.data); // Debug
+    
+    if (response.data.success) {
+      setMatieresEnseignees(response.data.data);
+    }
+  } catch (err) {
+    console.error("Erreur chargement matières:", err);
+    console.error("Détails erreur:", err.response?.data);
+  }
+};
+
   const fetchCours = async () => {
     setLoadingCours(true);
     try {
@@ -183,9 +197,30 @@ useEffect(() => {
       const response = await Api.get(
         `/api/disponibilites/repetiteurs/${user.id}/disponibilites`
       );
-      setDisponibilites(response.data);
+      console.log("Réponse disponibilités:", response.data);
+
+      // Gestion différente selon la structure de la réponse
+    let disponibilitesData = [];
+
+    if (Array.isArray(response.data)) {
+      // Cas 1: Le backend renvoie directement un tableau
+      disponibilitesData = response.data;
+    } else if (response.data && Array.isArray(response.data.data)) {
+      // Cas 2: Le backend renvoie { data: [...] }
+      disponibilitesData = response.data.data;
+    } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
+      // Cas 3: Le backend renvoie { success: true, data: [...] }
+      disponibilitesData = response.data.data;
+    } else {
+      console.warn("Structure de réponse inattendue:", response.data);
+    }
+
+    console.log("Disponibilités finales:", disponibilitesData);
+      setDisponibilites(disponibilitesData);
     } catch (err) {
       console.error("Erreur chargement disponibilités:", err);
+          setDisponibilites([]); // Réinitialiser en cas d'erreur
+
     } finally {
       setLoadingDispos(false);
     }
@@ -207,45 +242,45 @@ useEffect(() => {
     setFormData((prev) => ({ ...prev, [name]: selected }));
   };
   const validateFormData = (data) => {
-  const errors = [];
-  
-  if (!data.niveau_principal) errors.push("Niveau principal requis");
-  if (!data.biographie || data.biographie.length < 10) errors.push("Biographie trop courte");
-  if (!data.tarif_horaire || isNaN(data.tarif_horaire)) errors.push("Tarif horaire invalide");
-  if (!data.rayon_intervention || isNaN(data.rayon_intervention)) errors.push("Rayon d'intervention invalide");
-  
-  return errors;
-};
+    const errors = [];
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError(null);
+    if (!data.niveau_principal) errors.push("Niveau principal requis");
+    if (!data.biographie || data.biographie.length < 10) errors.push("Biographie trop courte");
+    if (!data.tarif_horaire || isNaN(data.tarif_horaire)) errors.push("Tarif horaire invalide");
+    if (!data.rayon_intervention || isNaN(data.rayon_intervention)) errors.push("Rayon d'intervention invalide");
 
-  try {
-    // Préparation des données avec sérialisation robuste
-    const dataToSend = {
-      ...formData,
-      classes_college: Array.isArray(formData.classes_college) 
-        ? JSON.stringify(formData.classes_college)
-        : '[]', // Fallback si ce n'est pas un tableau
-      tarif_horaire: Number(formData.tarif_horaire) || 0,
-      rayon_intervention: Number(formData.rayon_intervention) || 10
-    };
+    return errors;
+  };
 
-    const response = await Api.put(`/api/repetiteurs/${user.id}`, dataToSend);
-    await refetchUser();
-    setEditMode(false);
-  } catch (err) {
-    console.error("Erreur mise à jour:", {
-      error: err,
-      response: err.response?.data
-    });
-    setError(err.response?.data?.message || "Erreur lors de la mise à jour");
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Préparation des données avec sérialisation robuste
+      const dataToSend = {
+        ...formData,
+        classes_college: Array.isArray(formData.classes_college)
+          ? JSON.stringify(formData.classes_college)
+          : '[]', // Fallback si ce n'est pas un tableau
+        tarif_horaire: Number(formData.tarif_horaire) || 0,
+        rayon_intervention: Number(formData.rayon_intervention) || 10
+      };
+
+      const response = await Api.put(`/api/repetiteurs/${user.id}`, dataToSend);
+      await refetchUser();
+      setEditMode(false);
+    } catch (err) {
+      console.error("Erreur mise à jour:", {
+        error: err,
+        response: err.response?.data
+      });
+      setError(err.response?.data?.message || "Erreur lors de la mise à jour");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCourseInputChange = (e) => {
     const { name, value } = e.target;
@@ -299,6 +334,7 @@ const handleSubmit = async (e) => {
       setError(err.response?.data?.message || "Erreur création disponibilité");
     } finally {
       setLoading(false);
+      toast('disponiblite cree avec success')
     }
   };
 
@@ -861,8 +897,8 @@ const handleSubmit = async (e) => {
                           {coursItem.niveau_scolaire === "college"
                             ? "Collège"
                             : coursItem.niveau_scolaire === "lycee"
-                            ? "Lycée"
-                            : "Primaire"}
+                              ? "Lycée"
+                              : "Primaire"}
                         </span>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
@@ -983,10 +1019,8 @@ const handleSubmit = async (e) => {
                 <div className="space-y-3">
                   {joursSemaine.map((jour) => {
                     const dispoPourJour = disponibilites
-                      .filter((d) => d.jour === jour.value)
-                      .sort((a, b) =>
-                        a.heure_debut.localeCompare(b.heure_debut)
-                      );
+                      .filter((d) => d && d.jour === jour.value)
+                      .sort((a, b) => a.heure_debut.localeCompare(b.heure_debut));
 
                     return dispoPourJour.length > 0 ? (
                       <div
@@ -1024,6 +1058,9 @@ const handleSubmit = async (e) => {
                 <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500">
                   <FiCalendar className="mx-auto text-2xl mb-2" />
                   <p>Aucune disponibilité enregistrée</p>
+                  <p className="text-sm mt-1">
+                    {disponibilites === null ? "Erreur de chargement" : "Ajoutez vos premières disponibilités"}
+                  </p>
                 </div>
               )}
             </div>
@@ -1040,16 +1077,16 @@ function safeJsonParse(str, defaultValue = []) {
   try {
     // Si c'est déjà un tableau, retournez-le directement
     if (Array.isArray(str)) return str;
-    
+
     // Si c'est null, undefined ou une chaîne vide, retournez defaultValue
     if (!str || str === 'null' || str === 'undefined' || str === '') return defaultValue;
-    
+
     // Essayez de parser comme JSON
     const parsed = JSON.parse(str);
     return Array.isArray(parsed) ? parsed : [parsed];
   } catch (err) {
     console.error('Erreur parsing JSON:', err, str);
-    
+
     // Si le parsing échoue, essayez de traiter comme une chaîne simple
     try {
       if (typeof str === 'string') {

@@ -87,6 +87,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', [EleveController::class, 'showWithReservations']);
         Route::put('/{id}', [EleveController::class, 'update']);
         Route::delete('/{id}', [EleveController::class, 'destroy']);
+        Route::get('/{id}', [EleveController::class, 'show']);
         Route::get('/{id}/reservations', [EleveController::class, 'getUserReservations']);
     });
 
@@ -106,6 +107,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [CoursController::class, 'store']);
         Route::get('/mes-cours', [CoursController::class, 'mesCours']);
         Route::get('/rep/{id}', [CoursController::class, 'show']);
+        Route::get('/{id}', [CoursController::class, 'showcours']);
         Route::put('/{id}', [CoursController::class, 'update']);
         Route::delete('/{id}', [CoursController::class, 'destroy']);
     });
@@ -156,6 +158,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('disponibilites')->group(function () {
         Route::get('/repetiteurs/{user_id}/disponibilites', [DisponibiliteController::class, 'index']);
         Route::post('/', [DisponibiliteController::class, 'store']);
+        Route::get('/{user.id}', [DisponibiliteController::class, 'show']);
         Route::delete('/{id}', [DisponibiliteController::class, 'destroy']);
     });
 
@@ -172,7 +175,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // ====================
     // Routes Admin
     // ====================
-    Route::middleware('can:admin')->prefix('admin')->group(function () {
+    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
         Route::get('/stats', [AdminController::class, 'getStats']);
         Route::get('/recent-users', [AdminController::class, 'recentUsers']);
         Route::get('/{id}', [AdminController::class, 'show']);

@@ -74,37 +74,7 @@ const DashboardAdmin = () => {
   }, [user, stats, reservations]);
 
 
-  // Récupérer les lieux d'un utilisateur
-const fetchLieux = async () => {
-  try {
-    const response = await Api.get('/lieux');
-    setLieux(response.data);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des lieux:', error);
-  }
-};
 
-// Créer un nouveau lieu
-const createLieu = async (lieuData) => {
-  try {
-    const response = await Api.post('/lieux', lieuData);
-    toast.success('Lieu créé avec succès');
-    return response.data;
-  } catch (error) {
-    console.error('Erreur lors de la création du lieu:', error);
-    throw error;
-  }
-};
-
-// Supprimer un lieu
-const deleteLieu = async (id) => {
-  try {
-    await Api.delete(`/lieux/${id}`);
-    toast.success('Lieu supprimé avec succès');
-  } catch (error) {
-    console.error('Erreur lors de la suppression du lieu:', error);
-  }
-};
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -845,7 +815,7 @@ const deleteLieu = async (id) => {
                                           )}
                                         </span>
                                       </p>
-                                      <p className="flex items-start">
+                                      {/* <p className="flex items-start">
                                         <span className="font-medium text-gray-700 w-32 flex-shrink-0">
                                           Matières:
                                         </span>
@@ -858,7 +828,7 @@ const deleteLieu = async (id) => {
                                             "Non disponible"
                                           )}
                                         </span>
-                                      </p>
+                                      </p> */}
                                       <p className="flex items-center">
                                         <span className="font-medium text-gray-700 w-32 flex-shrink-0">
                                           Tarif horaire:
@@ -891,12 +861,12 @@ const deleteLieu = async (id) => {
                                           <span className="text-gray-600">
                                             {getSafe(
                                               () =>
-                                                reservation.duree ||
+                                                reservation.duree_heures ||
                                                 "Non spécifiée"
-                                            )}
+                                            )} heures
                                           </span>
                                         </p>
-                                        <p className="flex items-start">
+                                        {/* <p className="flex items-start">
                                           <span className="font-medium text-gray-700 w-32 flex-shrink-0">
                                             Lieu:
                                           </span>
@@ -907,7 +877,7 @@ const deleteLieu = async (id) => {
                                                 "Non spécifié"
                                             )}
                                           </span>
-                                        </p>
+                                        </p> */}
                                       </div>
                                       <div className="space-y-2">
                                         <p className="flex items-start">

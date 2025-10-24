@@ -30,17 +30,24 @@ export default function TrouverProfesseur() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // 1. Charger la liste des matières
+        // 1. Charger la liste des matières - CORRECTION ICI
         const matieresResponse = await Api.get('/api/matieres');
-        setMatieres(matieresResponse.data.matieres);
-        
+        console.log("Réponse matières:", matieresResponse.data); // Debug
+
+        // Le backend renvoie { success: true, data: [...] }
+        if (matieresResponse.data.success) {
+          setMatieres(matieresResponse.data.data);
+        } else {
+          console.error("Erreur API matières:", matieresResponse.data.message);
+        }
+
         // 2. Charger les professeurs avec les filtres par défaut
         await handleSearch();
       } catch (error) {
         console.error('Erreur lors du chargement initial:', error);
       }
     };
-    
+
     fetchInitialData();
   }, []);
 
@@ -52,12 +59,14 @@ export default function TrouverProfesseur() {
     setLoading(true);
     try {
       const response = await Api.get('/api/repetiteurs/search', {
-        params: { 
+        params: {
           ...filters,
-          page 
+          page
         }
       });
-  
+          console.log("Réponse professeurs:", response.data); // Debug
+
+
       if (response.data.success) {
         setRepetiteurs(response.data.data);
         setPagination({
@@ -65,7 +74,7 @@ export default function TrouverProfesseur() {
           total: response.data.pagination.total,
           per_page: response.data.pagination.per_page
         });
-        
+
       } else {
         console.error('Erreur API:', response.data.message);
         // Afficher un message d'erreur à l'utilisateur
@@ -199,11 +208,10 @@ export default function TrouverProfesseur() {
                   <button
                     key={i + 1}
                     onClick={() => handlePageChange(i + 1)}
-                    className={`px-4 py-2 rounded-lg border ${
-                      pagination.current_page === i + 1
+                    className={`px-4 py-2 rounded-lg border ${pagination.current_page === i + 1
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-100'
-                    }`}
+                      }`}
                     disabled={pagination.current_page === i + 1}
                   >
                     {i + 1}

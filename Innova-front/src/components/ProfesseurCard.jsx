@@ -7,7 +7,7 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    if (repetiteur?.id) {
+    if (repetiteur?.repetiteur?.id) {
       navigate(`/repetiteurs/${repetiteur.repetiteur.id}`);
     }
   };
@@ -15,37 +15,73 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
   // Formatage de la note avec valeur par défaut
   const formattedNote = note?.toFixed?.(1) || "0.0";
 
-  // Fonction pour gérer les niveaux (peut être string, array ou undefined)
+  // Fonction pour gérer les niveaux
   const getNiveaux = () => {
-    if (!repetiteur.repetiteur.niveau_principal) return "Niveaux non spécifiés";
-
-    // Si c'est déjà un tableau
+    if (!repetiteur.repetiteur?.niveau_principal) return "Niveaux non spécifiés";
+    
     if (Array.isArray(repetiteur.repetiteur.niveau_principal)) {
       return repetiteur.repetiteur.niveau_principal.join(", ");
     }
-
-    // Si c'est une string JSON (comme dans votre base de données)
+    
     try {
       const parsed = JSON.parse(repetiteur.repetiteur.niveau_principal);
-      if (Array.isArray(parsed)) {
-        return parsed.join(", ");
-      }
-      return repetiteur.repetiteur.niveau_principal;
+      return Array.isArray(parsed) ? parsed.join(", ") : repetiteur.repetiteur.niveau_principal;
     } catch {
       return repetiteur.repetiteur.niveau_principal;
     }
   };
+
+  // Fonction pour gérer les classes collège
+  const getClassesCollege = () => {
+    if (!repetiteur.repetiteur?.classes_college) return [];
+    
+    try {
+      if (Array.isArray(repetiteur.repetiteur.classes_college)) {
+        return repetiteur.repetiteur.classes_college;
+      }
+      const parsed = JSON.parse(repetiteur.repetiteur.classes_college);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      return Array.isArray(repetiteur.repetiteur.classes_college) 
+        ? repetiteur.repetiteur.classes_college 
+        : [repetiteur.repetiteur.classes_college];
+    }
+  };
+
+  // FONCTION SIMPLIFIÉE POUR LES MATIÈRES
+  const getMatieres = () => {
+    console.log("=== STRUCTURE DU PROFESSEUR ===", repetiteur);
+    
+    // Si les matières sont directement dans repetiteur.matieres
+    if (repetiteur?.matieres && Array.isArray(repetiteur.matieres)) {
+      return repetiteur.matieres;
+    }
+    
+    // Si les matières sont dans repetiteur.repetiteur.matieres
+    if (repetiteur?.repetiteur?.matieres && Array.isArray(repetiteur.repetiteur.matieres)) {
+      return repetiteur.repetiteur.matieres;
+    }
+    
+    // Si c'est une relation many-to-many via matiere_repetiteur
+    if (repetiteur?.matiere_repetiteur && Array.isArray(repetiteur.matiere_repetiteur)) {
+      return repetiteur.matiere_repetiteur.map(mr => mr.matiere).filter(Boolean);
+    }
+    
+    return [];
+  };
+
+  const matieres = getMatieres();
 
   return (
     <div className="bg-white rounded-xl shadow-md p-5 flex flex-col h-full transition hover:shadow-lg">
       {/* Photo & Nom */}
       <div className="flex items-center gap-4 mb-4">
         <img
-          src={repetiteur.repetiteur.photo || icon}
+          src={repetiteur.repetiteur?.photo || icon}
           alt={`${repetiteur?.prenom || ""} ${repetiteur?.nom || ""}`}
           className="w-16 h-16 rounded-full object-cover border"
           onError={(e) => {
-            e.target.src = icon; // Fallback si l'image ne charge pas
+            e.target.src = icon;
           }}
         />
         <div>
@@ -57,75 +93,58 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
       </div>
 
       <div className="">
-        {/* Matières */}
-        <div className="mb-3">
-          <p className="text-sm font-medium text-gray-700 mb-1">Matières</p>
-          <div className="flex flex-wrap gap-2">
-            {repetiteur.matieres?.length > 0 ? (
-              repetiteur.matieres.map((mr) => (
-                <span
-                  key={mr.matiere_id}
-                  className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
-                >
-                  {mr.matiere.nom}
-                </span>
-              ))
-            ) : (
-              <span className="text-xs text-gray-400">Non renseignées</span>
-            )}
-          </div>
-        </div>
-
-        {/* Cours */}
+        {/* MATIÈRES */}
         {/* <div className="mb-3">
-          <p className="text-sm font-medium text-gray-700 mb-1">Cours </p>
+          <p className="text-sm font-medium text-gray-700 mb-1">Matières enseignées</p>
           <div className="flex flex-wrap gap-2">
-            {repetiteur.repetiteur.cours?.length > 0 ? (
-              repetiteur.repetiteur.cours.map((cours, index) => (
+            {matieres.length > 0 ? (
+              matieres.map((matiere, index) => (
                 <span
-                  key={index}
+                  key={matiere.id || index}
                   className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
                 >
-                  {cours.matiere?.nom || cours.matiere}
+                  {matiere.nom}
                 </span>
               ))
             ) : (
-              <span className="text-xs text-gray-400">Non renseignées</span>
+              <span className="text-xs text-gray-400">
+                {repetiteur.repetiteur?.matiere_principale || "Matières non spécifiées"}
+              </span>
             )}
           </div>
         </div> */}
 
-        {/* Classe_College */}
-        <div className="mb-3">
-          <p className="text-sm font-medium text-gray-700 mb-1">
-            Classe Collège :
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {repetiteur.repetiteur.classes_college?.length > 0 ? (
-              repetiteur.repetiteur.classes_college.map(
-                (classes_college, index) => (
+        {/* Classes Collège */}
+        {repetiteur.repetiteur?.niveau_principal === "college/lycee" && (
+          <div className="mb-3">
+            <p className="text-sm font-medium text-gray-700 mb-1">
+              Classes Collège :
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {getClassesCollege().length > 0 ? (
+                getClassesCollege().map((classe, index) => (
                   <span
                     key={index}
-                    className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
+                    className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full"
                   >
-                    {classes_college.matiere?.nom || classes_college}
+                    {classe}
                   </span>
-                )
-              )
-            ) : (
-              <span className="text-xs text-gray-400">Non renseignées</span>
-            )}
+                ))
+              ) : (
+                <span className="text-xs text-gray-400">Non renseignées</span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* biographie */}
+      {/* Biographie */}
       <div className="mb-3">
         <p className="text-sm font-medium text-gray-700 mb-1">Biographie :</p>
         <div>
-          <h3 className="text-sm ">
-            {repetiteur.repetiteur.biographie || "Aucune biographie fournie"}
-          </h3>
+          <p className="text-sm text-gray-600 line-clamp-3">
+            {repetiteur.repetiteur?.biographie || "Aucune biographie fournie"}
+          </p>
         </div>
       </div>
 
@@ -138,12 +157,36 @@ export default function ProfesseurCard({ repetiteur, note = 0 }) {
       </div>
 
       {/* Tarif horaire */}
-      {repetiteur.tarif_horaire && (
+      {repetiteur.repetiteur?.tarif_horaire && (
         <div className="mb-3">
           <p className="text-sm font-medium text-gray-700 mb-1">Tarif :</p>
-          <p className="text-sm">{repetiteur.tarif_horaire} fcfa/h</p>
+          <p className="text-sm font-semibold text-green-600">
+            {repetiteur.repetiteur.tarif_horaire} fcfa/h
+          </p>
         </div>
       )}
+
+      {/* Rayon d'intervention */}
+      {repetiteur.repetiteur?.rayon_intervention && (
+        <div className="mb-3">
+          <p className="text-sm font-medium text-gray-700 mb-1">Rayon :</p>
+          <p className="text-sm text-gray-600">
+            {repetiteur.repetiteur.rayon_intervention} km
+          </p>
+        </div>
+      )}
+
+      {/* Statut vérification */}
+      <div className="mb-3">
+        <p className="text-sm font-medium text-gray-700 mb-1">Statut :</p>
+        <span className={`text-xs px-2 py-1 rounded-full ${
+          repetiteur.repetiteur?.statut_verif === "verifie" 
+            ? "bg-green-100 text-green-800" 
+            : "bg-yellow-100 text-yellow-800"
+        }`}>
+          {repetiteur.repetiteur?.statut_verif === "verifie" ? "✓ Vérifié" : "En attente"}
+        </span>
+      </div>
 
       {/* Bouton */}
       <div className="mt-auto">
